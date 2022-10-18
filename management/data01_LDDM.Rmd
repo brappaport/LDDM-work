@@ -1,0 +1,105 @@
+---
+title: "Data prep script 1: Importing behavioral data"
+author: "Brent Rappaport"
+date: "`r format(Sys.time(),  '%Y-%m-%d')`"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+subtitle: Template Rmd
+editor_options:
+  chunk_output_type: console
+toc: yes
+---
+
+# About
+This script imports and merges the self-report data from the Flanker task of the State-Trait study
+
+# 1. Get Setup
+## 1.1. Clear everything & set width
+```{r echo=TRUE, results='hide', message=FALSE}
+    options(width=80) #Set width
+    rm(list=ls())     #Remove everything from environment
+    cat("\014")       #Clear Console
+```
+
+## 1.2. Load Libraries
+```{r echo=TRUE, results='hide', message=FALSE}
+  renv::restore()     #restore environment
+  library(knitr)      #allows rmarkdown files
+  library(haven)      #helps import stata
+  library(questionr)  #allows lookfor function
+  library(tidyverse)  #plotting/cleaning, etc.
+  library(broom)      #nice statistical output
+  library(here)       #nice file paths
+  library(expss)      #labeling variables/values
+  library(psych)      #used for statistical analyses
+  library(ggplot2)    #creates plots
+  library(workflowr)  #helps with workflow
+```
+
+## 1.3. Get the Working Directory
+```{r}
+  here()
+```
+
+## 1.4. Set seed
+```{r}
+     set.seed(312)    #Set seed
+```
+
+## 1.5 Load Data
+Remember to immediately rename and remove. Avoid overwriting old data.
+```{r}
+LDDM_cleaning01_s1 <- read.csv("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/DDM_Trialwise_Prepped/Old/StTr_S1_ERN_HDDM_data_acc_coded.csv")
+LDDM_cleaning01_s2 <- read.csv("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/DDM_Trialwise_Prepped/Old/StTr_S2_ERN_HDDM_data_acc_coded.csv")
+LDDM_cleaning01_s3 <- read.csv("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/DDM_Trialwise_Prepped/Old/StTr_S3_ERN_HDDM_data_acc_coded.csv")
+LDDM_cleaning01_s4 <- read.csv("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/DDM_Trialwise_Prepped/Old/StTr_S4_ERN_HDDM_data_acc_coded.csv")
+LDDM_cleaning01_s5 <- read.csv("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/DDM_Trialwise_Prepped/Old/StTr_S5_ERN_HDDM_data_acc_coded.csv")
+
+# LDDM_cleaning01 <- LDDM_cleaning01_s1 %>%
+#     left_join(LDDM_cleaning01_s2, by='subj_idx') %>%
+#     left_join(LDDM_cleaning01_s3, by='subj_idx') %>%
+#     left_join(LDDM_cleaning01_s4, by='subj_idx') %>%
+#     left_join(LDDM_cleaning01_s5, by='subj_idx')
+
+# save(STIB_cleaning02, file="./data/STIB_cleaning02.RData")
+```
+
+# Accuracy per day
+```{r}
+for (time in 1:5) {
+  eval(parse(text=paste0("LDDM_cleaning02_s", time, " <- LDDM_cleaning01_s", time, " %>%
+    group_by(subj_idx, stim) %>%
+    summarise(accuracy = sum(response==1)/sum(response==0 | response==1))")))
+  print(eval(parse(text=paste0("sum(LDDM_cleaning02_s", time, "$accuracy<=0.5)"))))
+  print(eval(parse(text=paste0("LDDM_cleaning02_s", time, "$subj_idx[LDDM_cleaning02_s", time, "$accuracy<=0.5]"))))
+}
+
+LDDM_cleaning02_s5$subj_idx[LDDM_cleaning02_s5$accuracy<=0.5]
+LDDM_cleaning02_s1$accuracy[LDDM_cleaning02_s1$subj_idx==71]
+LDDM_cleaning02_s2$accuracy[LDDM_cleaning02_s2$subj_idx==71]
+LDDM_cleaning02_s3$accuracy[LDDM_cleaning02_s3$subj_idx==71]
+LDDM_cleaning02_s4$accuracy[LDDM_cleaning02_s4$subj_idx==71]
+LDDM_cleaning02_s5$accuracy[LDDM_cleaning02_s5$subj_idx==71]
+
+LDDM_cleaning02_s5$accuracy[LDDM_cleaning02_s5$subj_idx==72]
+```
+
+# Reaction timee
+```{r}
+hist(LDDM_cleaning01_s1[-611,]$rt)
+
+LDDM_cleaning02_s1 <- LDDM_cleaning01_s1 %>%
+  filter(rt < 999)
+```
+
+
+
+# 2 Closing out
+  In this step, go ahead and close out of the file and quit R without saving  
+  the work space.
+```{r}
+   renv::snapshot()   #Take a snapshot of environment
+```
+

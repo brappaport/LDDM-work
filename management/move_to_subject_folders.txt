@@ -1,0 +1,7 @@
+# move all files into corresponding subject specific folders
+for file in *.cnt; do
+    base=$(awk -F[_s] '{print $4}' <<< "$file")
+    dir="${base}"
+    mkdir -p "$dir"
+    mv "$file" "$dir"
+done
