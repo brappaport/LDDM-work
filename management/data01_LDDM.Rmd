@@ -94,12 +94,12 @@ LDDM_cleaning02_s1 <- LDDM_cleaning01_s1 %>%
   filter(rt < 999)
 ```
 
-
-
 # 2 Closing out
   In this step, go ahead and close out of the file and quit R without saving  
   the work space.
 ```{r}
+save(LDDM_cleaning02_s1, file="./data/LDDM_cleaning02_s1.RData")
+
    renv::snapshot()   #Take a snapshot of environment
 ```
 
