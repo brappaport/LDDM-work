@@ -29,6 +29,7 @@ This script imports and merges the self-report data from the Flanker task of the
   library(knitr)      #allows rmarkdown files
   library(haven)      #helps import stata
   library(questionr)  #allows lookfor function
+  library(MASS)       #calculate residualized scores
   library(tidyverse)  #plotting/cleaning, etc.
   library(broom)      #nice statistical output
   library(here)       #nice file paths
@@ -50,8 +51,8 @@ This script imports and merges the self-report data from the Flanker task of the
 ## 1.5 Load Data
 Remember to immediately rename and remove. Avoid overwriting old data.
 ```{r}
-load("./data/LDDM_cleaning02_s1.RData")
-LDDM_cleaning02_s1$ID <- LDDM_cleaning02_s1$subj_idx
+LDDM_cleaning02_DDM <- read.csv("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/DDM_Results/Flanker_StTr_S1_Blocks_acc_avtz_DO_v.csv")
+LDDM_cleaning02_DDM$ID <- LDDM_cleaning02_DDM$id
 
 LDDM_cleaning02_frac_prak_latency <- read.csv("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/eeg_processing/erppath/frac_peak_latency_p3_200800.csv")[,1:14]
 LDDM_cleaning02_frac_prak_latency <- LDDM_cleaning02_frac_prak_latency %>% 
@@ -69,7 +70,7 @@ LDDM_cleaning02_erp <- LDDM_cleaning02_frac_prak_latency %>%
   left_join(LDDM_cleaning02_mean_amplitude_ERN_CRN_080, by=c('ID','Session')) %>%
   left_join(LDDM_cleaning02_mean_amplitude_ERN_CRN_0100, by=c('ID','Session'))
 
-LDDM_cleaning02 <- LDDM_cleaning02_s1 %>%
+LDDM_cleaning02 <- LDDM_cleaning02_DDM %>%
   left_join(LDDM_cleaning02_erp, by='ID')
 
 save(LDDM_cleaning02, file="./data/LDDM_cleaning02.RData")
@@ -77,29 +78,33 @@ save(LDDM_cleaning02, file="./data/LDDM_cleaning02.RData")
 
 # 2. Create residualized scores
 ```{r}
-electrodes_list <- c("Fz","Cz","FCz","CPz","Pz","POz")
-ern_condition_list <- c("correct","error")
+LDDM_cleaning03 <- LDDM_cleaning02
+
+colnames(LDDM_cleaning03) <- sub('bin5_|bin7_|bin3_|bin4_', '', colnames(LDDM_cleaning03))
+colnames(LDDM_cleaning03) <- sub('Congruent_arrow_followed_by_correct', 'Congruent', colnames(LDDM_cleaning03))
+colnames(LDDM_cleaning03) <- sub('Incongruent_arrow_followed_by_correct', 'Incongruent', colnames(LDDM_cleaning03))
+colnames(LDDM_cleaning03) <- sub('__', '_', colnames(LDDM_cleaning03))
+
+electrodes_list <- c("FZ","CZ","FCZ","CPZ","PZ","POZ")
+time_windows <- c("080","0100")
 
 for (ex in electrodes_list[1:3]){ 
-  for (con in ern_condition_list){
-    for (day in 1:5){
-  eval(parse(text=paste0("LDDM_cleaning02$",ex,"_",con,"_d",day," <- ifelse(LDDM_cleaning02$ERN_Qual_D",day,"==1, LDDM_cleaning02$",ex,"_",con,"_0_80_s",day,", NA)"))) 
-    }
+  for (tw in time_windows){ 
+    eval(parse(text=paste0('LDDM_cleaning03$',ex,'_ERN_',tw,' <- stdres(lm(Error_',ex,'_',tw,' ~ Correct_',ex,'_',tw,', LDDM_cleaning03, na.action=na.exclude))')))
   }
 }
 
-for (day in 1:5){ 
-  for (ex in electrodes_list[1:3]){ 
-    eval(parse(text=paste0("LDDM_cleaning02$",ex,"_ERN_d",day," <- stdres(lm(",ex,"_error_d",day," ~ ",ex,"_correct_d",day,", LDDM_cleaning02, na.action=na.exclude))"))) 
-  }
-  print(eval(parse(text=paste0("sum(!is.na(LDDM_cleaning02$Fz_ERN_d",day,"))"))))
-}
+# for (ex in electrodes_list[4:6]){ 
+#     eval(parse(text=paste0('LDDM_cleaning03$',ex,'_P3_onset <- stdres(lm(Incongruent_',ex,'_fpl ~ Congruent_',ex,'_fpl, LDDM_cleaning03, na.action=na.exclude))')))
+# }
 ```
 
 # 3. Closing out
   In this step, go ahead and close out of the file and quit R without saving  
   the work space.
 ```{r}
+save(LDDM_cleaning03, file="./data/LDDM_cleaning03.RData")
+
    renv::snapshot()   #Take a snapshot of environment
 ```
 
