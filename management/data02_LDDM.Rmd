@@ -78,7 +78,7 @@ save(LDDM_cleaning02, file=here("./data/LDDM_cleaning02.RData"))
 
 ### 1.5.1 Non-DMM Flanker behavioral scores
 ```{r}
-LDDM_cleaning02_rt <- read_sav("./data/**STTR_master_6.6.18_clean_ERN_PE_LPPbehav**.sav")
+LDDM_cleaning02_rt <- read_sav(here("./data/**STTR_master_6.6.18_clean_ERN_PE_LPPbehav**.sav"))
 LDDM_cleaning02_rt <-  LDDM_cleaning02_rt %>%
   select("ID",matches("Correct|Errors")) %>%
   select(-matches('neut|mut|erot'))

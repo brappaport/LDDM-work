@@ -202,10 +202,12 @@ LDDM_cleaning04_d1_calc3 <- LDDM_cleaning04_d1_calc1 %>%
   full_join(LDDM_cleaning04_d1_calc2, by='subj_idx') %>%
   group_by(subj_idx) %>% # per subject
   mutate(total_accuracy_perc = sum(response==1)/length(response)) %>% # compute total accuracy percentage
-  summarise(flanker_score_list_d1 = if_else(total_accuracy_perc>=0.8, accuracy_score+rt_score, accuracy_score)) %>%# if accuracy is above 80% then add accuracy and rt flanker scores, if not base the flanker score only on accuracy
-  transmute(ID=subj_idx, flanker_score_list_d1=flanker_score_list_d1) %>%
+  summarise(flanker_score_list_d1 = if_else(total_accuracy_perc>=0.8, accuracy_score+rt_score, accuracy_score),
+            accuracy = mean(total_accuracy_perc)) %>%# if accuracy is above 80% then add accuracy and rt flanker scores, if not base the flanker score only on accuracy
+  transmute(ID=subj_idx, flanker_score_list_d1=flanker_score_list_d1, accuracy=accuracy) %>%
   group_by(ID) %>% # per subject
-  summarise(flanker_score_d1 = mean(flanker_score_list_d1))
+  summarise(flanker_score_d1 = mean(flanker_score_list_d1),
+            accuracy = mean(accuracy))
 ```
 
 ## 3.2 Day 2
@@ -237,104 +239,106 @@ LDDM_cleaning04_d2_calc3 <- LDDM_cleaning04_d2_calc1 %>%
   full_join(LDDM_cleaning04_d2_calc2, by='subj_idx') %>%
   group_by(subj_idx) %>% # per subject
   mutate(total_accuracy_perc = sum(response==1)/length(response)) %>% # compute total accuracy percentage
-  summarise(flanker_score_list_d2 = if_else(total_accuracy_perc>=0.8, accuracy_score+rt_score, accuracy_score)) %>%# if accuracy is above 80% then add accuracy and rt flanker scores, if not base the flanker score only on accuracy
-  transmute(ID=subj_idx, flanker_score_list_d2=flanker_score_list_d2) %>%
+  summarise(flanker_score_list_d2 = if_else(total_accuracy_perc>=0.8, accuracy_score+rt_score, accuracy_score),
+            accuracy = mean(total_accuracy_perc)) %>%# if accuracy is above 80% then add accuracy and rt flanker scores, if not base the flanker score only on accuracy
+  transmute(ID=subj_idx, flanker_score_list_d2=flanker_score_list_d2, accuracy=accuracy) %>%
   group_by(ID) %>% # per subject
-  summarise(flanker_score_d2 = mean(flanker_score_list_d2))
+  summarise(flanker_score_d2 = mean(flanker_score_list_d2),
+            accuracy = mean(accuracy))
 ```
 
 ## 3.3 Analyses
 ### Day 1
 ```{r}
-LDDM_do1_d1 <- LDDM_do1_d1 %>%
+LDDM_do2_d1 <- LDDM_do1_d1 %>%
   left_join(LDDM_do1_rt, by="ID") %>%
   left_join(LDDM_cleaning04_d1_calc3, by="ID")
 
 # ERN
 ## RT
-summary(lm(FCZ_ERN_080 ~ v_congruent_S1_B11 + Avg_RT_Correct_Day1 + accuracy_d1, LDDM_do2_d1))
-summary(lm(FCZ_ERN_080 ~ v_incongruent_S1_B11 + Avg_RT_Correct_Day1 + accuracy_d1, LDDM_do2_d1))
+summary(lm(FCZ_ERN_080 ~ v_congruent_S1_B11 + Avg_RT_Correct_Day1 + accuracy, LDDM_do2_d1))
+summary(lm(FCZ_ERN_080 ~ v_incongruent_S1_B11 + Avg_RT_Correct_Day1 + accuracy, LDDM_do2_d1))
 
-summary(lm(FCZ_ERN_080 ~ v_congruent_S1_B11 + Avg_RT_Errors_D1 + accuracy_d1, LDDM_do2_d1))
-summary(lm(FCZ_ERN_080 ~ v_incongruent_S1_B11 + Avg_RT_Errors_D1 + accuracy_d1, LDDM_do2_d1))
+summary(lm(FCZ_ERN_080 ~ v_congruent_S1_B11 + Avg_RT_Errors_D1 + accuracy, LDDM_do2_d1))
+summary(lm(FCZ_ERN_080 ~ v_incongruent_S1_B11 + Avg_RT_Errors_D1 + accuracy, LDDM_do2_d1))
 
 corr.test(LDDM_do2_d1$Avg_RT_Correct_Day1, LDDM_do2_d1$v_congruent_S1_B11, use="complete.obs", method="pearson")
 corr.test(LDDM_do2_d1$Avg_RT_Errors_D1, LDDM_do2_d1$v_congruent_S1_B11, use="complete.obs", method="pearson")
-corr.test(LDDM_do2_d1$accuracy_d1, LDDM_do2_d1$v_congruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d1$accuracy, LDDM_do2_d1$v_congruent_S1_B11, use="complete.obs", method="pearson")
 corr.test(LDDM_do2_d1$Avg_RT_Correct_Day1, LDDM_do2_d1$v_incongruent_S1_B11, use="complete.obs", method="pearson")
 corr.test(LDDM_do2_d1$Avg_RT_Errors_D1, LDDM_do2_d1$v_incongruent_S1_B11, use="complete.obs", method="pearson")
-corr.test(LDDM_do2_d1$accuracy_d1, LDDM_do2_d1$v_incongruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d1$accuracy, LDDM_do2_d1$v_incongruent_S1_B11, use="complete.obs", method="pearson")
 
 ## Flanker score
-summary(lm(FCZ_ERN_080 ~ v_congruent_S1_B11 + flanker_score, LDDM_do2_d1))
-summary(lm(FCZ_ERN_080 ~ v_incongruent_S1_B11 + flanker_score, LDDM_do2_d1))
+summary(lm(FCZ_ERN_080 ~ v_congruent_S1_B11 + flanker_score_d1, LDDM_do2_d1))
+summary(lm(FCZ_ERN_080 ~ v_incongruent_S1_B11 + flanker_score_d1, LDDM_do2_d1))
 
-corr.test(LDDM_do2_d1$flanker_score, LDDM_do2_d1$v_congruent_S1_B11, use="complete.obs", method="pearson")
-corr.test(LDDM_do2_d1$flanker_score, LDDM_do2_d1$v_incongruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d1$flanker_score_d1, LDDM_do2_d1$v_congruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d1$flanker_score_d1, LDDM_do2_d1$v_incongruent_S1_B11, use="complete.obs", method="pearson")
 
 # P3
 ## RT
-summary(lm(Congruent_PZ_fpl ~ a_S1_B11 + Avg_RT_Correct_Day1 + accuracy_d1, LDDM_do2_d1))
-summary(lm(Incongruent_PZ_fpl ~ a_S1_B11 + Avg_RT_Correct_Day1 + accuracy_d1, LDDM_do2_d1))
+summary(lm(Congruent_PZ_fpl ~ a_S1_B11 + Avg_RT_Correct_Day1 + accuracy, LDDM_do2_d1))
+summary(lm(Incongruent_PZ_fpl ~ a_S1_B11 + Avg_RT_Correct_Day1 + accuracy, LDDM_do2_d1))
 
-summary(lm(Congruent_PZ_fpl ~ a_S1_B11 + Avg_RT_Errors_D1 + accuracy_d1, LDDM_do2_d1))
-summary(lm(Incongruent_PZ_fpl ~ a_S1_B11 + Avg_RT_Errors_D1 + accuracy_d1, LDDM_do2_d1))
+summary(lm(Congruent_PZ_fpl ~ a_S1_B11 + Avg_RT_Errors_D1 + accuracy, LDDM_do2_d1))
+summary(lm(Incongruent_PZ_fpl ~ a_S1_B11 + Avg_RT_Errors_D1 + accuracy, LDDM_do2_d1))
 
 corr.test(LDDM_do2_d1$Avg_RT_Correct_Day1, LDDM_do2_d1$a_S1_B11, use="complete.obs", method="pearson")
-corr.test(LDDM_do2_d1$accuracy_d1, LDDM_do2_d1$a_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d1$accuracy, LDDM_do2_d1$a_S1_B11, use="complete.obs", method="pearson")
 
 ## Flanker score
-summary(lm(Congruent_PZ_fpl ~ a_S1_B11 + flanker_score, LDDM_do2_d1))
-summary(lm(Incongruent_PZ_fpl ~ a_S1_B11 + flanker_score, LDDM_do2_d1))
+summary(lm(Congruent_PZ_fpl ~ a_S1_B11 + flanker_score_d1, LDDM_do2_d1))
+summary(lm(Incongruent_PZ_fpl ~ a_S1_B11 + flanker_score_d1, LDDM_do2_d1))
 
-corr.test(LDDM_do2_d1$flanker_score, LDDM_do2_d1$a_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d1$flanker_score_d1, LDDM_do2_d1$a_S1_B11, use="complete.obs", method="pearson")
 ```
 DDM parameters largely do not explain significant variance over-and-above average RT and accuracy (0.125*correct responses), though this is likely due to considerable covariation between DDM parameters and RT/accuracy. They do explain variance over-and-above a typical "flanker score" that incorporates accuracy and RT info in a summed score.
 
 ### Day 2
-```{r}
-LDDM_do1_d2 <- LDDM_do1_d2 %>%
+```{r eval=F}
+LDDM_do2_d2 <- LDDM_do1_d2 %>%
   left_join(LDDM_do1_rt, by="ID") %>%
   left_join(LDDM_cleaning04_d2_calc3, by="ID")
 
 # ERN
 ## RT
-summary(lm(FCZ_ERN_080 ~ v_congruent_S1_B11 + Avg_RT_Correct_Day1 + accuracy_d1, LDDM_do2_d1))
-summary(lm(FCZ_ERN_080 ~ v_incongruent_S1_B11 + Avg_RT_Correct_Day1 + accuracy_d1, LDDM_do2_d1))
+summary(lm(FCZ_ERN_080 ~ v_congruent_S1_B11 + Avg_RT_Correct_Day1 + accuracy, LDDM_do2_d2))
+summary(lm(FCZ_ERN_080 ~ v_incongruent_S1_B11 + Avg_RT_Correct_Day1 + accuracy, LDDM_do2_d2))
 
-summary(lm(FCZ_ERN_080 ~ v_congruent_S1_B11 + Avg_RT_Errors_D1 + accuracy_d1, LDDM_do2_d1))
-summary(lm(FCZ_ERN_080 ~ v_incongruent_S1_B11 + Avg_RT_Errors_D1 + accuracy_d1, LDDM_do2_d1))
+summary(lm(FCZ_ERN_080 ~ v_congruent_S1_B11 + Avg_RT_Errors_D1 + accuracy, LDDM_do2_d2))
+summary(lm(FCZ_ERN_080 ~ v_incongruent_S1_B11 + Avg_RT_Errors_D1 + accuracy, LDDM_do2_d2))
 
-corr.test(LDDM_do2_d1$Avg_RT_Correct_Day1, LDDM_do2_d1$v_congruent_S1_B11, use="complete.obs", method="pearson")
-corr.test(LDDM_do2_d1$Avg_RT_Errors_D1, LDDM_do2_d1$v_congruent_S1_B11, use="complete.obs", method="pearson")
-corr.test(LDDM_do2_d1$accuracy_d1, LDDM_do2_d1$v_congruent_S1_B11, use="complete.obs", method="pearson")
-corr.test(LDDM_do2_d1$Avg_RT_Correct_Day1, LDDM_do2_d1$v_incongruent_S1_B11, use="complete.obs", method="pearson")
-corr.test(LDDM_do2_d1$Avg_RT_Errors_D1, LDDM_do2_d1$v_incongruent_S1_B11, use="complete.obs", method="pearson")
-corr.test(LDDM_do2_d1$accuracy_d1, LDDM_do2_d1$v_incongruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d2$Avg_RT_Correct_Day1, LDDM_do2_d2$v_congruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d2$Avg_RT_Errors_D1, LDDM_do2_d2$v_congruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d2$accuracy, LDDM_do2_d2$v_congruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d2$Avg_RT_Correct_Day1, LDDM_do2_d2$v_incongruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d2$Avg_RT_Errors_D1, LDDM_do2_d2$v_incongruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d2$accuracy, LDDM_do2_d2$v_incongruent_S1_B11, use="complete.obs", method="pearson")
 
 ## Flanker score
-summary(lm(FCZ_ERN_080 ~ v_congruent_S1_B11 + flanker_score, LDDM_do2_d1))
-summary(lm(FCZ_ERN_080 ~ v_incongruent_S1_B11 + flanker_score, LDDM_do2_d1))
+summary(lm(FCZ_ERN_080 ~ v_congruent_S1_B11 + flanker_score_d2, LDDM_do2_d2))
+summary(lm(FCZ_ERN_080 ~ v_incongruent_S1_B11 + flanker_score_d2, LDDM_do2_d2))
 
-corr.test(LDDM_do2_d1$flanker_score, LDDM_do2_d1$v_congruent_S1_B11, use="complete.obs", method="pearson")
-corr.test(LDDM_do2_d1$flanker_score, LDDM_do2_d1$v_incongruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d2$flanker_score_d2, LDDM_do2_d2$v_congruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d2$flanker_score_d2, LDDM_do2_d2$v_incongruent_S1_B11, use="complete.obs", method="pearson")
 
 # P3
 ## RT
-summary(lm(Congruent_PZ_fpl ~ a_S1_B11 + Avg_RT_Correct_Day1 + accuracy_d1, LDDM_do2_d1))
-summary(lm(Incongruent_PZ_fpl ~ a_S1_B11 + Avg_RT_Correct_Day1 + accuracy_d1, LDDM_do2_d1))
+summary(lm(Congruent_PZ_fpl ~ a_S1_B11 + Avg_RT_Correct_Day1 + accuracy, LDDM_do2_d2))
+summary(lm(Incongruent_PZ_fpl ~ a_S1_B11 + Avg_RT_Correct_Day1 + accuracy, LDDM_do2_d2))
 
-summary(lm(Congruent_PZ_fpl ~ a_S1_B11 + Avg_RT_Errors_D1 + accuracy_d1, LDDM_do2_d1))
-summary(lm(Incongruent_PZ_fpl ~ a_S1_B11 + Avg_RT_Errors_D1 + accuracy_d1, LDDM_do2_d1))
+summary(lm(Congruent_PZ_fpl ~ a_S1_B11 + Avg_RT_Errors_D1 + accuracy, LDDM_do2_d2))
+summary(lm(Incongruent_PZ_fpl ~ a_S1_B11 + Avg_RT_Errors_D1 + accuracy, LDDM_do2_d2))
 
-corr.test(LDDM_do2_d1$Avg_RT_Correct_Day1, LDDM_do2_d1$a_S1_B11, use="complete.obs", method="pearson")
-corr.test(LDDM_do2_d1$accuracy_d1, LDDM_do2_d1$a_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d2$Avg_RT_Correct_Day1, LDDM_do2_d2$a_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d2$accuracy, LDDM_do2_d2$a_S1_B11, use="complete.obs", method="pearson")
 
 ## Flanker score
-summary(lm(Congruent_PZ_fpl ~ a_S1_B11 + flanker_score, LDDM_do2_d1))
-summary(lm(Incongruent_PZ_fpl ~ a_S1_B11 + flanker_score, LDDM_do2_d1))
+summary(lm(Congruent_PZ_fpl ~ a_S1_B11 + flanker_score_d2, LDDM_do2_d2))
+summary(lm(Incongruent_PZ_fpl ~ a_S1_B11 + flanker_score_d2, LDDM_do2_d2))
 
-corr.test(LDDM_do2_d1$flanker_score, LDDM_do2_d1$a_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d2$flanker_score_d2, LDDM_do2_d2$a_S1_B11, use="complete.obs", method="pearson")
 ```
 
 # Replicate effects in Day 2
