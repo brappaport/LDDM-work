@@ -73,7 +73,16 @@ LDDM_cleaning02_erp <- LDDM_cleaning02_frac_prak_latency %>%
 LDDM_cleaning02 <- LDDM_cleaning02_DDM %>%
   left_join(LDDM_cleaning02_erp, by='ID')
 
-save(LDDM_cleaning02, file="./data/LDDM_cleaning02.RData")
+save(LDDM_cleaning02, file=here("./data/LDDM_cleaning02.RData"))
+```
+
+### 1.5.1 Non-DMM Flanker behavioral scores
+```{r}
+LDDM_cleaning02_rt <- read_sav("./data/**STTR_master_6.6.18_clean_ERN_PE_LPPbehav**.sav")
+LDDM_cleaning02_rt <-  LDDM_cleaning02_rt %>%
+  select("ID",matches("Correct|Errors")) %>%
+  select(-matches('neut|mut|erot'))
+save(LDDM_cleaning02_rt, file="./data/LDDM_cleaning02_rt.RData")
 ```
 
 # 2. Create residualized scores
@@ -99,11 +108,23 @@ for (ex in electrodes_list[1:3]){
 # }
 ```
 
-# 3. Closing out
+# 3. Select only days 1 and 2
+```{r}
+LDDM_cleaning03_d1 <- LDDM_cleaning03 %>%
+  filter(Session==1)
+
+LDDM_cleaning03_d2 <- LDDM_cleaning03 %>%
+  filter(Session==2)
+```
+
+
+# 4. Closing out
   In this step, go ahead and close out of the file and quit R without saving  
   the work space.
 ```{r}
-save(LDDM_cleaning03, file="./data/LDDM_cleaning03.RData")
+save(LDDM_cleaning03, file=here("./data/LDDM_cleaning03.RData"))
+save(LDDM_cleaning03_d1, file=here("./data/LDDM_cleaning03_d1.RData"))
+save(LDDM_cleaning03_d2, file=here("./data/LDDM_cleaning03_d2.RData"))
 
    renv::snapshot()   #Take a snapshot of environment
 ```
