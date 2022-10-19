@@ -1,0 +1,378 @@
+---
+title: "Data analysis script 1: Preliminary ERP to DDM concordance"
+author: "Brent Rappaport"
+date: "`r format(Sys.time(),  '%Y-%m-%d')`"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+subtitle: Template Rmd
+editor_options:
+  chunk_output_type: console
+toc: yes
+---
+
+# About
+This script imports and merges the self-report data from the Flanker task of the State-Trait study
+
+# 1. Get Setup
+## 1.1. Clear everything & set width
+```{r echo=TRUE, results='hide', message=FALSE}
+    options(width=80, Ncpus = 6) #Set width
+    rm(list=ls())     #Remove everything from environment
+    cat("\014")       #Clear Console
+```
+
+## 1.2. Load Libraries
+```{r echo=TRUE, results='hide', message=FALSE}
+  renv::restore()     #restore environment
+  library(knitr)      #allows rmarkdown files
+  library(haven)      #helps import stata
+  library(questionr)  #allows lookfor function
+  library(MASS)       #calculate residualized scores
+  library(tidyverse)  #plotting/cleaning, etc.
+  library(broom)      #nice statistical output
+  library(here)       #nice file paths
+  library(expss)      #labeling variables/values
+  library(psych)      #used for statistical analyses
+  library(papaja)
+  library(workflowr)  #helps with workflow
+```
+
+## 1.3. Get the Working Directory
+```{r}
+  here()
+```
+
+## 1.4. Set seed
+```{r}
+     set.seed(312)    #Set seed
+```
+
+## 1.5 Load Data
+Remember to immediately rename and remove. Avoid overwriting old data.
+```{r}
+load(file=here("./data/LDDM_cleaning03.RData"))
+LDDM_do1 <- LDDM_cleaning03; rm(LDDM_cleaning03)
+
+load(file=here("./data/LDDM_cleaning03_d1.RData"))
+LDDM_do1_d1 <- LDDM_cleaning03_d1; rm(LDDM_cleaning03_d1)
+
+load(file=here("./data/LDDM_cleaning03_d2.RData"))
+LDDM_do1_d2 <- LDDM_cleaning03_d2; rm(LDDM_cleaning03_d2)
+
+load(file=here("./data/LDDM_cleaning02_rt.RData"))
+LDDM_do1_rt <- LDDM_cleaning02_rt; rm(LDDM_cleaning02_rt)
+```
+
+# 2. Correlation between ERP measures and DDM parameters
+Threshold = z
+Drift rate = v
+Decision boundary separation = a
+Non-decision time = t
+
+Per Allie, larger values of v mean faster accumulation of evidence (faster rate), larger t means slower non-decision time processing, larger a means more separation between the correct and incorrect response boundaries, and z is the distance from the upper boundary to the start of the drift process. 
+
+## 2.1 ERN mean amplitude
+```{r}
+corr.test(LDDM_do1_d1$FCZ_ERN_080, LDDM_do1_d1$z_S1_B11, use="complete.obs", method="pearson")$r
+# corr.test(LDDM_do1_d1$FCZ_ERN_0100, LDDM_do1_d1$z_S1_B11, use="complete.obs", method="pearson")
+
+corr.test(LDDM_do1_d1$FCZ_ERN_080, LDDM_do1_d1$v_congruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do1_d1$FCZ_ERN_080, LDDM_do1_d1$v_incongruent_S1_B11, use="complete.obs", method="pearson")
+# corr.test(LDDM_do1_d1$FCZ_ERN_0100, LDDM_do1_d1$v_congruent_S1_B11, use="complete.obs", method="pearson")
+# corr.test(LDDM_do1_d1$FCZ_ERN_0100, LDDM_do1_d1$v_incongruent_S1_B11, use="complete.obs", method="pearson")
+
+corr.test(LDDM_do1_d1$FCZ_ERN_080, LDDM_do1_d1$a_S1_B11, use="complete.obs", method="pearson")
+# corr.test(LDDM_do1_d1$FCZ_ERN_0100, LDDM_do1_d1$a_S1_B11, use="complete.obs", method="pearson")
+
+corr.test(LDDM_do1_d1$FCZ_ERN_080, LDDM_do1_d1$t_S1_B11, use="complete.obs", method="pearson")
+# corr.test(LDDM_do1_d1$FCZ_ERN_0100, LDDM_do1_d1$t_S1_B11, use="complete.obs", method="pearson")
+
+ERN_table <- data.frame(parameters= c("z", "v_congruent", "v_incongruent", "a", "t"), 
+                        r= c(corr.test(LDDM_do1_d1$FCZ_ERN_080, LDDM_do1_d1$z_S1_B11)$r,
+                             corr.test(LDDM_do1_d1$FCZ_ERN_080, LDDM_do1_d1$v_congruent_S1_B11)$r,
+                             corr.test(LDDM_do1_d1$FCZ_ERN_080, LDDM_do1_d1$v_incongruent_S1_B11)$r,
+                             corr.test(LDDM_do1_d1$FCZ_ERN_080, LDDM_do1_d1$a_S1_B11)$r,
+                             corr.test(LDDM_do1_d1$FCZ_ERN_080, LDDM_do1_d1$t_S1_B11)$r),
+                        p_nominal = c(corr.test(LDDM_do1_d1$FCZ_ERN_080, LDDM_do1_d1$z_S1_B11)$p,
+                             corr.test(LDDM_do1_d1$FCZ_ERN_080, LDDM_do1_d1$v_congruent_S1_B11)$p,
+                             corr.test(LDDM_do1_d1$FCZ_ERN_080, LDDM_do1_d1$v_incongruent_S1_B11)$p,
+                             corr.test(LDDM_do1_d1$FCZ_ERN_080, LDDM_do1_d1$a_S1_B11)$p,
+                             corr.test(LDDM_do1_d1$FCZ_ERN_080, LDDM_do1_d1$t_S1_B11)$p)); ERN_table$p_corrected <- p.adjust(ERN_table$p_nominal, method="fdr"); ERN_table[,2:4] <- round(ERN_table[,2:4], 3)
+ERN_table
+
+ggplot(LDDM_do1_d1, aes(x=FCZ_ERN_080, y=v_congruent_S1_B11)) +
+  geom_point() +
+  stat_smooth(method="lm")
+```
+I *think* this is saying that the larger the ERN amplitude (since a more negative ERN is a larger amplitude), the faster the drift rate/accumulation of evidence (v). This is true for congruent and incongruent stimuli, and at FCz, Fz, and Cz.
+
+## 2.2 P3 onset
+```{r}
+corr.test(LDDM_do1_d1$Congruent_PZ_fpl, LDDM_do1_d1$z_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do1_d1$Incongruent_PZ_fpl, LDDM_do1_d1$z_S1_B11, use="complete.obs", method="pearson")
+
+corr.test(LDDM_do1_d1$Congruent_PZ_fpl, LDDM_do1_d1$v_congruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do1_d1$Congruent_PZ_fpl, LDDM_do1_d1$v_incongruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do1_d1$Incongruent_PZ_fpl, LDDM_do1_d1$v_congruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do1_d1$Incongruent_PZ_fpl, LDDM_do1_d1$v_incongruent_S1_B11, use="complete.obs", method="pearson")
+
+corr.test(LDDM_do1_d1$Congruent_PZ_fpl, LDDM_do1_d1$a_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do1_d1$Incongruent_PZ_fpl, LDDM_do1_d1$a_S1_B11, use="complete.obs", method="pearson")
+
+corr.test(LDDM_do1_d1$Congruent_PZ_fpl, LDDM_do1_d1$t_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do1_d1$Incongruent_PZ_fpl, LDDM_do1_d1$t_S1_B11, use="complete.obs", method="pearson")
+
+P3_table <- data.frame(parameters= c(rep(c("z", "v_congruent", "v_incongruent", "a", "t"),1)),
+                        Congruent_r= c(corr.test(LDDM_do1_d1$Congruent_PZ_fpl, LDDM_do1_d1$z_S1_B11)$r,
+                             corr.test(LDDM_do1_d1$Congruent_PZ_fpl, LDDM_do1_d1$v_congruent_S1_B11)$r,
+                             corr.test(LDDM_do1_d1$Congruent_PZ_fpl, LDDM_do1_d1$v_incongruent_S1_B11)$r,
+                             corr.test(LDDM_do1_d1$Congruent_PZ_fpl, LDDM_do1_d1$a_S1_B11)$r,
+                             corr.test(LDDM_do1_d1$Congruent_PZ_fpl, LDDM_do1_d1$t_S1_B11)$r),
+                        Congruent_p_nominal = c(corr.test(LDDM_do1_d1$Congruent_PZ_fpl, LDDM_do1_d1$z_S1_B11)$p,
+                             corr.test(LDDM_do1_d1$Congruent_PZ_fpl, LDDM_do1_d1$v_congruent_S1_B11)$p,
+                             corr.test(LDDM_do1_d1$Congruent_PZ_fpl, LDDM_do1_d1$v_incongruent_S1_B11)$p,
+                             corr.test(LDDM_do1_d1$Congruent_PZ_fpl, LDDM_do1_d1$a_S1_B11)$p,
+                             corr.test(LDDM_do1_d1$Congruent_PZ_fpl, LDDM_do1_d1$t_S1_B11)$p),
+                        Incongruent_r= c(corr.test(LDDM_do1_d1$Incongruent_PZ_fpl, LDDM_do1_d1$z_S1_B11)$r,
+                             corr.test(LDDM_do1_d1$Incongruent_PZ_fpl, LDDM_do1_d1$v_congruent_S1_B11)$r,
+                             corr.test(LDDM_do1_d1$Incongruent_PZ_fpl, LDDM_do1_d1$v_incongruent_S1_B11)$r,
+                             corr.test(LDDM_do1_d1$Incongruent_PZ_fpl, LDDM_do1_d1$a_S1_B11)$r,
+                             corr.test(LDDM_do1_d1$Incongruent_PZ_fpl, LDDM_do1_d1$t_S1_B11)$r),
+                        Incongruent_p_nominal = c(corr.test(LDDM_do1_d1$Incongruent_PZ_fpl, LDDM_do1_d1$z_S1_B11)$p,
+                             corr.test(LDDM_do1_d1$Incongruent_PZ_fpl, LDDM_do1_d1$v_congruent_S1_B11)$p,
+                             corr.test(LDDM_do1_d1$Incongruent_PZ_fpl, LDDM_do1_d1$v_incongruent_S1_B11)$p,
+                             corr.test(LDDM_do1_d1$Incongruent_PZ_fpl, LDDM_do1_d1$a_S1_B11)$p,
+                             corr.test(LDDM_do1_d1$Incongruent_PZ_fpl, LDDM_do1_d1$t_S1_B11)$p))
+
+P3_table$Congruent_p_corrected <- p.adjust(P3_table$Congruent_p_nominal, method="fdr")
+P3_table$Incongruent_p_corrected <- p.adjust(P3_table$Incongruent_p_nominal, method="fdr")
+P3_table[,2:7] <- round(P3_table[,2:7], 3)
+P3_table
+
+ggplot(LDDM_do1_d1, aes(x=Congruent_PZ_fpl, y=v_congruent_S1_B11)) +
+  geom_point() +
+  stat_smooth(method="lm")
+
+ggplot(LDDM_do1_d1, aes(x=Congruent_PZ_fpl, y=a_S1_B11)) +
+  geom_point() +
+  stat_smooth(method="lm")
+```
+1) I *think* this is saying that the quicker the P3 onset *to congruent stimuli* at Pz, the faster the drift rate/accumulation of evidence (v) *to congruent stimuli*. This is somewhat the case for *incongruent* but not significant (p = 0.16).
+
+2) The slower the P3 onset to both congruent and incongruent stimuli at Pz, the greater the separation between the two boundaries (a).
+
+No ERP measures were related to non-decision time (t) nor distance from the upper boundary to the start of the drift process (z).
+
+```{r}
+library(corrplot)
+all_measures <- c("FCZ_ERN_080","FCZ_ERN_0100","Congruent_PZ_fpl","Incongruent_PZ_fpl",
+                  "z_S1_B11","v_congruent_S1_B11","v_incongruent_S1_B11","a_S1_B11","t_S1_B11")
+corrplot(cor(LDDM_do1_d1[c(all_measures)],use="pairwise.complete.obs"), method="circle")
+```
+
+# 3.  Compared to typical Flanker metrics
+## 3.1 Day 1
+```{r}
+# Calculate typical metrics
+LDDM_cleaning04_fullbeh_d1 <- read.csv(here("../DDM_Trialwise_Prepped/Old/StTr_S1_ERN_HDDM_data_acc_coded.csv"))
+
+LDDM_cleaning04_d1_calc1 <- LDDM_cleaning04_fullbeh_d1 %>%
+  group_by(subj_idx) %>%
+  mutate(block = c(rep(1,30),rep(2,30),rep(3,30),rep(4,30),rep(5,30),rep(6,30),rep(7,30),rep(8,30),rep(9,30),rep(10,30),rep(11,30))) %>%
+  group_by(subj_idx, block) %>%
+  mutate(trial = 1:30)
+
+LDDM_cleaning04_d1_calc2 <- LDDM_cleaning04_d1_calc1 %>%
+  group_by(subj_idx) %>%
+  summarise(accuracy_score = sum(response==1)*(5/length(trial)))
+
+LDDM_cleaning04_d1_ind <-  LDDM_cleaning04_d1_calc1 %>%
+  group_by(subj_idx) %>% # per subject
+  filter(stim=="incongruent" & response==1) %>% #i ncongruent trials with correct response
+  mutate(mean_rt = mean(rt),
+         sd_rt = sd(rt)) %>% # compute individual mean and sd RT
+  filter(rt>=0.1 & rt>(mean_rt - 3*sd_rt) & rt<(mean_rt + 3*sd_rt)) %>% #remove trials less than 100ms and less than 3SD below or 2SD above the mean RT
+  summarise(med_rt = median(rt)*1000) %>% # compute individual level median RT
+  mutate(rt_score = 5-(5*((log(med_rt)-log(250))/(log(1000)-log(250)))))
+
+LDDM_cleaning04_d1_calc3 <- LDDM_cleaning04_d1_calc1 %>%
+  full_join(LDDM_cleaning04_d1_ind, by = 'subj_idx') %>%
+  full_join(LDDM_cleaning04_d1_calc2, by='subj_idx') %>%
+  group_by(subj_idx) %>% # per subject
+  mutate(total_accuracy_perc = sum(response==1)/length(response)) %>% # compute total accuracy percentage
+  summarise(flanker_score_list_d1 = if_else(total_accuracy_perc>=0.8, accuracy_score+rt_score, accuracy_score)) %>%# if accuracy is above 80% then add accuracy and rt flanker scores, if not base the flanker score only on accuracy
+  transmute(ID=subj_idx, flanker_score_list_d1=flanker_score_list_d1) %>%
+  group_by(ID) %>% # per subject
+  summarise(flanker_score_d1 = mean(flanker_score_list_d1))
+```
+
+## 3.2 Day 2
+```{r}
+# Calculate typical metrics
+LDDM_cleaning04_fullbeh_d2 <- read.csv(here("../DDM_Trialwise_Prepped/Old/StTr_S2_ERN_HDDM_data_acc_coded.csv"))
+
+LDDM_cleaning04_d2_calc1 <- LDDM_cleaning04_fullbeh_d2 %>%
+  group_by(subj_idx) %>%
+  mutate(block = c(rep(1,30),rep(2,30),rep(3,30),rep(4,30),rep(5,30),rep(6,30),rep(7,30),rep(8,30),rep(9,30),rep(10,30),rep(11,30))) %>%
+  group_by(subj_idx, block) %>%
+  mutate(trial = 1:30)
+
+LDDM_cleaning04_d2_calc2 <- LDDM_cleaning04_d2_calc1 %>%
+  group_by(subj_idx) %>%
+  summarise(accuracy_score = sum(response==1)*(5/length(trial)))
+
+LDDM_cleaning04_d2_ind <-  LDDM_cleaning04_d2_calc1 %>%
+  group_by(subj_idx) %>% # per subject
+  filter(stim=="incongruent" & response==1) %>% #i ncongruent trials with correct response
+  mutate(mean_rt = mean(rt),
+         sd_rt = sd(rt)) %>% # compute individual mean and sd RT
+  filter(rt>=0.1 & rt>(mean_rt - 3*sd_rt) & rt<(mean_rt + 3*sd_rt)) %>% #remove trials less than 100ms and less than 3SD below or 2SD above the mean RT
+  summarise(med_rt = median(rt)*1000) %>% # compute individual level median RT
+  mutate(rt_score = 5-(5*((log(med_rt)-log(250))/(log(1000)-log(250)))))
+
+LDDM_cleaning04_d2_calc3 <- LDDM_cleaning04_d2_calc1 %>%
+  full_join(LDDM_cleaning04_d2_ind, by = 'subj_idx') %>%
+  full_join(LDDM_cleaning04_d2_calc2, by='subj_idx') %>%
+  group_by(subj_idx) %>% # per subject
+  mutate(total_accuracy_perc = sum(response==1)/length(response)) %>% # compute total accuracy percentage
+  summarise(flanker_score_list_d2 = if_else(total_accuracy_perc>=0.8, accuracy_score+rt_score, accuracy_score)) %>%# if accuracy is above 80% then add accuracy and rt flanker scores, if not base the flanker score only on accuracy
+  transmute(ID=subj_idx, flanker_score_list_d2=flanker_score_list_d2) %>%
+  group_by(ID) %>% # per subject
+  summarise(flanker_score_d2 = mean(flanker_score_list_d2))
+```
+
+## 3.3 Analyses
+### Day 1
+```{r}
+LDDM_do1_d1 <- LDDM_do1_d1 %>%
+  left_join(LDDM_do1_rt, by="ID") %>%
+  left_join(LDDM_cleaning04_d1_calc3, by="ID")
+
+# ERN
+## RT
+summary(lm(FCZ_ERN_080 ~ v_congruent_S1_B11 + Avg_RT_Correct_Day1 + accuracy_d1, LDDM_do2_d1))
+summary(lm(FCZ_ERN_080 ~ v_incongruent_S1_B11 + Avg_RT_Correct_Day1 + accuracy_d1, LDDM_do2_d1))
+
+summary(lm(FCZ_ERN_080 ~ v_congruent_S1_B11 + Avg_RT_Errors_D1 + accuracy_d1, LDDM_do2_d1))
+summary(lm(FCZ_ERN_080 ~ v_incongruent_S1_B11 + Avg_RT_Errors_D1 + accuracy_d1, LDDM_do2_d1))
+
+corr.test(LDDM_do2_d1$Avg_RT_Correct_Day1, LDDM_do2_d1$v_congruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d1$Avg_RT_Errors_D1, LDDM_do2_d1$v_congruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d1$accuracy_d1, LDDM_do2_d1$v_congruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d1$Avg_RT_Correct_Day1, LDDM_do2_d1$v_incongruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d1$Avg_RT_Errors_D1, LDDM_do2_d1$v_incongruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d1$accuracy_d1, LDDM_do2_d1$v_incongruent_S1_B11, use="complete.obs", method="pearson")
+
+## Flanker score
+summary(lm(FCZ_ERN_080 ~ v_congruent_S1_B11 + flanker_score, LDDM_do2_d1))
+summary(lm(FCZ_ERN_080 ~ v_incongruent_S1_B11 + flanker_score, LDDM_do2_d1))
+
+corr.test(LDDM_do2_d1$flanker_score, LDDM_do2_d1$v_congruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d1$flanker_score, LDDM_do2_d1$v_incongruent_S1_B11, use="complete.obs", method="pearson")
+
+# P3
+## RT
+summary(lm(Congruent_PZ_fpl ~ a_S1_B11 + Avg_RT_Correct_Day1 + accuracy_d1, LDDM_do2_d1))
+summary(lm(Incongruent_PZ_fpl ~ a_S1_B11 + Avg_RT_Correct_Day1 + accuracy_d1, LDDM_do2_d1))
+
+summary(lm(Congruent_PZ_fpl ~ a_S1_B11 + Avg_RT_Errors_D1 + accuracy_d1, LDDM_do2_d1))
+summary(lm(Incongruent_PZ_fpl ~ a_S1_B11 + Avg_RT_Errors_D1 + accuracy_d1, LDDM_do2_d1))
+
+corr.test(LDDM_do2_d1$Avg_RT_Correct_Day1, LDDM_do2_d1$a_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d1$accuracy_d1, LDDM_do2_d1$a_S1_B11, use="complete.obs", method="pearson")
+
+## Flanker score
+summary(lm(Congruent_PZ_fpl ~ a_S1_B11 + flanker_score, LDDM_do2_d1))
+summary(lm(Incongruent_PZ_fpl ~ a_S1_B11 + flanker_score, LDDM_do2_d1))
+
+corr.test(LDDM_do2_d1$flanker_score, LDDM_do2_d1$a_S1_B11, use="complete.obs", method="pearson")
+```
+DDM parameters largely do not explain significant variance over-and-above average RT and accuracy (0.125*correct responses), though this is likely due to considerable covariation between DDM parameters and RT/accuracy. They do explain variance over-and-above a typical "flanker score" that incorporates accuracy and RT info in a summed score.
+
+### Day 2
+```{r}
+LDDM_do1_d2 <- LDDM_do1_d2 %>%
+  left_join(LDDM_do1_rt, by="ID") %>%
+  left_join(LDDM_cleaning04_d2_calc3, by="ID")
+
+# ERN
+## RT
+summary(lm(FCZ_ERN_080 ~ v_congruent_S1_B11 + Avg_RT_Correct_Day1 + accuracy_d1, LDDM_do2_d1))
+summary(lm(FCZ_ERN_080 ~ v_incongruent_S1_B11 + Avg_RT_Correct_Day1 + accuracy_d1, LDDM_do2_d1))
+
+summary(lm(FCZ_ERN_080 ~ v_congruent_S1_B11 + Avg_RT_Errors_D1 + accuracy_d1, LDDM_do2_d1))
+summary(lm(FCZ_ERN_080 ~ v_incongruent_S1_B11 + Avg_RT_Errors_D1 + accuracy_d1, LDDM_do2_d1))
+
+corr.test(LDDM_do2_d1$Avg_RT_Correct_Day1, LDDM_do2_d1$v_congruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d1$Avg_RT_Errors_D1, LDDM_do2_d1$v_congruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d1$accuracy_d1, LDDM_do2_d1$v_congruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d1$Avg_RT_Correct_Day1, LDDM_do2_d1$v_incongruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d1$Avg_RT_Errors_D1, LDDM_do2_d1$v_incongruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d1$accuracy_d1, LDDM_do2_d1$v_incongruent_S1_B11, use="complete.obs", method="pearson")
+
+## Flanker score
+summary(lm(FCZ_ERN_080 ~ v_congruent_S1_B11 + flanker_score, LDDM_do2_d1))
+summary(lm(FCZ_ERN_080 ~ v_incongruent_S1_B11 + flanker_score, LDDM_do2_d1))
+
+corr.test(LDDM_do2_d1$flanker_score, LDDM_do2_d1$v_congruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d1$flanker_score, LDDM_do2_d1$v_incongruent_S1_B11, use="complete.obs", method="pearson")
+
+# P3
+## RT
+summary(lm(Congruent_PZ_fpl ~ a_S1_B11 + Avg_RT_Correct_Day1 + accuracy_d1, LDDM_do2_d1))
+summary(lm(Incongruent_PZ_fpl ~ a_S1_B11 + Avg_RT_Correct_Day1 + accuracy_d1, LDDM_do2_d1))
+
+summary(lm(Congruent_PZ_fpl ~ a_S1_B11 + Avg_RT_Errors_D1 + accuracy_d1, LDDM_do2_d1))
+summary(lm(Incongruent_PZ_fpl ~ a_S1_B11 + Avg_RT_Errors_D1 + accuracy_d1, LDDM_do2_d1))
+
+corr.test(LDDM_do2_d1$Avg_RT_Correct_Day1, LDDM_do2_d1$a_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d1$accuracy_d1, LDDM_do2_d1$a_S1_B11, use="complete.obs", method="pearson")
+
+## Flanker score
+summary(lm(Congruent_PZ_fpl ~ a_S1_B11 + flanker_score, LDDM_do2_d1))
+summary(lm(Incongruent_PZ_fpl ~ a_S1_B11 + flanker_score, LDDM_do2_d1))
+
+corr.test(LDDM_do2_d1$flanker_score, LDDM_do2_d1$a_S1_B11, use="complete.obs", method="pearson")
+```
+
+# Replicate effects in Day 2
+```{r, eval=FALSE}
+corr.test(LDDM_do1_d2$FCZ_ERN_080, LDDM_do1_d2$v_congruent_S2_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do1_d2$FCZ_ERN_080, LDDM_do1_d2$v_incongruent_S2_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do1_d2$FCZ_ERN_0100, LDDM_do1_d2$v_congruent_S2_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do1_d2$FCZ_ERN_0100, LDDM_do1_d2$v_incongruent_S2_B11, use="complete.obs", method="pearson")
+
+#########################################################################################################
+
+corr.test(LDDM_do1_d2$Congruent_PZ_fpl, LDDM_do1_d2$v_congruent_S2_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do1_d2$Congruent_PZ_fpl, LDDM_do1_d2$v_incongruent_S2_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do1_d2$Incongruent_PZ_fpl, LDDM_do1_d2$v_congruent_S2_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do1_d2$Incongruent_PZ_fpl, LDDM_do1_d2$v_incongruent_S2_B11, use="complete.obs", method="pearson")
+
+corr.test(LDDM_do1_d2$Congruent_PZ_fpl, LDDM_do1_d2$a_S2_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do1_d2$Incongruent_PZ_fpl, LDDM_do1_d2$a_S2_B11, use="complete.obs", method="pearson")
+```
+
+# 3. Realiability
+## 3.1 DDM paramters
+```{r}
+
+```
+
+## 3.2 Typical Flanker metrics
+```{r}
+LDDM_cleaning04_calc3 <- left_join(LDDM_cleaning04_d1_calc3, LDDM_cleaning04_d2_calc3, by="ID")
+library("irr")
+icc(LDDM_cleaning04_calc3[c("flanker_score_d1","flanker_score_d2")], model = "twoway", type = "agreement", unit = "single")
+```
+
+
+# 3. Closing out
+  In this step, go ahead and close out of the file and quit R without saving  
+  the work space.
+```{r}
+   renv::snapshot()   #Take a snapshot of environment
+```
+

@@ -1,0 +1,745 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  pdftitle={Data analysis script 1: Preliminary ERP to DDM concordance},
+  pdfauthor={Brent Rappaport},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Data analysis script 1: Preliminary ERP to DDM concordance}
+\usepackage{etoolbox}
+\makeatletter
+\providecommand{\subtitle}[1]{% add subtitle to \maketitle
+  \apptocmd{\@title}{\par {\large #1 \par}}{}{}
+}
+\makeatother
+\subtitle{Template Rmd}
+\author{Brent Rappaport}
+\date{2022-10-18}
+
+\begin{document}
+\maketitle
+
+{
+\setcounter{tocdepth}{3}
+\tableofcontents
+}
+\hypertarget{about}{%
+\section{About}\label{about}}
+
+This script imports and merges the self-report data from the Flanker
+task of the State-Trait study
+
+\hypertarget{get-setup}{%
+\section{1. Get Setup}\label{get-setup}}
+
+\hypertarget{clear-everything-set-width}{%
+\subsection{1.1. Clear everything \& set
+width}\label{clear-everything-set-width}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+    \FunctionTok{options}\NormalTok{(}\AttributeTok{width=}\DecValTok{80}\NormalTok{, }\AttributeTok{Ncpus =} \DecValTok{6}\NormalTok{) }\CommentTok{\#Set width}
+    \FunctionTok{rm}\NormalTok{(}\AttributeTok{list=}\FunctionTok{ls}\NormalTok{())     }\CommentTok{\#Remove everything from environment}
+    \FunctionTok{cat}\NormalTok{(}\StringTok{"}\SpecialCharTok{\textbackslash{}014}\StringTok{"}\NormalTok{)       }\CommentTok{\#Clear Console}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{load-libraries}{%
+\subsection{1.2. Load Libraries}\label{load-libraries}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{  renv}\SpecialCharTok{::}\FunctionTok{restore}\NormalTok{()     }\CommentTok{\#restore environment}
+  \FunctionTok{library}\NormalTok{(knitr)      }\CommentTok{\#allows rmarkdown files}
+  \FunctionTok{library}\NormalTok{(haven)      }\CommentTok{\#helps import stata}
+  \FunctionTok{library}\NormalTok{(questionr)  }\CommentTok{\#allows lookfor function}
+  \FunctionTok{library}\NormalTok{(MASS)       }\CommentTok{\#calculate residualized scores}
+  \FunctionTok{library}\NormalTok{(tidyverse)  }\CommentTok{\#plotting/cleaning, etc.}
+  \FunctionTok{library}\NormalTok{(broom)      }\CommentTok{\#nice statistical output}
+  \FunctionTok{library}\NormalTok{(here)       }\CommentTok{\#nice file paths}
+  \FunctionTok{library}\NormalTok{(expss)      }\CommentTok{\#labeling variables/values}
+  \FunctionTok{library}\NormalTok{(psych)      }\CommentTok{\#used for statistical analyses}
+  \FunctionTok{library}\NormalTok{(workflowr)  }\CommentTok{\#helps with workflow}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{get-the-working-directory}{%
+\subsection{1.3. Get the Working
+Directory}\label{get-the-working-directory}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+  \FunctionTok{here}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/work"
+\end{verbatim}
+
+\hypertarget{set-seed}{%
+\subsection{1.4. Set seed}\label{set-seed}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+     \FunctionTok{set.seed}\NormalTok{(}\DecValTok{312}\NormalTok{)    }\CommentTok{\#Set seed}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{load-data}{%
+\subsection{1.5 Load Data}\label{load-data}}
+
+Remember to immediately rename and remove. Avoid overwriting old data.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{load}\NormalTok{(}\AttributeTok{file=}\FunctionTok{here}\NormalTok{(}\StringTok{"./data/LDDM\_cleaning03.RData"}\NormalTok{))}
+\NormalTok{LDDM\_do1 }\OtherTok{\textless{}{-}}\NormalTok{ LDDM\_cleaning03; }\FunctionTok{rm}\NormalTok{(LDDM\_cleaning03)}
+
+\FunctionTok{load}\NormalTok{(}\AttributeTok{file=}\FunctionTok{here}\NormalTok{(}\StringTok{"./data/LDDM\_cleaning03\_d1.RData"}\NormalTok{))}
+\NormalTok{LDDM\_do1\_d1 }\OtherTok{\textless{}{-}}\NormalTok{ LDDM\_cleaning03\_d1; }\FunctionTok{rm}\NormalTok{(LDDM\_cleaning03\_d1)}
+
+\FunctionTok{load}\NormalTok{(}\AttributeTok{file=}\FunctionTok{here}\NormalTok{(}\StringTok{"./data/LDDM\_cleaning03\_d2.RData"}\NormalTok{))}
+\NormalTok{LDDM\_do1\_d2 }\OtherTok{\textless{}{-}}\NormalTok{ LDDM\_cleaning03\_d2; }\FunctionTok{rm}\NormalTok{(LDDM\_cleaning03\_d2)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{correlation-between-erp-measures-and-ddm-parameters}{%
+\section{2. Correlation between ERP measures and DDM
+parameters}\label{correlation-between-erp-measures-and-ddm-parameters}}
+
+Threshold = z Drift rate = v Decision boundary separation = a
+Non-decision time = t
+
+Per Allie, larger values of v mean faster accumulation of evidence
+(faster rate), larger t means slower non-decision time processing,
+larger a means more separation between the correct and incorrect
+response boundaries, and z is the distance from the upper boundary to
+the start of the drift process.
+
+\hypertarget{ern-mean-amplitude}{%
+\subsection{2.1 ERN mean amplitude}\label{ern-mean-amplitude}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{FCZ\_ERN\_080, LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{z\_S1\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:corr.test(x = LDDM_do1_d1$FCZ_ERN_080, y = LDDM_do1_d1$z_S1_B11, 
+##     use = "complete.obs", method = "pearson")
+## Correlation matrix 
+## [1] 0.07
+## Sample Size 
+## [1] 79
+## These are the unadjusted probability values.
+##   The probability values  adjusted for multiple tests are in the p.adj object. 
+## [1] 0.53
+## 
+##  To see confidence intervals of the correlations, print with the short=FALSE option
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{FCZ\_ERN\_0100, LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{z\_S1\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:corr.test(x = LDDM_do1_d1$FCZ_ERN_0100, y = LDDM_do1_d1$z_S1_B11, 
+##     use = "complete.obs", method = "pearson")
+## Correlation matrix 
+## [1] 0.05
+## Sample Size 
+## [1] 79
+## These are the unadjusted probability values.
+##   The probability values  adjusted for multiple tests are in the p.adj object. 
+## [1] 0.65
+## 
+##  To see confidence intervals of the correlations, print with the short=FALSE option
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{FCZ\_ERN\_080, LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{v\_congruent\_S1\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:corr.test(x = LDDM_do1_d1$FCZ_ERN_080, y = LDDM_do1_d1$v_congruent_S1_B11, 
+##     use = "complete.obs", method = "pearson")
+## Correlation matrix 
+## [1] -0.33
+## Sample Size 
+## [1] 79
+## These are the unadjusted probability values.
+##   The probability values  adjusted for multiple tests are in the p.adj object. 
+## [1] 0
+## 
+##  To see confidence intervals of the correlations, print with the short=FALSE option
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{FCZ\_ERN\_080, LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{v\_incongruent\_S1\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:corr.test(x = LDDM_do1_d1$FCZ_ERN_080, y = LDDM_do1_d1$v_incongruent_S1_B11, 
+##     use = "complete.obs", method = "pearson")
+## Correlation matrix 
+## [1] -0.33
+## Sample Size 
+## [1] 79
+## These are the unadjusted probability values.
+##   The probability values  adjusted for multiple tests are in the p.adj object. 
+## [1] 0
+## 
+##  To see confidence intervals of the correlations, print with the short=FALSE option
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{FCZ\_ERN\_0100, LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{v\_congruent\_S1\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:corr.test(x = LDDM_do1_d1$FCZ_ERN_0100, y = LDDM_do1_d1$v_congruent_S1_B11, 
+##     use = "complete.obs", method = "pearson")
+## Correlation matrix 
+## [1] -0.29
+## Sample Size 
+## [1] 79
+## These are the unadjusted probability values.
+##   The probability values  adjusted for multiple tests are in the p.adj object. 
+## [1] 0.01
+## 
+##  To see confidence intervals of the correlations, print with the short=FALSE option
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{FCZ\_ERN\_0100, LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{v\_incongruent\_S1\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:corr.test(x = LDDM_do1_d1$FCZ_ERN_0100, y = LDDM_do1_d1$v_incongruent_S1_B11, 
+##     use = "complete.obs", method = "pearson")
+## Correlation matrix 
+## [1] -0.27
+## Sample Size 
+## [1] 79
+## These are the unadjusted probability values.
+##   The probability values  adjusted for multiple tests are in the p.adj object. 
+## [1] 0.01
+## 
+##  To see confidence intervals of the correlations, print with the short=FALSE option
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{FCZ\_ERN\_080, LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{a\_S1\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:corr.test(x = LDDM_do1_d1$FCZ_ERN_080, y = LDDM_do1_d1$a_S1_B11, 
+##     use = "complete.obs", method = "pearson")
+## Correlation matrix 
+## [1] 0.06
+## Sample Size 
+## [1] 79
+## These are the unadjusted probability values.
+##   The probability values  adjusted for multiple tests are in the p.adj object. 
+## [1] 0.62
+## 
+##  To see confidence intervals of the correlations, print with the short=FALSE option
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{FCZ\_ERN\_0100, LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{a\_S1\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:corr.test(x = LDDM_do1_d1$FCZ_ERN_0100, y = LDDM_do1_d1$a_S1_B11, 
+##     use = "complete.obs", method = "pearson")
+## Correlation matrix 
+## [1] 0.02
+## Sample Size 
+## [1] 79
+## These are the unadjusted probability values.
+##   The probability values  adjusted for multiple tests are in the p.adj object. 
+## [1] 0.83
+## 
+##  To see confidence intervals of the correlations, print with the short=FALSE option
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{FCZ\_ERN\_080, LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{t\_S1\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:corr.test(x = LDDM_do1_d1$FCZ_ERN_080, y = LDDM_do1_d1$t_S1_B11, 
+##     use = "complete.obs", method = "pearson")
+## Correlation matrix 
+## [1] 0.05
+## Sample Size 
+## [1] 79
+## These are the unadjusted probability values.
+##   The probability values  adjusted for multiple tests are in the p.adj object. 
+## [1] 0.66
+## 
+##  To see confidence intervals of the correlations, print with the short=FALSE option
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{FCZ\_ERN\_0100, LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{t\_S1\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:corr.test(x = LDDM_do1_d1$FCZ_ERN_0100, y = LDDM_do1_d1$t_S1_B11, 
+##     use = "complete.obs", method = "pearson")
+## Correlation matrix 
+## [1] 0.04
+## Sample Size 
+## [1] 79
+## These are the unadjusted probability values.
+##   The probability values  adjusted for multiple tests are in the p.adj object. 
+## [1] 0.71
+## 
+##  To see confidence intervals of the correlations, print with the short=FALSE option
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(LDDM\_do1\_d1, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\NormalTok{FCZ\_ERN\_080, }\AttributeTok{y=}\NormalTok{v\_congruent\_S1\_B11)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{stat\_smooth}\NormalTok{(}\AttributeTok{method=}\StringTok{"lm"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## `geom_smooth()` using formula 'y ~ x'
+\end{verbatim}
+
+\includegraphics{do01_LDDM_files/figure-latex/unnamed-chunk-6-1.pdf} I
+\emph{think} this is saying that the larger the ERN amplitude (since a
+more negative ERN is a larger amplitude), the faster the drift
+rate/accumulation of evidence (v). This is true for congruent and
+incongruent stimuli, and at FCz, Fz, and Cz.
+
+\hypertarget{p3-onset}{%
+\subsection{2.2 P3 onset}\label{p3-onset}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{Congruent\_PZ\_fpl, LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{z\_S1\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:corr.test(x = LDDM_do1_d1$Congruent_PZ_fpl, y = LDDM_do1_d1$z_S1_B11, 
+##     use = "complete.obs", method = "pearson")
+## Correlation matrix 
+## [1] -0.06
+## Sample Size 
+## [1] 79
+## These are the unadjusted probability values.
+##   The probability values  adjusted for multiple tests are in the p.adj object. 
+## [1] 0.59
+## 
+##  To see confidence intervals of the correlations, print with the short=FALSE option
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{Incongruent\_PZ\_fpl, LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{z\_S1\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:corr.test(x = LDDM_do1_d1$Incongruent_PZ_fpl, y = LDDM_do1_d1$z_S1_B11, 
+##     use = "complete.obs", method = "pearson")
+## Correlation matrix 
+## [1] -0.05
+## Sample Size 
+## [1] 79
+## These are the unadjusted probability values.
+##   The probability values  adjusted for multiple tests are in the p.adj object. 
+## [1] 0.65
+## 
+##  To see confidence intervals of the correlations, print with the short=FALSE option
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{Congruent\_PZ\_fpl, LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{v\_congruent\_S1\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:corr.test(x = LDDM_do1_d1$Congruent_PZ_fpl, y = LDDM_do1_d1$v_congruent_S1_B11, 
+##     use = "complete.obs", method = "pearson")
+## Correlation matrix 
+## [1] -0.32
+## Sample Size 
+## [1] 79
+## These are the unadjusted probability values.
+##   The probability values  adjusted for multiple tests are in the p.adj object. 
+## [1] 0
+## 
+##  To see confidence intervals of the correlations, print with the short=FALSE option
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{Congruent\_PZ\_fpl, LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{v\_incongruent\_S1\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:corr.test(x = LDDM_do1_d1$Congruent_PZ_fpl, y = LDDM_do1_d1$v_incongruent_S1_B11, 
+##     use = "complete.obs", method = "pearson")
+## Correlation matrix 
+## [1] 0.08
+## Sample Size 
+## [1] 79
+## These are the unadjusted probability values.
+##   The probability values  adjusted for multiple tests are in the p.adj object. 
+## [1] 0.5
+## 
+##  To see confidence intervals of the correlations, print with the short=FALSE option
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{Incongruent\_PZ\_fpl, LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{v\_congruent\_S1\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:corr.test(x = LDDM_do1_d1$Incongruent_PZ_fpl, y = LDDM_do1_d1$v_congruent_S1_B11, 
+##     use = "complete.obs", method = "pearson")
+## Correlation matrix 
+## [1] -0.05
+## Sample Size 
+## [1] 79
+## These are the unadjusted probability values.
+##   The probability values  adjusted for multiple tests are in the p.adj object. 
+## [1] 0.67
+## 
+##  To see confidence intervals of the correlations, print with the short=FALSE option
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{Incongruent\_PZ\_fpl, LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{v\_incongruent\_S1\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:corr.test(x = LDDM_do1_d1$Incongruent_PZ_fpl, y = LDDM_do1_d1$v_incongruent_S1_B11, 
+##     use = "complete.obs", method = "pearson")
+## Correlation matrix 
+## [1] 0.16
+## Sample Size 
+## [1] 79
+## These are the unadjusted probability values.
+##   The probability values  adjusted for multiple tests are in the p.adj object. 
+## [1] 0.16
+## 
+##  To see confidence intervals of the correlations, print with the short=FALSE option
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{Congruent\_PZ\_fpl, LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{a\_S1\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:corr.test(x = LDDM_do1_d1$Congruent_PZ_fpl, y = LDDM_do1_d1$a_S1_B11, 
+##     use = "complete.obs", method = "pearson")
+## Correlation matrix 
+## [1] 0.36
+## Sample Size 
+## [1] 79
+## These are the unadjusted probability values.
+##   The probability values  adjusted for multiple tests are in the p.adj object. 
+## [1] 0
+## 
+##  To see confidence intervals of the correlations, print with the short=FALSE option
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{Incongruent\_PZ\_fpl, LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{a\_S1\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:corr.test(x = LDDM_do1_d1$Incongruent_PZ_fpl, y = LDDM_do1_d1$a_S1_B11, 
+##     use = "complete.obs", method = "pearson")
+## Correlation matrix 
+## [1] 0.29
+## Sample Size 
+## [1] 79
+## These are the unadjusted probability values.
+##   The probability values  adjusted for multiple tests are in the p.adj object. 
+## [1] 0.01
+## 
+##  To see confidence intervals of the correlations, print with the short=FALSE option
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{Congruent\_PZ\_fpl, LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{t\_S1\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:corr.test(x = LDDM_do1_d1$Congruent_PZ_fpl, y = LDDM_do1_d1$t_S1_B11, 
+##     use = "complete.obs", method = "pearson")
+## Correlation matrix 
+## [1] -0.06
+## Sample Size 
+## [1] 79
+## These are the unadjusted probability values.
+##   The probability values  adjusted for multiple tests are in the p.adj object. 
+## [1] 0.61
+## 
+##  To see confidence intervals of the correlations, print with the short=FALSE option
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{Incongruent\_PZ\_fpl, LDDM\_do1\_d1}\SpecialCharTok{$}\NormalTok{t\_S1\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:corr.test(x = LDDM_do1_d1$Incongruent_PZ_fpl, y = LDDM_do1_d1$t_S1_B11, 
+##     use = "complete.obs", method = "pearson")
+## Correlation matrix 
+## [1] 0.08
+## Sample Size 
+## [1] 79
+## These are the unadjusted probability values.
+##   The probability values  adjusted for multiple tests are in the p.adj object. 
+## [1] 0.47
+## 
+##  To see confidence intervals of the correlations, print with the short=FALSE option
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(LDDM\_do1\_d1, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\NormalTok{Congruent\_PZ\_fpl, }\AttributeTok{y=}\NormalTok{v\_congruent\_S1\_B11)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{stat\_smooth}\NormalTok{(}\AttributeTok{method=}\StringTok{"lm"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## `geom_smooth()` using formula 'y ~ x'
+\end{verbatim}
+
+\includegraphics{do01_LDDM_files/figure-latex/unnamed-chunk-7-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(LDDM\_do1\_d1, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\NormalTok{Congruent\_PZ\_fpl, }\AttributeTok{y=}\NormalTok{a\_S1\_B11)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{stat\_smooth}\NormalTok{(}\AttributeTok{method=}\StringTok{"lm"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## `geom_smooth()` using formula 'y ~ x'
+\end{verbatim}
+
+\includegraphics{do01_LDDM_files/figure-latex/unnamed-chunk-7-2.pdf} 1)
+I \emph{think} this is saying that the quicker the P3 onset \emph{to
+congruent stimuli} at Pz, the faster the drift rate/accumulation of
+evidence (v) \emph{to congruent stimuli}. This is somewhat the case for
+\emph{incongruent} but not significant (p = 0.16).
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  The slower the P3 onset to both congruent and incongruent stimuli at
+  Pz, the greater the separation between the two boundaries (a).
+\end{enumerate}
+
+No ERP measures were related to non-decision time (t) nor distance from
+the upper boundary to the start of the drift process (z).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(corrplot)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## corrplot 0.92 loaded
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{all\_measures }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"FCZ\_ERN\_080"}\NormalTok{,}\StringTok{"FCZ\_ERN\_0100"}\NormalTok{,}\StringTok{"Congruent\_PZ\_fpl"}\NormalTok{,}\StringTok{"Incongruent\_PZ\_fpl"}\NormalTok{,}
+                  \StringTok{"z\_S1\_B11"}\NormalTok{,}\StringTok{"v\_congruent\_S1\_B11"}\NormalTok{,}\StringTok{"v\_incongruent\_S1\_B11"}\NormalTok{,}\StringTok{"a\_S1\_B11"}\NormalTok{,}\StringTok{"t\_S1\_B11"}\NormalTok{)}
+\FunctionTok{corrplot}\NormalTok{(}\FunctionTok{cor}\NormalTok{(LDDM\_do1\_d1[}\FunctionTok{c}\NormalTok{(all\_measures)],}\AttributeTok{use=}\StringTok{"pairwise.complete.obs"}\NormalTok{), }\AttributeTok{method=}\StringTok{"circle"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{do01_LDDM_files/figure-latex/unnamed-chunk-8-1.pdf}
+
+\hypertarget{day-2}{%
+\subsection{2.3 Day 2}\label{day-2}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d2}\SpecialCharTok{$}\NormalTok{FCZ\_ERN\_080, LDDM\_do1\_d2}\SpecialCharTok{$}\NormalTok{v\_congruent\_S2\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d2}\SpecialCharTok{$}\NormalTok{FCZ\_ERN\_080, LDDM\_do1\_d2}\SpecialCharTok{$}\NormalTok{v\_incongruent\_S2\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d2}\SpecialCharTok{$}\NormalTok{FCZ\_ERN\_0100, LDDM\_do1\_d2}\SpecialCharTok{$}\NormalTok{v\_congruent\_S2\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d2}\SpecialCharTok{$}\NormalTok{FCZ\_ERN\_0100, LDDM\_do1\_d2}\SpecialCharTok{$}\NormalTok{v\_incongruent\_S2\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+
+\DocumentationTok{\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#}
+
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d2}\SpecialCharTok{$}\NormalTok{Congruent\_PZ\_fpl, LDDM\_do1\_d2}\SpecialCharTok{$}\NormalTok{v\_congruent\_S2\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d2}\SpecialCharTok{$}\NormalTok{Congruent\_PZ\_fpl, LDDM\_do1\_d2}\SpecialCharTok{$}\NormalTok{v\_incongruent\_S2\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d2}\SpecialCharTok{$}\NormalTok{Incongruent\_PZ\_fpl, LDDM\_do1\_d2}\SpecialCharTok{$}\NormalTok{v\_congruent\_S2\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d2}\SpecialCharTok{$}\NormalTok{Incongruent\_PZ\_fpl, LDDM\_do1\_d2}\SpecialCharTok{$}\NormalTok{v\_incongruent\_S2\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d2}\SpecialCharTok{$}\NormalTok{Congruent\_PZ\_fpl, LDDM\_do1\_d2}\SpecialCharTok{$}\NormalTok{a\_S2\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\FunctionTok{corr.test}\NormalTok{(LDDM\_do1\_d2}\SpecialCharTok{$}\NormalTok{Incongruent\_PZ\_fpl, LDDM\_do1\_d2}\SpecialCharTok{$}\NormalTok{a\_S2\_B11, }\AttributeTok{use=}\StringTok{"complete.obs"}\NormalTok{, }\AttributeTok{method=}\StringTok{"pearson"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{closing-out}{%
+\section{3. Closing out}\label{closing-out}}
+
+In this step, go ahead and close out of the file and quit R without
+saving\\
+the work space.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{   renv}\SpecialCharTok{::}\FunctionTok{snapshot}\NormalTok{()   }\CommentTok{\#Take a snapshot of environment}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## * Lockfile written to '/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/work/renv.lock'.
+\end{verbatim}
+
+\end{document}
