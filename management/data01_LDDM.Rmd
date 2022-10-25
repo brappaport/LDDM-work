@@ -25,7 +25,7 @@ This script imports and merges the self-report data from the Flanker task of the
 
 ## 1.2. Load Libraries
 ```{r echo=TRUE, results='hide', message=FALSE}
-  renv::restore()     #restore environment
+  # renv::restore()     #restore environment
   library(knitr)      #allows rmarkdown files
   library(haven)      #helps import stata
   library(questionr)  #allows lookfor function
@@ -100,6 +100,6 @@ LDDM_cleaning02_s1 <- LDDM_cleaning01_s1 %>%
 ```{r}
 save(LDDM_cleaning02_s1, file=here("./data/LDDM_cleaning02_s1.RData"))
 
-   renv::snapshot()   #Take a snapshot of environment
+   # renv::snapshot()   #Take a snapshot of environment
 ```
 
