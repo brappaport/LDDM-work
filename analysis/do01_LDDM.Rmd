@@ -67,8 +67,6 @@ LDDM_do1_rt <- LDDM_cleaning02_rt; rm(LDDM_cleaning02_rt)
 
 LDDM_do_alt_d1 <- read.csv(here("../DDM_Results/Block_Based_Day1/Day1_Block11_Alternative_Models.csv"), header=TRUE)
 LDDM_do1_alt_d1<- left_join(LDDM_do1_d1, LDDM_do_alt_d1, by="ID")
-
-
 ```
 
 
@@ -343,8 +341,7 @@ LDDM_do2_d1 <- LDDM_do1_d1 %>%
 # summary(lm(FCZ_ERN_080 ~ v_incongruent_S1_B11 + flanker_score_d1, LDDM_do2_d1))$coeff
 summary(lm(FCZ_ERN_080 ~ v_S1_B11 + flanker_score_d1, LDDM_do2_d1))
 
-# corr.test(LDDM_do2_d1$flanker_score_d1, LDDM_do2_d1$v_congruent_S1_B11, use="complete.obs", method="pearson")
-# corr.test(LDDM_do2_d1$flanker_score_d1, LDDM_do2_d1$v_incongruent_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d1$flanker_score_d1, LDDM_do2_d1$FCZ_ERN_080, use="complete.obs", method="pearson")
 corr.test(LDDM_do2_d1$flanker_score_d1, LDDM_do2_d1$v_S1_B11, use="complete.obs", method="pearson")
 
 ggplot(filter(LDDM_do2_d1), aes(x=FCZ_ERN_080, y=flanker_score_d1)) +
@@ -359,7 +356,7 @@ ggplot(filter(LDDM_do2_d1, flanker_score_d1>4), aes(x=FCZ_ERN_080, y=flanker_sco
 ## Flanker score
 summary(lm(PZ_P3_onset ~ v_S1_B11 + flanker_score_d1, LDDM_do2_d1))
 
-corr.test(LDDM_do2_d1$flanker_score_d1, LDDM_do2_d1$a_S1_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d1$flanker_score_d1, LDDM_do2_d1$PZ_P3_onset, use="complete.obs", method="pearson")
 ```
 DDM parameters largely do not explain significant variance over-and-above average RT and accuracy (0.125*correct responses), though this is likely due to considerable covariation between DDM parameters and RT/accuracy. They also do not explain variance over-and-above a typical "flanker score" that incorporates accuracy and RT info in a summed score.
 
@@ -385,8 +382,7 @@ summary(lm(FCZ_ERN_080 ~ v_incongruent_S2_B11 + flanker_score_d2, LDDM_do2_d2))
 summary(lm(FCZ_ERN_080 ~ v_congruent_S2_B11 + flanker_score_d2, filter(LDDM_do2_d2, flanker_score_d2>4)))
 summary(lm(FCZ_ERN_080 ~ v_incongruent_S2_B11 + flanker_score_d2, filter(LDDM_do2_d2, flanker_score_d2>4)))
 
-corr.test(LDDM_do2_d2$flanker_score_d2, LDDM_do2_d2$v_congruent_S2_B11, use="complete.obs", method="pearson")
-corr.test(LDDM_do2_d2$flanker_score_d2, LDDM_do2_d2$v_incongruent_S2_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d2$flanker_score_d2, LDDM_do2_d2$FCZ_ERN_080, use="complete.obs", method="pearson")
 corr.test(LDDM_do2_d2$flanker_score_d2, LDDM_do2_d2$v_S2_B11, use="complete.obs", method="pearson")
 
 ggplot(filter(LDDM_do2_d2), aes(x=FCZ_ERN_080, y=flanker_score_d2)) +
@@ -405,8 +401,9 @@ ggplot(filter(LDDM_do2_d2, flanker_score_d2>4), aes(x=FCZ_ERN_080, y=v_S2_B11)) 
 # P3
 ## Flanker score
 summary(lm(PZ_P3_onset ~ v_S2_B11 + flanker_score_d2, LDDM_do2_d2))
+summary(lm(PZ_P3_onset ~ t_S2_B11 + flanker_score_d2, LDDM_do2_d2))
 
-corr.test(LDDM_do2_d2$flanker_score_d2, LDDM_do2_d2$a_S2_B11, use="complete.obs", method="pearson")
+corr.test(LDDM_do2_d2$flanker_score_d2, LDDM_do2_d2$PZ_P3_onset, use="complete.obs", method="pearson")
 ```
 DDM parameters no longer explain variance in ERN better than typical flanker score. Of note the two are strongly correlated at r=`r round(corr.test(LDDM_do2_d2$flanker_score_d2, LDDM_do2_d2$v_S2_B11, use="complete.obs", method="pearson")$r,3)`.
 
@@ -423,6 +420,8 @@ LDDM_do2_irr <- left_join(LDDM_do2_d1, LDDM_do2_d2, by="ID")
 library("irr")
 icc(LDDM_do2_irr[c("z_S1_B11.x","z_S2_B11.x")], model = "twoway", type = "agreement", unit = "single")
 icc(LDDM_do2_irr[c("v_S1_B11","v_S2_B11")], model = "twoway", type = "agreement", unit = "single")
+icc(LDDM_do2_irr[c("v_congruent_S1_B11.x","v_congruent_S2_B11.x")], model = "twoway", type = "agreement", unit = "single")
+icc(LDDM_do2_irr[c("v_incongruent_S1_B11.x","v_incongruent_S2_B11.x")], model = "twoway", type = "agreement", unit = "single")
 icc(LDDM_do2_irr[c("a_S1_B11.x","a_S2_B11.x")], model = "twoway", type = "agreement", unit = "single")
 icc(LDDM_do2_irr[c("t_S1_B11.x","t_S2_B11.x")], model = "twoway", type = "agreement", unit = "single")
 ```
@@ -434,7 +433,7 @@ LDDM_cleaning04_calc3 <- left_join(LDDM_cleaning04_d1_calc3, LDDM_cleaning04_d2_
 icc(LDDM_cleaning04_calc3[c("flanker_score_d1","flanker_score_d2")], model = "twoway", type = "agreement", unit = "single")
 ```
 
-### 4.2.2 Spearman-Brown prophecy
+### 4.2.2 Split half reliability (Spearman-Brown prophecy)
 #### 4.2.2.1 Day 1
 ```{r}
 library(confintr)
