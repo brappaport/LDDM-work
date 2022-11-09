@@ -1,5 +1,5 @@
 ---
-title: "Data prep script 1: Importing behavioral data"
+title: "Data prep script 2: Importing ERP data"
 author: "Brent Rappaport"
 date: "`r format(Sys.time(),  '%Y-%m-%d')`"
 output:
@@ -18,7 +18,7 @@ This script imports and merges the self-report data from the Flanker task of the
 # 1. Get Setup
 ## 1.1. Clear everything & set width
 ```{r echo=TRUE, results='hide', message=FALSE}
-    options(width=80) #Set width
+    options(width=80, Ncpus = 6) #Set width
     rm(list=ls())     #Remove everything from environment
     cat("\014")       #Clear Console
 ```
@@ -29,12 +29,12 @@ This script imports and merges the self-report data from the Flanker task of the
   library(knitr)      #allows rmarkdown files
   library(haven)      #helps import stata
   library(questionr)  #allows lookfor function
+  library(MASS)       #calculate residualized scores
   library(tidyverse)  #plotting/cleaning, etc.
   library(broom)      #nice statistical output
   library(here)       #nice file paths
   library(expss)      #labeling variables/values
   library(psych)      #used for statistical analyses
-  library(ggplot2)    #creates plots
   library(workflowr)  #helps with workflow
 ```
 
@@ -51,54 +51,102 @@ This script imports and merges the self-report data from the Flanker task of the
 ## 1.5 Load Data
 Remember to immediately rename and remove. Avoid overwriting old data.
 ```{r}
-LDDM_cleaning01_s1 <- read.csv("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/DDM_Trialwise_Prepped/Old/StTr_S1_ERN_HDDM_data_acc_coded.csv")
-LDDM_cleaning01_s2 <- read.csv("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/DDM_Trialwise_Prepped/Old/StTr_S2_ERN_HDDM_data_acc_coded.csv")
-LDDM_cleaning01_s3 <- read.csv("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/DDM_Trialwise_Prepped/Old/StTr_S3_ERN_HDDM_data_acc_coded.csv")
-LDDM_cleaning01_s4 <- read.csv("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/DDM_Trialwise_Prepped/Old/StTr_S4_ERN_HDDM_data_acc_coded.csv")
-LDDM_cleaning01_s5 <- read.csv("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/DDM_Trialwise_Prepped/Old/StTr_S5_ERN_HDDM_data_acc_coded.csv")
+LDDM_cleaning02_DDM1 <- read.csv(here("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/DDM_Results/Block_Based_Day1/Flanker_StTr_S1_Blocks_acc_avtz_DO_v.csv"))
+LDDM_cleaning02_DDM1$ID <- LDDM_cleaning02_DDM1$id
 
-# LDDM_cleaning01 <- LDDM_cleaning01_s1 %>%
-#     left_join(LDDM_cleaning01_s2, by='subj_idx') %>%
-#     left_join(LDDM_cleaning01_s3, by='subj_idx') %>%
-#     left_join(LDDM_cleaning01_s4, by='subj_idx') %>%
-#     left_join(LDDM_cleaning01_s5, by='subj_idx')
+LDDM_cleaning02_DDM2 <- read.csv(here("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/DDM_Results/Block_Based_Day2/Flanker_StTr_S2_Blocks_DO_v.csv"))
+LDDM_cleaning02_DDM2$ID <- LDDM_cleaning02_DDM2$id
 
-# save(STIB_cleaning02, file="./data/STIB_cleaning02.RData")
+LDDM_cleaning02_DDM3 <- read.csv(here("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/DDM_Results/Block_Based_Day3/Day3_Block11_Alternative_Models.csv"))
+LDDM_cleaning02_DDM3$ID <- LDDM_cleaning02_DDM3$id
+
+LDDM_cleaning02_frac_prak_latency <- read.csv("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/eeg_processing/erppath/frac_peak_latency_p3_200800.csv")[,1:14]
+LDDM_cleaning02_frac_prak_latency <- LDDM_cleaning02_frac_prak_latency %>% 
+  rename_with(~paste0(., "_fpl"), contains("bin"))
+
+LDDM_cleaning02_mean_amplitude_ERN_CRN_080 <- read.csv("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/eeg_processing/erppath/mean_amplitude_ERN_CRN_080.csv")[,1:14]
+LDDM_cleaning02_mean_amplitude_ERN_CRN_080 <- LDDM_cleaning02_mean_amplitude_ERN_CRN_080 %>% 
+  rename_with(~paste0(., "_080"), contains("bin"))
+
+LDDM_cleaning02_mean_amplitude_ERN_CRN_0100 <- read.csv("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/eeg_processing/erppath/mean_amplitude_ERN_CRN_0100.csv")[,1:14]
+LDDM_cleaning02_mean_amplitude_ERN_CRN_0100 <- LDDM_cleaning02_mean_amplitude_ERN_CRN_0100 %>% 
+  rename_with(~paste0(., "_0100"), contains("bin"))
+
+# Merge all ERP measurements together (P3 onset, Error amplitude, Correct amplitude)
+LDDM_cleaning02_erp <- LDDM_cleaning02_frac_prak_latency %>%  
+  left_join(LDDM_cleaning02_mean_amplitude_ERN_CRN_080, by=c('ID','Session')) %>%
+  left_join(LDDM_cleaning02_mean_amplitude_ERN_CRN_0100, by=c('ID','Session'))
+
+# Merge all three days of DDM data with ERP data
+LDDM_cleaning02 <- LDDM_cleaning02_DDM1 %>%
+  left_join(LDDM_cleaning02_DDM2, by='ID') %>%
+  left_join(LDDM_cleaning02_DDM3, by='ID') %>%
+  left_join(LDDM_cleaning02_erp, by='ID')
+
+save(LDDM_cleaning02, file=here("./data/LDDM_cleaning02.RData"))
 ```
 
-# Accuracy per day
+### 1.5.1 Non-DMM Flanker behavioral RT
 ```{r}
-for (time in 1:5) {
-  eval(parse(text=paste0("LDDM_cleaning02_s", time, " <- LDDM_cleaning01_s", time, " %>%
-    group_by(subj_idx, stim) %>%
-    summarise(accuracy = sum(response==1)/sum(response==0 | response==1))")))
-  print(eval(parse(text=paste0("sum(LDDM_cleaning02_s", time, "$accuracy<=0.5)"))))
-  print(eval(parse(text=paste0("LDDM_cleaning02_s", time, "$subj_idx[LDDM_cleaning02_s", time, "$accuracy<=0.5]"))))
+LDDM_cleaning02_rt <- read_sav(here("./data/**STTR_master_6.6.18_clean_ERN_PE_LPPbehav**.sav"))
+LDDM_cleaning02_rt <-  LDDM_cleaning02_rt %>%
+  select("ID",matches("Correct|Errors")) %>%
+  select(-matches('neut|mut|erot'))
+save(LDDM_cleaning02_rt, file=here("./data/LDDM_cleaning02_rt.RData"))
+```
+
+# 1. Select only days 1 and 2 and 3
+```{r}
+LDDM_cleaning03 <- LDDM_cleaning02
+
+colnames(LDDM_cleaning03) <- sub('bin5_|bin7_|bin3_|bin4_', '', colnames(LDDM_cleaning03))
+colnames(LDDM_cleaning03) <- sub('Congruent_arrow_followed_by_correct', 'Congruent', colnames(LDDM_cleaning03))
+colnames(LDDM_cleaning03) <- sub('Incongruent_arrow_followed_by_correct', 'Incongruent', colnames(LDDM_cleaning03))
+colnames(LDDM_cleaning03) <- sub('__', '_', colnames(LDDM_cleaning03))
+
+
+LDDM_cleaning03_d1 <- LDDM_cleaning03 %>%
+  filter(Session==1)
+
+LDDM_cleaning03_d2 <- LDDM_cleaning03 %>%
+  filter(Session==2)
+
+LDDM_cleaning03_d3 <- LDDM_cleaning03 %>%
+  filter(Session==3)
+```
+
+# 3. Create residualized scores
+```{r}
+electrodes_list <- c("FZ","CZ","FCZ","CPZ","PZ","POZ")
+time_windows <- c("080","0100")
+sessions <- c(1,2,3)
+
+# Calculate residualized ERN and difference score ERN (for verification of direction)
+for (ex in electrodes_list[1:3]){ 
+  for (tw in time_windows){ 
+    for (days in sessions)
+    eval(parse(text=paste0('LDDM_cleaning03_d',days,'$',ex,'_ERN_',tw,' <- stdres(lm(Error_',ex,'_',tw,' ~ Correct_',ex,'_',tw,', LDDM_cleaning03_d',days,', na.action=na.exclude))')))
+    eval(parse(text=paste0('LDDM_cleaning03_d',days,'$',ex,'_ERN_diff',tw,' <- LDDM_cleaning03_d',days,'$Error_',ex,'_',tw,' - LDDM_cleaning03_d',days,'$Correct_',ex,'_',tw)))
+  }
 }
 
-LDDM_cleaning02_s5$subj_idx[LDDM_cleaning02_s5$accuracy<=0.5]
-LDDM_cleaning02_s1$accuracy[LDDM_cleaning02_s1$subj_idx==71]
-LDDM_cleaning02_s2$accuracy[LDDM_cleaning02_s2$subj_idx==71]
-LDDM_cleaning02_s3$accuracy[LDDM_cleaning02_s3$subj_idx==71]
-LDDM_cleaning02_s4$accuracy[LDDM_cleaning02_s4$subj_idx==71]
-LDDM_cleaning02_s5$accuracy[LDDM_cleaning02_s5$subj_idx==71]
-
-LDDM_cleaning02_s5$accuracy[LDDM_cleaning02_s5$subj_idx==72]
+# Calculate residualized P3 onset
+for (ex in electrodes_list[4:6]){
+      for (days in sessions) {
+        eval(parse(text=paste0('LDDM_cleaning03_d',days,'$',ex,'_P3_onset <- stdres(lm(Incongruent_',ex,'_fpl ~ Congruent_',ex,'_fpl, LDDM_cleaning03_d',days,', na.action=na.exclude))')))
+      }
+}
 ```
 
-# Reaction timee
-```{r}
-hist(LDDM_cleaning01_s1[-611,]$rt)
 
-LDDM_cleaning02_s1 <- LDDM_cleaning01_s1 %>%
-  filter(rt < 999)
-```
-
-# 2 Closing out
+# 4. Closing out
   In this step, go ahead and close out of the file and quit R without saving  
   the work space.
 ```{r}
-save(LDDM_cleaning02_s1, file=here("./data/LDDM_cleaning02_s1.RData"))
+save(LDDM_cleaning03, file=here("./data/LDDM_cleaning03.RData"))
+save(LDDM_cleaning03_d1, file=here("./data/LDDM_cleaning03_d1.RData"))
+save(LDDM_cleaning03_d2, file=here("./data/LDDM_cleaning03_d2.RData"))
+save(LDDM_cleaning03_d3, file=here("./data/LDDM_cleaning03_d3.RData"))
 
    # renv::snapshot()   #Take a snapshot of environment
 ```
