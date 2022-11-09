@@ -1,0 +1,411 @@
+---
+title: "Data analysis script 2: Testing for replication of ERP to DDM concordance in RDoC dataset"
+author: "Brent Rappaport"
+date: "`r format(Sys.time(),  '%Y-%m-%d')`"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+subtitle: Template Rmd
+editor_options:
+  chunk_output_type: console
+toc: yes
+---
+
+# About
+This script analyzes data from the Flanker task of the RDoC study to see whether results of analyses with the State Trait Study replicate.
+
+**GO THROUGH THIS SCRIPT AND CLEAN UP ONCE IT IS DECIDED WHO TO KEEP AND WHO TO REMOVE**
+
+# 1. Get Setup
+## 1.1. Clear everything & set width
+```{r echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+    options(width=80, Ncpus = 6) #Set width
+    rm(list=ls())     #Remove everything from environment
+    cat("\014")       #Clear Console
+```
+
+## 1.2. Load Libraries
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+  # renv::restore()     #restore environment
+  library(knitr)      #allows rmarkdown files
+  library(haven)      #helps import stata
+  library(questionr)  #allows lookfor function
+  library(MASS)       #calculate residualized scores
+  library(tidyverse)  #plotting/cleaning, etc.
+  library(broom)      #nice statistical output
+  library(here)       #nice file paths
+  library(expss)      #labeling variables/values
+  library(psych)      #used for statistical analyses
+  library(labelled)
+  library(confintr)
+  library(papaja)
+  library(workflowr)  #helps with workflow
+  library(ggplot2)
+```
+
+## 1.3. Get the Working Directory
+```{r}
+  here()
+```
+
+## 1.4. Set seed
+```{r}
+     set.seed(312)    #Set seed
+```
+
+## 1.5 Load Data
+Remember to immediately rename and remove. Avoid overwriting old data.
+```{r}
+LDDM_do1_alt_rdoc <- read.csv(here("../RDoC/DDM_Results/Block_Based/RDoC_Day1_Block11_Alternative_Models.csv"), header=TRUE)
+
+LDDM_do1_rdoc <- read_sav(here("./data/RDoC_ERN_0-80ms_Final.sav"))
+LDDM_do1_rdoc$ID <- LDDM_do1_rdoc$SubjectID
+
+LDDM_do2_rdoc <- LDDM_do1_rdoc %>%
+  left_join(LDDM_do1_alt_rdoc, by="ID") %>%
+  filter(DQ >= 0.5)
+  
+load(file=here("./data/LDDM_cleaning04_fullbeh_rdoc.RData"))
+
+load(file=here("./data/LDDM_cleaning04_rdoc_calc3.RData"))
+
+## Load Color-Word D-KEFS test (Stroop) data
+LDDM_do1_rdoc_iq <- read_sav(here("./data/RDoC_WTAR_FINAL 1.28.2019.sav"))
+LDDM_do1_rdoc_iq$ID <- LDDM_do1_rdoc_iq$SubjectID
+# lapply(LDDM_do1_rdoc_iq, attr, "label")
+LDDM_do1_neuro <- read_sav(here("./data/RDoC_Neuropsych_Cleaning_HL_FINAL_3.19.18.sav"))
+LDDM_do1_neuro$ID <- LDDM_do1_neuro$SubjectID
+
+LDDM_do2_neuro <- LDDM_do1_neuro %>%
+  left_join(LDDM_do1_rdoc_iq, by="ID")
+
+LDDM_do3_rdoc <- LDDM_do2_rdoc %>%
+  left_join(LDDM_cleaning04_rdoc_calc3, by="ID") %>%
+  left_join(LDDM_do2_neuro, by="ID")
+
+# LDDM_do3_rdoc_no_outliers <- LDDM_do2_rdoc_no_outliers %>%
+  # left_join(LDDM_cleaning04_rdoc_calc3, by="ID")
+```
+
+## 1.6 Make residualized score
+```{r}
+electrodes_list <- c("Fz","Cz","FCz")
+
+# Calculate residualized ERN and difference score ERN (for verification of direction)
+for (ex in electrodes_list[1:3]){
+    eval(parse(text=paste0('LDDM_do3_rdoc$',ex,'_ERN_080 <- stdres(lm(',ex,'3chan_error_500_300 ~ ',ex, '3chan_correct_500_300, LDDM_do3_rdoc, na.action=na.exclude))')))
+    eval(parse(text=paste0('LDDM_do3_rdoc$',ex,'_ERN_080_diff <- LDDM_do3_rdoc$',ex,'3chan_error_500_300 - LDDM_do3_rdoc$',ex,'3chan_correct_500_300')))
+    eval(parse(text=paste0('LDDM_do3_rdoc$',ex,'_ERN_080_diff <- as.numeric(LDDM_do3_rdoc$',ex,'_ERN_080_diff)')))
+    eval(parse(text=paste0('LDDM_do3_rdoc$',ex,'_ERN_080 <- as.numeric(LDDM_do3_rdoc$',ex,'_ERN_080)')))
+}
+
+LDDM_do3_rdoc$B11_avtz_DO_v_v <- rowMeans(LDDM_do3_rdoc[,c('B11_avtz_DO_v_v_con','B11_avtz_DO_v_v_incon')], na.rm=F)
+LDDM_do3_rdoc$B11_avt_DO_v_v <- rowMeans(LDDM_do3_rdoc[,c('B11_avt_DO_v_v_con','B11_avt_DO_v_v_incon')], na.rm=F)
+LDDM_do3_rdoc$B11_avtz_DO_v_v <- rowMeans(LDDM_do3_rdoc[,c('B11_avtz_DO_v_v_con','B11_avtz_DO_v_v_incon')], na.rm=F)
+```
+
+# SET OUTLIER THRESHOLD HERE
+```{r}
+LDDM_do3_rdoc_no_outliers <- filter(LDDM_do3_rdoc,FCz_ERN_080>-3 & FCz_ERN_080<3)
+```
+
+## 1.8 Standardize scores
+```{r}
+var_list <- c("B11_avtz_DO_v_v","B11_avtz_DO_v_v_con","B11_avtz_DO_v_v_incon","B11_avtz_DO_v_a","B11_avtz_DO_v_t","B11_avtz_DO_v_z",
+              "B11_avt_v","B11_avt_a","B11_avt_t",
+              "B11_avtz_v","B11_avtz_a","B11_avtz_t","B11_avtz_z",
+              "B11_avt_DO_v_v","B11_avt_DO_v_v_con","B11_avt_DO_v_v_incon","B11_avt_DO_v_a", "B11_avt_DO_v_t",
+              "B11_avtz_DO_v_v","B11_avtz_DO_v_v_con","B11_avtz_DO_v_v_incon","B11_avtz_DO_v_a","B11_avtz_DO_v_t","B11_avtz_DO_v_z",
+              "flanker_score_rdoc",
+              "FCz_ERN_080","FCz_ERN_080_diff",
+              "Inhib_time","Pred_FSIQ","Motor_time","Age")
+
+for (v in var_list){ 
+  print(paste0("LDDM_do3_rdoc$",v))
+  eval(parse(text=paste0('LDDM_do3_rdoc$',v,'_z <- scale(LDDM_do3_rdoc$',v,', center=T, scale=T)'))) 
+}
+```
+
+
+# 2. Correlation between ERP measures and DDM parameters
+v = **drift rate**: "The parameter of primary interest for the present study is the drift rate, v, which is the average rate of approach to a boundary and indexes the quality or strength of evidence extracted from the stimulus. A large value of drift indicates strong decision evidence, meaning the decision process will approach the appropriate boundary quickly, leading to fast and accurate responses." Larger values of v mean faster accumulation of evidence (faster rate), larger t means slower non-decision time processing.
+
+z = **response bias**: "If participants were
+biased toward one of the two responses (e.g., by increasing the proportion of one response over the other), they would move their starting point closer to that boundary. This produces faster and more probable responses at that boundary since less evidence is needed to reach it." Distance between the the start of the drift process and upper boundary.
+
+a = **separation between the two boundaries**: "response caution or speed/accuracy tradeoffs. If the boundary separation is relatively small, responses will take less time to reach a boundary, leading to faster responses, but they will also be more likely to reach the wrong boundary due to noise in the process, leading to more errors." Larger a means more separation between the correct and incorrect response boundaries
+
+t = **non-decision time**: "takes into account the duration of nondecisional processes...such processes may comprise basic encoding processes, the configuration of working memory for a task, and processes of response execution (i.e., motor activity)." (Voss et al., 2013)
+
+## 2.1 ERN mean amplitude
+```{r}
+ERN_table <- data.frame(parameters= c("v", "v_congruent", "v_incongruent", "a", "t", "z"),
+                        r= c(corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_DO_v_v_z)$r,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_DO_v_v_con_z)$r,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_DO_v_v_incon_z)$r,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_DO_v_a_z)$r,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_DO_v_t_z)$r,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_DO_v_z_z)$r),
+                        p_nominal = c(corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_DO_v_v_z)$p,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_DO_v_v_con_z)$p,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_DO_v_v_incon_z)$p,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_DO_v_a_z)$p,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_DO_v_t_z)$p,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_DO_v_z_z)$p)); ERN_table$p_corrected <- p.adjust(ERN_table$p_nominal, method="fdr"); ERN_table[,2:4] <- round(ERN_table[,2:4], 3)
+ERN_table
+
+ggplot(filter(LDDM_do3_rdoc,FCz_ERN_080>-3 & FCz_ERN_080<3), aes(x=FCz_ERN_080_z, y=B11_avtz_DO_v_v_z)) +
+  geom_point() +
+  stat_smooth(method="lm")
+
+write.csv(ERN_table, here("./analysis/rdoc_ERN_table.csv"))
+
+# Pattern holds when accounting for family as random intercept
+summary(lmer(FCz_ERN_080_z ~ B11_avtz_DO_v_v_z + (1 | F_ID), LDDM_do3_rdoc))
+summary(lmer(FCz_ERN_080_z ~ B11_avtz_DO_v_v_con_z + (1 | F_ID), LDDM_do3_rdoc))
+summary(lmer(FCz_ERN_080_z ~ B11_avtz_DO_v_v_incon_z + (1 | F_ID), LDDM_do3_rdoc))
+summary(lmer(FCz_ERN_080_z ~ B11_avtz_DO_v_a_z + (1 | F_ID), LDDM_do3_rdoc))
+summary(lmer(FCz_ERN_080_z ~ B11_avtz_DO_v_t_z + (1 | F_ID), LDDM_do3_rdoc))
+summary(lmer(FCz_ERN_080_z ~ B11_avtz_DO_v_z_z + (1 | F_ID), LDDM_do3_rdoc))
+```
+
+#### 2.1.1.1 Alternative models
+##### ERN
+```{r}
+ERN_table_rdoc_alt1 <- data.frame(parameters= c("v", "a", "t"),
+                        r= c(corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avt_v_z)$r,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avt_a_z)$r,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avt_t_z)$r),
+                        p_nominal = c(corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avt_v_z)$p,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avt_a_z)$p,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avt_t_z)$p)); ERN_table_rdoc_alt1$p_corrected <- p.adjust(ERN_table_rdoc_alt1$p_nominal, method="fdr"); ERN_table_rdoc_alt1[,2:4] <- round(ERN_table_rdoc_alt1[,2:4], 3)
+
+ERN_table_rdoc_alt2 <- data.frame(parameters= c("v", "a", "t", "z"),
+                        r= c(corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_v_z)$r,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_a_z)$r,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_t_z)$r,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_z_z)$r),
+                        p_nominal = c(corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_v_z)$p,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_a_z)$p,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_t_z)$p,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_z_z)$p)); ERN_table_rdoc_alt2$p_corrected <- p.adjust(ERN_table_rdoc_alt2$p_nominal, method="fdr"); ERN_table_rdoc_alt2[,2:4] <- round(ERN_table_rdoc_alt2[,2:4], 3)
+
+ERN_table_rdoc_alt3 <- data.frame(parameters= c("v_congruent", "v_incongruent", "a", "t"),
+                        r= c(corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avt_DO_v_v_con_z)$r,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avt_DO_v_v_incon_z)$r,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avt_DO_v_a_z)$r,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avt_DO_v_t_z)$r),
+                        p_nominal = c(corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avt_DO_v_v_con_z)$p,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avt_DO_v_v_incon_z)$p,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avt_DO_v_a_z)$p,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avt_DO_v_t_z)$p)); ERN_table_rdoc_alt3$p_corrected <- p.adjust(ERN_table_rdoc_alt3$p_nominal, method="fdr"); ERN_table_rdoc_alt3[,2:4] <- round(ERN_table_rdoc_alt3[,2:4], 3)
+
+ERN_table_rdoc_alt4 <- data.frame(parameters= c("v_congruent", "v_incongruent", "a", "t", "z"),
+                        r= c(corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_DO_v_v_con_z)$r,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_DO_v_v_incon_z)$r,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_DO_v_a_z)$r,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_DO_v_t_z)$r,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_DO_v_z_z)$r),
+                        p_nominal = c(corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_DO_v_v_con_z)$p,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_DO_v_v_incon_z)$p,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_DO_v_a_z)$p,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_DO_v_t_z)$p,
+                             corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$B11_avtz_DO_v_z_z)$p)); ERN_table_rdoc_alt4$p_corrected <- p.adjust(ERN_table_rdoc_alt4$p_nominal, method="fdr"); ERN_table_rdoc_alt4[,2:4] <- round(ERN_table_rdoc_alt4[,2:4], 3)
+
+write.csv(t(ERN_table_rdoc_alt1), here("./analysis/rdoc_ERN_table_alt1.csv"))
+write.csv(t(ERN_table_rdoc_alt2), here("./analysis/rdoc_ERN_table_alt2.csv"))
+write.csv(t(ERN_table_rdoc_alt3), here("./analysis/rdoc_ERN_table_alt3.csv"))
+write.csv(t(ERN_table_rdoc_alt4), here("./analysis/rdoc_ERN_table_alt4.csv"))
+```
+
+# 3.  Compared to typical Flanker metrics
+```{r}
+library(lmerTest)
+# ERN
+## Flanker score
+corr.test(LDDM_do3_rdoc$FCz_ERN_080_z, LDDM_do3_rdoc$flanker_score_rdoc_z)
+
+summary(lmer(FCz_ERN_080_z ~ B11_avtz_DO_v_v_z + flanker_score_rdoc_z + (1 | F_ID), LDDM_do3_rdoc))
+summary(lmer(FCz_ERN_080_z ~ B11_avtz_DO_v_v_con_z + flanker_score_rdoc_z + (1 | F_ID), LDDM_do3_rdoc))
+summary(lmer(FCz_ERN_080_z ~ B11_avtz_DO_v_v_incon_z + flanker_score_rdoc_z + (1 | F_ID), LDDM_do3_rdoc))
+summary(lmer(FCz_ERN_080_z ~ B11_avtz_DO_v_a_z + flanker_score_rdoc_z + (1 | F_ID), LDDM_do3_rdoc))
+summary(lmer(FCz_ERN_080_z ~ B11_avtz_DO_v_t_z + flanker_score_rdoc_z + (1 | F_ID), LDDM_do3_rdoc))
+summary(lmer(FCz_ERN_080_z ~ B11_avtz_DO_v_z_z + flanker_score_rdoc_z + (1 | F_ID), LDDM_do3_rdoc))
+
+ggplot(filter(LDDM_do3_rdoc_no_outliers), aes(x=FCz_ERN_080_z, y=flanker_score_rdoc_z)) +
+  geom_point() +
+  stat_smooth(method="lm")
+
+# Without subjects with <80% accuracy
+summary(lm(FCz_ERN_080_z ~ B11_avtz_DO_v_v_z + flanker_score_rdoc_z,
+           filter(LDDM_do3_rdoc_no_outliers, flanker_score_rdoc_z>4)))
+
+# ggplot(filter(LDDM_do3_rdoc_no_outliers, flanker_score_rdoc_z>4), aes(x=FCz_ERN_080_z, y=flanker_score_rdoc_z)) +
+  # geom_point() +
+  # stat_smooth(method="lm")
+```
+Support for replication of STTR Day 1 results! Interestingly, when the subjects that did not achieve 80% accuracy. 
+
+
+# 4. Split half reliability (Spearman-Brown prophecy)
+## 4.1 DDM paramters
+
+## 4.2 Typical Flanker metrics
+```{r}
+load(file=here("./data/LDDM_cleaning04_fullbeh_rdoc.RData"))
+
+LDDM_cleaning04_rdoc_reliability <- LDDM_cleaning04_fullbeh_rdoc %>%
+  group_by(subj_idx) %>%
+  mutate(block = c(rep(1,30),rep(2,30),rep(3,30),rep(4,30),rep(5,30),rep(6,30),rep(7,30),rep(8,30),rep(9,30),rep(10,30),rep(11,30))) %>%
+  group_by(subj_idx) %>%
+  mutate(trial = 1:330)
+
+for (s in seq(15,166,15)){
+    eval(parse(text=paste0('
+LDDM_first',s,'_1 <- LDDM_cleaning04_rdoc_reliability %>% filter(trial<=',s,')
+LDDM_second',s,'_1 <- LDDM_cleaning04_rdoc_reliability %>% filter(trial< ',(s*2)+1,' & trial>',s,')
+  
+LDDM_first',s,'_2 <- LDDM_first',s,'_1 %>%
+  group_by(subj_idx) %>% # per subject
+  summarise(accuracy_score = sum(response==1)*(5/length(trial))) # accuracy score per NIH TOoolbox manual
+LDDM_second',s,'_2 <- LDDM_second',s,'_1 %>%
+  group_by(subj_idx) %>%
+  summarise(accuracy_score = sum(response==1)*(5/length(trial))) # accuracy score per NIH TOoolbox manual
+
+LDDM_first',s,'_3 <-  LDDM_first',s,'_1 %>%
+  group_by(subj_idx) %>% # per subject
+  filter(stim=="incongruent" & response==1) %>% # incongruent trials with correct response
+  mutate(mean_rt = mean(rt),
+         sd_rt = sd(rt)) %>% # compute individual mean and sd RT for use below
+  filter(rt>=0.1 & rt>(mean_rt - 3*sd_rt) & rt<(mean_rt + 3*sd_rt)) %>% # remove trials less than 100ms and less than 3SD below or 3SD above the mean RT
+  summarise(med_rt = median(rt)*1000) %>% # compute individual level median RT
+  mutate(rt_score = 5-(5*((log(med_rt)-log(250))/(log(1000)-log(250))))) # compute RT score to go into flanker score
+LDDM_second',s,'_3 <-  LDDM_second',s,'_1 %>%
+  group_by(subj_idx) %>% # per subject
+  filter(stim=="incongruent" & response==1) %>% # incongruent trials with correct response
+  mutate(mean_rt = mean(rt),
+         sd_rt = sd(rt)) %>% # compute individual mean and sd RT for use below
+  filter(rt>=0.1 & rt>(mean_rt - 3*sd_rt) & rt<(mean_rt + 3*sd_rt)) %>% # remove trials less than 100ms and less than 3SD below or 3SD above the mean RT
+  summarise(med_rt = median(rt)*1000) %>% # compute individual level median RT
+  mutate(rt_score = 5-(5*((log(med_rt)-log(250))/(log(1000)-log(250))))) # compute RT score to go into flanker score
+
+LDDM_first',s,' <- LDDM_first',s,'_1 %>%
+  full_join(LDDM_first',s,'_2, by = "subj_idx") %>%
+  full_join(LDDM_first',s,'_3, by="subj_idx") %>%
+  group_by(subj_idx) %>% # per subject
+  mutate(total_accuracy_perc = sum(response==1)/length(response)) %>% # compute total accuracy percentage
+  summarise(flanker_score_list_rdoc = if_else(total_accuracy_perc>=0.8, accuracy_score+rt_score, accuracy_score),
+            accuracy = mean(total_accuracy_perc)) %>% # if accuracy is above 80% then add accuracy and rt flanker scores, if not base the flanker score only on accuracy; also compute a regular percentage based accuracy (ie percent of trials when subject was correct)
+  transmute(ID=subj_idx, flanker_score_list_rdoc=flanker_score_list_rdoc, accuracy=accuracy) %>%
+  group_by(ID) %>% # per subject
+  summarise(flanker_score_rdoc = mean(flanker_score_list_rdoc),
+            accuracy = mean(accuracy))
+LDDM_second',s,' <- LDDM_second',s,'_1 %>%
+  full_join(LDDM_second',s,'_2, by = "subj_idx") %>%
+  full_join(LDDM_second',s,'_3, by="subj_idx") %>%
+  group_by(subj_idx) %>% # per subject
+  mutate(total_accuracy_perc = sum(response==1)/length(response)) %>% # compute total accuracy percentage
+  summarise(flanker_score_list_rdoc = if_else(total_accuracy_perc>=0.8, accuracy_score+rt_score, accuracy_score),
+            accuracy = mean(total_accuracy_perc)) %>% # if accuracy is above 80% then add accuracy and rt flanker scores, if not base the flanker score only on accuracy; also compute a regular percentage based accuracy (ie percent of trials when subject was correct)
+  transmute(ID=subj_idx, flanker_score_list_rdoc=flanker_score_list_rdoc, accuracy=accuracy) %>%
+  group_by(ID) %>% # per subject
+  summarise(flanker_score_rdoc = mean(flanker_score_list_rdoc),
+            accuracy = mean(accuracy))
+            
+r_half_',s,' <- cor(LDDM_first',s,'$flanker_score_rdoc, LDDM_second',s,'$flanker_score_rdoc, use="pairwise")
+r_half_ci_',s,' <- ci_cor(LDDM_first',s,'$flanker_score_rdoc, LDDM_second',s,'$flanker_score_rdoc, use="pairwise")
+r_sb_ci_lower_',s,' <- (2*r_half_ci_',s,'$interval[1])/(1+r_half_ci_',s,'$interval[1])
+r_sb_ci_upper_',s,' <- (2*r_half_ci_',s,'$interval[2])/(1+r_half_ci_',s,'$interval[2])
+r_sb_',s,' <- (2*r_half_',s,')/(1+r_half_',s,')
+')))
+}
+
+spearman_brown_rdoc <- data.frame(trials=seq(15,165,15),
+                             r=rep(NA,length(seq(15,165,15))),
+                             r_ci_lower=rep(NA,length(seq(15,165,15))),
+                             r_ci_upper=rep(NA,length(seq(15,165,15))))
+i=1
+for (s in seq(15,165,15)){
+  eval(parse(text=paste0('spearman_brown_rdoc[i,2] <- round(as.numeric(r_sb_',s,'),3)
+                         spearman_brown_rdoc[i,3] <- round(as.numeric(r_sb_ci_lower_',s,'),3)
+                         spearman_brown_rdoc[i,4] <- round(as.numeric(r_sb_ci_upper_',s,'),3)')))
+  i=i+1
+}
+spearman_brown_rdoc
+
+ggplot(spearman_brown_rdoc, aes(x=trials, y=r, group=1)) +
+  geom_line() +
+  geom_point() +
+  scale_y_continuous(limits = c(0, 1)) +
+  geom_ribbon(aes(ymin = r_ci_lower, ymax = r_ci_upper), alpha = 0.2)
+```
+
+# 5. Accuracy
+## 5.1 First vs second half of task
+```{r}
+LDDM_accuracy_rdoc_1 <- LDDM_cleaning04_rdoc_calc1 %>%
+  filter(block<6) %>%
+  group_by(subj_idx) %>%
+  summarise(accuracy_score = sum(response==1)*(5/length(trial)))
+
+LDDM_accuracy_rdoc_2 <- LDDM_cleaning04_rdoc_calc1 %>%
+  filter(block>=6) %>%
+  group_by(subj_idx) %>%
+  summarise(accuracy_score = sum(response==1)*(5/length(trial)))
+
+t.test(LDDM_accuracy_rdoc_1$accuracy_score, LDDM_accuracy_rdoc_2$accuracy_score)
+```
+Participants are significantly more accurate in the first 5 than second 6 blocks of the task.
+
+# 6. Convergence with neuropsych measures
+
+
+## 6.2 Correlations between Inhibition time and DDM parameters
+```{r}
+CW_table <- data.frame(parameters= c("v", "v_congruent", "v_incongruent", "a", "t", "z"),
+                        r= c(corr.test(LDDM_do3_rdoc$Inhib_time_z, LDDM_do3_rdoc$B11_avtz_DO_v_v_z)$r,
+                             corr.test(LDDM_do3_rdoc$Inhib_time_z, LDDM_do3_rdoc$B11_avtz_DO_v_v_con_z)$r,
+                             corr.test(LDDM_do3_rdoc$Inhib_time_z, LDDM_do3_rdoc$B11_avtz_DO_v_v_incon_z)$r,
+                             corr.test(LDDM_do3_rdoc$Inhib_time_z, LDDM_do3_rdoc$B11_avtz_DO_v_a_z)$r,
+                             corr.test(LDDM_do3_rdoc$Inhib_time_z, LDDM_do3_rdoc$B11_avtz_DO_v_t_z)$r,
+                             corr.test(LDDM_do3_rdoc$Inhib_time_z, LDDM_do3_rdoc$B11_avtz_DO_v_z_z)$r),
+                        p_nominal = c(corr.test(LDDM_do3_rdoc$Inhib_time_z, LDDM_do3_rdoc$B11_avtz_DO_v_v_z)$p,
+                             corr.test(LDDM_do3_rdoc$Inhib_time_z, LDDM_do3_rdoc$B11_avtz_DO_v_v_con_z)$p,
+                             corr.test(LDDM_do3_rdoc$Inhib_time_z, LDDM_do3_rdoc$B11_avtz_DO_v_v_incon_z)$p,
+                             corr.test(LDDM_do3_rdoc$Inhib_time_z, LDDM_do3_rdoc$B11_avtz_DO_v_a_z)$p,
+                             corr.test(LDDM_do3_rdoc$Inhib_time_z, LDDM_do3_rdoc$B11_avtz_DO_v_t_z)$p,
+                             corr.test(LDDM_do3_rdoc$Inhib_time_z, LDDM_do3_rdoc$B11_avtz_DO_v_z_z)$p)); CW_table$p_corrected <- p.adjust(CW_table$p_nominal, method="fdr"); CW_table[,2:4] <- round(CW_table[,2:4], 3)
+CW_table
+
+write.csv(CW_table, here("./analysis/CW_table.csv"))
+```
+
+## 6.3 Inhibition time predicted by DDM and NIH Toolbox
+```{r}
+corr.test(LDDM_do3_rdoc$Inhib_time_z, LDDM_do3_rdoc$flanker_score_rdoc_z)
+
+summary(lm(Inhib_time_z ~ B11_avtz_DO_v_v_z + flanker_score_rdoc_z, LDDM_do3_rdoc))
+summary(lm(Inhib_time_z ~ B11_avtz_DO_v_v_con_z + flanker_score_rdoc_z, LDDM_do3_rdoc))
+summary(lm(Inhib_time_z ~ B11_avtz_DO_v_v_incon_z + flanker_score_rdoc_z, LDDM_do3_rdoc))
+summary(lm(Inhib_time_z ~ B11_avtz_DO_v_a_z + flanker_score_rdoc_z, LDDM_do3_rdoc))
+summary(lm(Inhib_time_z ~ B11_avtz_DO_v_t_z + flanker_score_rdoc_z, LDDM_do3_rdoc))
+summary(lm(Inhib_time_z ~ B11_avtz_DO_v_z_z + flanker_score_rdoc_z, LDDM_do3_rdoc))
+
+summary(lm(Inhib_time_z ~ B11_avtz_DO_v_v_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + Age, LDDM_do3_rdoc))
+summary(lm(Inhib_time_z ~ B11_avtz_DO_v_v_con_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + Age, LDDM_do3_rdoc))
+summary(lm(Inhib_time_z ~ B11_avtz_DO_v_v_incon_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + Age, LDDM_do3_rdoc))
+summary(lm(Inhib_time_z ~ B11_avtz_DO_v_a_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + Age, LDDM_do3_rdoc))
+summary(lm(Inhib_time_z ~ B11_avtz_DO_v_t_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + Age, LDDM_do3_rdoc))
+summary(lm(Inhib_time_z ~ B11_avtz_DO_v_z_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + Age, LDDM_do3_rdoc))
+
+ggplot(filter(LDDM_do3_rdoc), aes(x=B11_avtz_DO_v_v, y=Inhib_time)) +
+  geom_point() +
+  stat_smooth(method="lm")
+
+ggplot(filter(LDDM_do3_rdoc, Inhib_time<100), aes(x=B11_avtz_DO_v_v, y=Inhib_time)) +
+  geom_point() +
+  stat_smooth(method="lm")
+```
+The greater v, the lower Inhibition time. That is faster drift rate is related to reduced inhibition time.
+
