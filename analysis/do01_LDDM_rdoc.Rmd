@@ -40,7 +40,10 @@ This script analyzes data from the Flanker task of the RDoC study to see whether
   library(labelled)
   library(confintr)
   library(papaja)
+  library(DescTools)
+  library(irr)
   library(workflowr)  #helps with workflow
+  library(lmerTest)
   library(ggplot2)
 ```
 
@@ -107,7 +110,15 @@ LDDM_do3_rdoc$B11_avtz_DO_v_v <- rowMeans(LDDM_do3_rdoc[,c('B11_avtz_DO_v_v_con'
 
 # SET OUTLIER THRESHOLD HERE
 ```{r}
-LDDM_do3_rdoc_no_outliers <- filter(LDDM_do3_rdoc,FCz_ERN_080>-3 & FCz_ERN_080<3)
+LDDM_do3_rdoc_no_outliers <- LDDM_do3_rdoc %>%
+  mutate(FCz_ERN_080 = Winsorize(FCz_ERN_080, 
+                                    minval=mean(FCz_ERN_080, na.rm=T)-(3*sd(FCz_ERN_080, na.rm=T)),
+                                    maxval=mean(FCz_ERN_080, na.rm=T)+(3*sd(FCz_ERN_080, na.rm=T)),
+                                    na.rm=T),
+         Inhib_time = Winsorize(Inhib_time, 
+                                    minval=mean(Inhib_time, na.rm=T)-(3*sd(Inhib_time, na.rm=T)),
+                                    maxval=mean(Inhib_time, na.rm=T)+(3*sd(Inhib_time, na.rm=T)),
+                                    na.rm=T))
 ```
 
 ## 1.8 Standardize scores
@@ -124,6 +135,11 @@ var_list <- c("B11_avtz_DO_v_v","B11_avtz_DO_v_v_con","B11_avtz_DO_v_v_incon","B
 for (v in var_list){ 
   print(paste0("LDDM_do3_rdoc$",v))
   eval(parse(text=paste0('LDDM_do3_rdoc$',v,'_z <- scale(LDDM_do3_rdoc$',v,', center=T, scale=T)'))) 
+}
+
+for (v in var_list){ 
+  print(paste0("LDDM_do3_rdoc$",v))
+  eval(parse(text=paste0('LDDM_do3_rdoc_no_outliers$',v,'_z <- scale(LDDM_do3_rdoc_no_outliers$',v,', center=T, scale=T)'))) 
 }
 ```
 
@@ -233,13 +249,9 @@ summary(lmer(FCz_ERN_080_z ~ B11_avtz_DO_v_a_z + flanker_score_rdoc_z + (1 | F_I
 summary(lmer(FCz_ERN_080_z ~ B11_avtz_DO_v_t_z + flanker_score_rdoc_z + (1 | F_ID), LDDM_do3_rdoc))
 summary(lmer(FCz_ERN_080_z ~ B11_avtz_DO_v_z_z + flanker_score_rdoc_z + (1 | F_ID), LDDM_do3_rdoc))
 
-ggplot(filter(LDDM_do3_rdoc_no_outliers), aes(x=FCz_ERN_080_z, y=flanker_score_rdoc_z)) +
+ggplot(filter(LDDM_do3_rdoc), aes(x=FCz_ERN_080_z, y=flanker_score_rdoc_z)) +
   geom_point() +
   stat_smooth(method="lm")
-
-# Without subjects with <80% accuracy
-summary(lm(FCz_ERN_080_z ~ B11_avtz_DO_v_v_z + flanker_score_rdoc_z,
-           filter(LDDM_do3_rdoc_no_outliers, flanker_score_rdoc_z>4)))
 
 # ggplot(filter(LDDM_do3_rdoc_no_outliers, flanker_score_rdoc_z>4), aes(x=FCz_ERN_080_z, y=flanker_score_rdoc_z)) +
   # geom_point() +
@@ -359,9 +371,7 @@ t.test(LDDM_accuracy_rdoc_1$accuracy_score, LDDM_accuracy_rdoc_2$accuracy_score)
 Participants are significantly more accurate in the first 5 than second 6 blocks of the task.
 
 # 6. Convergence with neuropsych measures
-
-
-## 6.2 Correlations between Inhibition time and DDM parameters
+## 6.1 Correlations between Inhibition time and DDM parameters
 ```{r}
 CW_table <- data.frame(parameters= c("v", "v_congruent", "v_incongruent", "a", "t", "z"),
                         r= c(corr.test(LDDM_do3_rdoc$Inhib_time_z, LDDM_do3_rdoc$B11_avtz_DO_v_v_z)$r,
@@ -381,7 +391,7 @@ CW_table
 write.csv(CW_table, here("./analysis/CW_table.csv"))
 ```
 
-## 6.3 Inhibition time predicted by DDM and NIH Toolbox
+## 6.2 Inhibition time predicted by DDM and NIH Toolbox
 ```{r}
 corr.test(LDDM_do3_rdoc$Inhib_time_z, LDDM_do3_rdoc$flanker_score_rdoc_z)
 
@@ -392,12 +402,12 @@ summary(lm(Inhib_time_z ~ B11_avtz_DO_v_a_z + flanker_score_rdoc_z, LDDM_do3_rdo
 summary(lm(Inhib_time_z ~ B11_avtz_DO_v_t_z + flanker_score_rdoc_z, LDDM_do3_rdoc))
 summary(lm(Inhib_time_z ~ B11_avtz_DO_v_z_z + flanker_score_rdoc_z, LDDM_do3_rdoc))
 
-summary(lm(Inhib_time_z ~ B11_avtz_DO_v_v_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + Age, LDDM_do3_rdoc))
-summary(lm(Inhib_time_z ~ B11_avtz_DO_v_v_con_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + Age, LDDM_do3_rdoc))
-summary(lm(Inhib_time_z ~ B11_avtz_DO_v_v_incon_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + Age, LDDM_do3_rdoc))
-summary(lm(Inhib_time_z ~ B11_avtz_DO_v_a_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + Age, LDDM_do3_rdoc))
-summary(lm(Inhib_time_z ~ B11_avtz_DO_v_t_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + Age, LDDM_do3_rdoc))
-summary(lm(Inhib_time_z ~ B11_avtz_DO_v_z_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + Age, LDDM_do3_rdoc))
+summary(lm(Inhib_time_z ~ B11_avtz_DO_v_v_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time, LDDM_do3_rdoc))
+summary(lm(Inhib_time_z ~ B11_avtz_DO_v_v_con_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time, LDDM_do3_rdoc))
+summary(lm(Inhib_time_z ~ B11_avtz_DO_v_v_incon_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time, LDDM_do3_rdoc))
+summary(lm(Inhib_time_z ~ B11_avtz_DO_v_a_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time, LDDM_do3_rdoc))
+summary(lm(Inhib_time_z ~ B11_avtz_DO_v_t_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time, LDDM_do3_rdoc))
+summary(lm(Inhib_time_z ~ B11_avtz_DO_v_z_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time, LDDM_do3_rdoc))
 
 ggplot(filter(LDDM_do3_rdoc), aes(x=B11_avtz_DO_v_v, y=Inhib_time)) +
   geom_point() +
@@ -408,4 +418,36 @@ ggplot(filter(LDDM_do3_rdoc, Inhib_time<100), aes(x=B11_avtz_DO_v_v, y=Inhib_tim
   stat_smooth(method="lm")
 ```
 The greater v, the lower Inhibition time. That is faster drift rate is related to reduced inhibition time.
+
+## 6.1 Correlations between shifting and DDM parameters
+```{r}
+# Make shifting composite
+lapply(LDDM_do3_rdoc, attr, "label")
+rowMeans(LDDM_do3_rdoc$InSw_time, LDDM_do3_rdoc$Switch_cor)
+
+```
+
+# 7. Heritability of DDM
+```{r}
+LDDM_do3_rdoc_sib <- LDDM_do3_rdoc %>%
+  pivot_wider(id_cols=F_ID, names_from=S_ID, 
+              values_from=c(B11_avtz_DO_v_v_z, B11_avtz_DO_v_v_con_z, B11_avtz_DO_v_v_incon_z,
+                            B11_avtz_DO_v_a_z,B11_avtz_DO_v_t_z,B11_avtz_DO_v_z_z,flanker_score_rdoc_z))
+
+LDDM_heritability_table <- data.frame(parameters= c("v", "v_congruent", "v_incongruent", "a", "t", "z", "nihtoolbox_flanker"),
+                           ICC=c(icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_v_z_1","B11_avtz_DO_v_v_z_2")])$value,
+                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_v_con_z_1","B11_avtz_DO_v_v_con_z_2")])$value,
+                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_v_incon_z_1","B11_avtz_DO_v_v_incon_z_2")])$value,
+                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_a_z_1","B11_avtz_DO_v_a_z_2")])$value,
+                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_t_z_1","B11_avtz_DO_v_t_z_2")])$value,
+                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_z_z_1","B11_avtz_DO_v_z_z_2")])$value,
+                           icc(LDDM_do3_rdoc_sib[c("flanker_score_rdoc_z_1","flanker_score_rdoc_z_2")])$value))
+
+write.csv(LDDM_heritability_table, "./analysis/rdoc_heritability_table.csv")
+```
+
+
+```{r}
+####################  END OF SCRIPT #################### 
+```
 
