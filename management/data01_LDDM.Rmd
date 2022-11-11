@@ -133,7 +133,8 @@ for (ex in electrodes_list[1:3]){
 # Calculate residualized P3 onset
 for (ex in electrodes_list[4:6]){
       for (days in sessions) {
-        eval(parse(text=paste0('LDDM_cleaning03_d',days,'$',ex,'_P3_onset <- stdres(lm(Incongruent_',ex,'_fpl ~ Congruent_',ex,'_fpl, LDDM_cleaning03_d',days,', na.action=na.exclude))')))
+        eval(parse(text=paste0('LDDM_cleaning03_d',days,'$',ex,'_P3_onset_incon <- stdres(lm(Incongruent_',ex,'_fpl ~ Congruent_',ex,'_fpl, LDDM_cleaning03_d',days,', na.action=na.exclude))')))
+        eval(parse(text=paste0('LDDM_cleaning03_d',days,'$',ex,'_P3_onset_con <- stdres(lm(Congruent_',ex,'_fpl ~ Incongruent_',ex,'_fpl, LDDM_cleaning03_d',days,', na.action=na.exclude))')))
       }
 }
 ```
