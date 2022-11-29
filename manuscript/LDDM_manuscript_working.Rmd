@@ -1,0 +1,305 @@
+---
+title             : "Psychometrics of hierarchical drift diffusion modeling for Eriksen flanker task"
+shorttitle        : "Psychometrics of HDDM"
+
+author: 
+  - name          : "Brent I. Rappaport"
+    affiliation   : "1"
+    corresponding : yes    # Define only one corresponding author
+    address       : "680 N. Lakeshore Drive, Suite 1520, Chicago, IL 60611"
+    email         : "brent.rappaport@northwestern.edu"
+    role:         # Contributorship roles (e.g., CRediT, https://credit.niso.org)
+      - "Conceptualization"
+      - "Formal Analysis"
+      - "Methodology"
+      - "Writing - Original Draft Preparation"
+      - "Writing - Review & Editing"
+  - name          : "Allison Letkiewicz"
+    affiliation   : "1"
+    role:
+      - "Conceptualization"
+      - "Formal Analysis"
+      - "Methodology"
+      - "Writing - Original Draft Preparation"
+      - "Writing - Review & Editing"
+  - name          : "Anna Weinberg"
+    affiliation   : "2"
+    role:
+      - "Data Curation"
+      - "Investigation"
+      - "Project Administration"
+      - "Writing - Review & Editing"
+  - name          : "Savannah Buchanan"
+    affiliation   : "1"
+    role:
+      - "Writing - Original Draft Preparation"
+      - "Writing - Review & Editing"
+  - name          : "Stewart Shankman"
+    affiliation   : "1"
+    role:
+      - "Conceptualization"
+      - "Funding Acquisition"
+      - "Methodology"
+      - "Project Administration"
+      - "Resources"
+      - "Supervision"
+      - "Writing - Original Draft Preparation"
+      - "Writing - Review & Editing"
+
+affiliation:
+  - id            : "1"
+    institution   : "Department of Psychiatry, Feinberg School of Medicine, Northwestern University"
+  - id            : "2"
+    institution   : "Department of Psychology, McGill University"
+
+abstract: |
+  Despite advantages of computational models to study cognitive functions that underlie psychiatric disorders, little research has compared the psychometric properties of these models to simpler behavioral measures. We examined the reliability and validity of three behavioral measures of a cognitive control task: the Eriksen flanker, specifically 1) raw accuracy, 2) a NIH Toolbox derived score that incorporates reaction time and accuracy, and 3) parameters of a hierarchical drift diffusion model (HDDM). Participants from two independent studies—one cross-sectional sample (N=392) and one longitudinal sample with three time points (N=79, 70, 68, respectively)—completed the Flanker task while electroencephalography data was collected. Behavioral data were processed using with a HDDM yielding five parameters: drift rate to congruent/incongruent stimuli, separation between decision boundaries, non-decision time, and starting bias. In the two studies, drift rate, particularly for congruent stimuli, demonstrated better split-half and test-retest reliability than the NIH Toolbox score. Drift rate also demonstrated better convergent validity with brain measures (i.e., the error-related negativity event-related potential component) and neuropsychological measures of executive function. Results showed that faster accumulation of evidence (drift rate) was related to 1) larger ERN amplitudes and 2) faster and more accurate inhibition and shifting over and above the NIH Toolbox and raw accuracy scores and covariates (IQ, motor speed). Given enough trials, these models can be fit to extant data. Thus, findings suggest that these models may be powerful tools in identifying aberrations in cognitive functioning associated with psychiatric disorders.
+  
+keywords          : "psychometric, computational modeling, EEG, cognitive control, executive function"
+wordcount         : "X"
+
+bibliography      : "LDDM.bib, packages.bib"
+
+floatsintext      : no
+linenumbers       : yes
+draft             : no
+mask              : no
+
+figurelist        : no
+tablelist         : no
+footnotelist      : no
+
+csl               : "apa.csl"
+documentclass     : "apa7"
+classoption       : "man"
+output            : papaja::apa6_pdf
+---
+
+```{r echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+    options(width=80, Ncpus = 6, mc.cores=6) #Set width
+    rm(list=ls())     #Remove everything from environment
+    cat("\014")       #Clear Console
+
+  # renv::restore()     #restore environment
+  library(knitr)      #allows rmarkdown files
+  library(haven)      #helps import stata
+  # library(questionr)  #allows lookfor function
+  library(MASS)       #calculate residualized scores
+  library(tidyverse)  #plotting/cleaning, etc.
+  library(broom)      #nice statistical output
+  library(here)       #nice file paths
+  library(expss)      #labeling variables/values
+  library(psych)      #used for statistical analyses
+  library(labelled)   #get labelled values when importing from SPSS
+  library(confintr)   #get confidence intervals from models
+  library(papaja)     #APA formatting
+  library(DescTools)  #descriptive statistics
+  library(irr)        #ICC
+  library(lmerTest)   #p value from mixed effects models
+  library(broom.mixed) #tidying output of mixed effects models
+  library(ggplot2)    #plotting graphs
+  library(workflowr)  #helps with workflow
+
+r_refs("LDDM.bib")
+```
+
+```{r analysis-preferences, set.seed(312)}
+# Seed for random number generation
+set.seed(312)
+knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
+```
+
+```{r Load data}
+load(file=here("./data/LDDM_do2_d1_not_outliers.RData"))
+load(file=here("./data/LDDM_do2_d2_not_outliers.RData"))
+load(file=here("./data/LDDM_do2_d3_not_outliers.RData"))
+
+load(file=here("./data/LDDM_cleaning04_calc3_1to3.RData"))
+load(file=here("./data/LDDM_do2_irr.RData"))
+load(file=here("./data/LDDM_do2.RData"))
+load(file=here("./data/spearman_brown_d1.RData"))
+load(file=here("./data/spearman_brown_d2.RData"))
+load(file=here("./data/spearman_brown_d3.RData"))
+
+load(file=here("./data/LDDM_do3_rdoc.RData"))
+load(file=here("./data/LDDM_do3_rdoc_no_outliers.RData"))
+load(file=here("./data/spearman_brown_rdoc.RData"))
+```
+
+# Methods
+
+## Participants
+
+### Study 1
+
+For Study 1, individuals were recruited from flyers posted around a university campus and screened over the phone to determine eligibility. Inclusion criteria were being 18--60-years-old and right-handed. Exclusion criteria were a history of major medical or neurological problems, or head trauma with loss of consciousness for greater than 15 minutes. Left-handed or ambidextrous individuals were also excluded. Participants were scheduled for 5 laboratory visits, ensuring that consectuive visits occurred 2--14 days apart (median=7). A total of 86 participants provided informed consent and completed the study, with a majority completing all five sessions (n = 74, 86%) and only six participants only completing one session (7%). Within-subject sessions were excluded from analyses for poor accuracy on the flanker task (i.e., \< 50%) or poor EEG data quality (i.e., fewer than 10 artifact-free trials per condition) or missing data. One participant was excluded across all sessions due to below 50% accuracy on the flanker task. See Table 1 for full demographic information on the final sample of ##.
+
+### Study 2
+
+For Study 2, individuals were recruited from mental health clinics and the local community. Inclusion criteria were being 18--30-years-old, having a biological sibling within the same age range able to participate, and being right-handed. Exclusion criteria were being left-handed, being unable to read or write in English, having a history of a head trauma with loss of consciousness, or having a first-degree family member with a history of manic, hypomanic, or psychotic symptoms (for full method details, see Gorka 2016, Kaiser, 2020, Weinberg, 2015). Participants were oversampled for severe internalizing psychopathology using the Depression, Anxiety, and Stress Scale (DASS; Lovibond & Lovibond, 1995) during initial screening.
+
+## Procedure
+
+### Flanker task
+
+Across Study 1 and 2, an arrowhead version of the flanker task (Eriksen & Eriksen, 1974) was administered using the Presentation software (Neurobehavioral Systems, Berkeley, CA). On each trial, participants were presented with a row of five arrowheads for 200 ms and were asked to indicate the direction of the central arrowhead with the left or right mouse button as quickly and accurately as possible. Half of the trials were congruent, and half were incongruent with trial order randomized. Participants completed 11 blocks of 30 trials (330 trials total), with short breaks and performance-based feedback given in between blocks.
+
+**ADD FROM LILLIAN'S SUPPLEMENT**
+
+### EEG Data Collection
+
+#### Study 1
+
+Continuous EEG was recorded with a Neuroscan Synamp2 system (Compumedics, Charlotte, NC, USA) using six midline electrodes (Fz, FCz, Cz, CPz, Pz, & Poz). The electrooculogram (EOG) generated from eye movements and blinks was recorded using facial electrodes placed approximately 1 cm above and below the left eye and 1 cm to the right and left of the eyes. All electrode impedances were below 5 kΩ, and data were recorded with a sampling rate of 1,000 Hz. Pre and postprocessing were conducted offline in MATLAB using EEGLAB (CITE) and ERPLAB (CITE). EEG data was imported to EEGLAB, heart rate channel was removed, and data was resampled to 500Hz. A bandpass filter from 0.1 to 30Hz was applied and data was rereferenced to the average of the mastoids. Stimulus and response-locked epochs were segmented from -500 to 1000ms and baseline corrected from -500 to -300ms. Eyeblink and ocular corrected were conducted (Gratton & Coles (CITE) and artifact detection and rejection was conducted on all scalp electrodes. Specifically, the criteria applied were a voltage step of more than 50 μV between sample points, a voltage difference of 175 μV within a trial, and a minimum voltage difference of less than 0.50 μV within **1500ms intervals CHECK THIS**. These intervals were rejected from individual channels in each trial. ERPs were computed as mean amplitude 0 to 80ms following a response at a frontocentral electrode (i.e., FCz) per prior research (CITE). ERPs were computed separately for correct and error responses and a residualized difference score was calculated (CITE) to isolate activity to errors, yielding the error-related negativity component (CITE). ERPs had to include at least 10 error and 10 correct artifact free trials per session; thus within-participant sessions were excluded if there were too few artifact free error or correct trials.
+
+#### Study 2
+
+During the task, continuous EEG activity was recorded at a sampling rate of 1024 Hz using the ActiveTwo BioSemi system (BioSemi, Amsterdam, Netherlands). Recordings were taken from 64 Ag/AgCl electrodes placed according to the 10/20 system. **WHERE SHOULD I GET FURTHER INFO ABOUT HOW RDOC DATA WAS PROCESSED AND EXTRACTED?**
+
+### Neuropsychological measures from Study 2
+
+Executive function was estimated using a mean composite of four measures from the Delis-Kaplan Executive Function System (D-KEFS; Delis et al., 2001) Design Fluency, Verbal Fluency, Trail Making, and Color-Word Interference tasks. Specifically, measures used were 1) total number of successful designs made during the category switching condition on Design Fluency, and 2) on Verbal Fluency, 3) completion time for the number-letter sequencing condition multiplied by 1 for reverse-scoring on Trail Making, and 4) time to complete the inhibition condition on Color-Word Inference. For further details of tasks see Letkiewicz et al., 2021. The Wechsler Test of Adult Reading (WTAR; Wechsler, 2001) estimated participants' full-scale IQ (FSIQ) and was included as a covariate in Study 2 analyses. See Letkiewicz et al., 2021 for further details about how these scores are calculated. Of import, scores on the WTAR are highly correlated with FSIQ (r = 0.73; Strauss et al., 2006). Motor speed was assessed using the motor speed condition of the D-KEFS Trail Making Test and was also included as a covariate to account for the potential impact of slowed reaction time.
+
+## Data analysis
+
+### Hierarchical drift diffusion modeling
+
+**ALLIE'S PORTION GOES HERE**
+
+```{r Write package citations}
+# knitr::write_bib(c(.packages()), here("./packages.bib"))  
+```
+
+Individual-level parameters were imported into R `r cite_r("LDDM.bib")` where remaining analyses were conducted, primarily using the following packages: tidyverse , ggplot2, DescTools, lme4, lmerTest, broom, broom.mixed, psych, here, confintr, irr, MASS, knitr, and papaja.
+
+### Outliers
+
+### Missing data
+
+Correlations, multiple regressions and ICCs use listwise deletion of subjects if they are missing any measure/time point
+
+### Reliability: test-retest and split-half
+
+Measure reliability was examined two ways: split-half and test-retest. First, split-half reliability was calculated by splitting the trials in half and using the Spearman Brown prediction formula (CITE) to calculate the reliability. Split-half reliability was also examined at increments of 15 trials (e.g., first 15 trials vs second 15 trials, first 30 trials vs next 30 trials, etc.) to assess the point at which this measure reaches stability. Test-retest reliability was calculated as the intraclass correlation coefficient (ICC) between all three days of day from Study 1. The ICCs between day 1 and 2, and day 2 and 3 were also calculated and are presented in the supplement.
+
+### Correlations
+
+Raw two-sided Pearson correlation coefficients were initially examined between the ERN magnitude or neuropsychological score and each measure.
+
+### Multiple regressions
+
+Multiple regression models were used to assess the relative variance accounted for in the ERN and neuropsychological scores by DDM parameters, NIH Toolbox score, and raw accuracy when estimated simultaneously. That is, each model included as predictors: one ddm parameter, the NIH Toolbox score, and raw accuracy. In Study 2, linear mixed effect multiple regression models were used to account for within-family random intercept between sibling pairs.
+
+### Heritability
+
+Heritability was estimated at the ICC between siblings from the same family in Study 2.
+
+# Results
+
+## HDDM
+
+**ALLIE: INFO HERE ABOUT MODEL FIT**
+
+## Reliability
+
+### Split-half
+Drift rate and decision threshold distance both demonstrated comparable split-half reliability to raw accuracy and better split-half reliability than the NIH Toolbox score across all three sessions in Study 1, as well as in Study 2 (see Table 2).
+```{r Split-half}
+splithalf <- read.csv(here("./tables/splithalf.csv"))
+splithalf[6,] <- c("NIH Toolbox score", spearman_brown_d1[11,2], spearman_brown_d2[11,2], spearman_brown_d3[11,2], spearman_brown_rdoc[11,2])
+splithalf[,1] <- c("Drift rate to congruent stimuli", "Drift rate to incongruent stimuli", "Decision threshold distance", "Non-decision time", "Starting bias", "NIH Toolbox score")
+
+apa_table(splithalf,
+          col.names=c("HDDM paramters","Session 1","Session 2","Session 3", "Study 2"),
+          align = c("l", rep("c", 4)),
+          digits=2,
+          caption = "Table 2",
+          note = "",
+          col_spanners=list(`Study 1`=c(2,4)))
+```
+
+
+### Test-retest
+```{r Test-retest}
+make_CI <- function(lower, upper) {
+  paste0("[", round(lower,2), ", ", round(upper,2), "]")
+}
+
+sttr_hddm_variables <- c("v_S1_B11","v_S2_B11","v_S3_B11",
+                         "v_congruent_S1_B11.x","v_congruent_S2_B11.x","v_congruent_S3_B11.x",
+                         "v_incongruent_S1_B11.x","v_incongruent_S2_B11.x","v_incongruent_S3_B11.x",
+                         "a_S1_B11.x","a_S2_B11.x","a_S3_B11.x",
+                         "t_S1_B11.x","t_S2_B11.x","t_S3_B11.x",
+                         "z_S1_B11.x","z_S2_B11.x","z_S3_B11.x",
+                         "flanker_score_d1","flanker_score_d2","flanker_score_d3",
+                         "accuracy_d1","accuracy_d3","accuracy_d3")
+
+sttr_icc_table_123 <- data.frame(
+                           parameters= c("Drift rate", "Drift rate to congruent stimuli", "Drift rate to incongruent stimuli", "Decision threshold distance", "Non-decision time", "Starting bias", "NIH Toolbox score", "Accuracy"),
+                                 
+                           ICC=c(icc(LDDM_do2_irr[sttr_hddm_variables[1:3]])$value,
+                           icc(LDDM_do2_irr[sttr_hddm_variables[4:6]])$value,
+                           icc(LDDM_do2_irr[sttr_hddm_variables[7:9]])$value,
+                           icc(LDDM_do2_irr[sttr_hddm_variables[10:12]])$value,
+                           icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$value,
+                           icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$value,
+                           icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$value,
+                           icc(LDDM_do2[sttr_hddm_variables[22:24]])$value),
+                           
+                           CI=c(make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[1:3]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[1:3]])$ubound),
+                           make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[4:6]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[4:6]])$ubound),
+                           make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[7:9]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[7:9]])$ubound),
+                           make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[10:12]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[10:12]])$ubound),
+                           make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$ubound),
+                           make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$ubound),
+                           make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$ubound),
+                           make_CI(icc(LDDM_do2[sttr_hddm_variables[22:24]])$lbound,icc(LDDM_do2[sttr_hddm_variables[22:24]])$ubound)))
+
+apa_table(sttr_icc_table_123,
+          col.names=c("HDDM Parameters/Other measures", "ICC", "95% CI"),
+          align=c("l",rep("c",2)),
+          digits=2,
+          caption = "Table 3",
+          note = "ICC values computed across three within-subject sessions",
+)
+```
+Across the three sessions of Study 1, drift rate and decision threshold distance both showed higher ICCs than the NIH Toolbox score, though lower than the raw accuracy (see Table 3).
+
+## Convergent validity
+### Brain-based measures
+```{r Correlation tables}
+cor_ERN_table_d1 <- read.csv(file=here("./tables/sttr_ERN_table_d1.csv"))
+cor_ERN_table_d2 <- read.csv(file=here("./tables/sttr_ERN_table_d2.csv"))
+cor_ERN_table_d3 <- read.csv(file=here("./tables/sttr_ERN_table_d3.csv"))
+cor_ERN_table_rdoc <- read.csv(file=here("./tables/rdoc_ERN_table.csv"))
+```
+```{r Multiple regression ERN tables}
+mr_ERN_table_d1 <- read.csv(file=here("./tables/mr_ERN_table_d1.csv"))
+mr_ERN_table_d2 <- read.csv(file=here("./tables/mr_ERN_table_d2.csv"))
+mr_ERN_table_d3 <- read.csv(file=here("./tables/mr_ERN_table_d3.csv"))
+mr_ERN_table_rdoc <- read.csv(file=here("./tables/mr_ERN_table_rdoc.csv"))
+```
+
+
+
+### Neuropsychological measures
+```{r Multiple regression EF tables}
+mr_Exec_table_rdoc_nocov <- read.csv(file=here("./tables/mr_Exec_table_rdoc_nocov.csv"))
+mr_Exec_table_rdoc_cov <- read.csv(file=here("./tables/mr_Exec_table_rdoc_cov.csv"))
+```
+
+
+### Heritability
+```{r Heritability}
+rdoc_heritability_table <- read.csv(here("./tables/rdoc_heritability_table.csv"))
+```
+
+
+# Discussion
+
+\newpage
+
+# References
+
+::: {#refs custom-style="Bibliography"}
+:::
