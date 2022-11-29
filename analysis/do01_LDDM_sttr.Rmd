@@ -1,5 +1,5 @@
 ---
-title: "Data analysis script 1: Preliminary ERP to DDM concordance"
+title: "Data analysis script 1: Create preliminary data for results from Study 1: State-Trait"
 author: "Brent Rappaport"
 date: "`r format(Sys.time(),  '%Y-%m-%d')`"
 output:
@@ -13,7 +13,7 @@ toc: yes
 ---
 
 # About
-This script imports and merges the self-report data from the Flanker task of the State-Trait study
+This script does preliminary data analysis comparing the psychometrics of HDDM models vs. raw accuracy vs. NIH Toolbox derived score for the Flanker task of the State-Trait study.
 
 # 1. Get Setup
 ## 1.1. Clear everything & set width
@@ -21,36 +21,31 @@ This script imports and merges the self-report data from the Flanker task of the
     options(width=80, Ncpus = 6) #Set width
     rm(list=ls())     #Remove everything from environment
     cat("\014")       #Clear Console
+    set.seed(312)    #Set seed
 ```
 
 ## 1.2. Load Libraries
 ```{r echo=TRUE, results='hide', message=FALSE}
-  # renv::restore()     #restore environment
   library(knitr)      #allows rmarkdown files
-  # library(haven)      #helps import stata
-  library(questionr)  #allows lookfor function
+  library(haven)      #helps import stata
   library(MASS)       #calculate residualized scores
   library(tidyverse)  #plotting/cleaning, etc.
   library(broom)      #nice statistical output
   library(here)       #nice file paths
   library(expss)      #labeling variables/values
   library(psych)      #used for statistical analyses
+  library(labelled)
+  library(confintr)
   library(papaja)
+  library(DescTools)
+  library(irr)
   library(workflowr)  #helps with workflow
+  library(lmerTest)
+  library(broom.mixed)
   library(ggplot2)
 ```
 
-## 1.3. Get the Working Directory
-```{r}
-  here()
-```
-
-## 1.4. Set seed
-```{r}
-     set.seed(312)    #Set seed
-```
-
-## 1.5 Load Data
+## Load Data
 Remember to immediately rename and remove. Avoid overwriting old data.
 ```{r}
 # FULL DATA--ALL DAYS
@@ -117,8 +112,11 @@ LDDM_do2_d3_not_outliers <- LDDM_do2_d3 %>%
 ## 1.8 Standardize scores
 ```{r}
 LDDM_do2_d1$v_S1_B11 <- rowMeans(LDDM_do2_d1[,c('v_congruent_S1_B11','v_incongruent_S1_B11')], na.rm=F)
+LDDM_do2_d1_not_outliers$v_S1_B11 <- rowMeans(LDDM_do2_d1_not_outliers[,c('v_congruent_S1_B11','v_incongruent_S1_B11')], na.rm=F)
 LDDM_do2_d2$v_S2_B11 <- rowMeans(LDDM_do2_d2[,c('v_congruent_S2_B11','v_incongruent_S2_B11')], na.rm=F)
+LDDM_do2_d2_not_outliers$v_S2_B11 <- rowMeans(LDDM_do2_d2_not_outliers[,c('v_congruent_S2_B11','v_incongruent_S2_B11')], na.rm=F)
 LDDM_do2_d3$v_S3_B11 <- rowMeans(LDDM_do2_d3[,c('v_congruent_S3_B11','v_incongruent_S3_B11')], na.rm=F)
+LDDM_do2_d3_not_outliers$v_S3_B11 <- rowMeans(LDDM_do2_d3_not_outliers[,c('v_congruent_S3_B11','v_incongruent_S3_B11')], na.rm=F)
 
 var_list_d1 <- c("v_S1_B11","v_congruent_S1_B11","v_incongruent_S1_B11","a_S1_B11","t_S1_B11","z_S1_B11",
               "flanker_score_d1","accuracy",
@@ -141,6 +139,7 @@ var_list_alt <- c("B11_avt_v","B11_avt_a","B11_avt_t",
 for (v in var_list_d1){ 
   print(paste0("LDDM_do2_d1$",v))
   eval(parse(text=paste0('LDDM_do2_d1$',v,'_z <- scale(LDDM_do2_d1$',v,', center=T, scale=T)'))) 
+  eval(parse(text=paste0('LDDM_do2_d1_not_outliers$',v,'_z <- scale(LDDM_do2_d1_not_outliers$',v,', center=T, scale=T)'))) 
 }
 
 for (v in var_list_alt){ 
@@ -151,11 +150,13 @@ for (v in var_list_alt){
 for (v in var_list_d2){ 
   print(paste0("LDDM_do2_d2$",v))
   eval(parse(text=paste0('LDDM_do2_d2$',v,'_z <- scale(LDDM_do2_d2$',v,', center=T, scale=T)'))) 
+  eval(parse(text=paste0('LDDM_do2_d2_not_outliers$',v,'_z <- scale(LDDM_do2_d2_not_outliers$',v,', center=T, scale=T)'))) 
 }
 
 for (v in var_list_d3){ 
   print(paste0("LDDM_do2_d3$",v))
   eval(parse(text=paste0('LDDM_do2_d3$',v,'_z <- scale(LDDM_do2_d3$',v,', center=T, scale=T)'))) 
+  eval(parse(text=paste0('LDDM_do2_d3_not_outliers$',v,'_z <- scale(LDDM_do2_d3_not_outliers$',v,', center=T, scale=T)'))) 
 }
 ```
 
@@ -172,18 +173,18 @@ Per Allie, larger values of v mean faster accumulation of evidence (faster rate)
 ### 2.1.1 Day 1
 ```{r}
 ERN_table_d1 <- data.frame(parameters= c("v", "v_congruent", "v_incongruent", "a", "t", "z"),
-                        r= c(corr.test(LDDM_do2_d1$FCZ_ERN_080_z, LDDM_do2_d1$v_S1_B11_z)$r,
-                             corr.test(LDDM_do2_d1$FCZ_ERN_080_z, LDDM_do2_d1$v_congruent_S1_B11_z)$r,
-                             corr.test(LDDM_do2_d1$FCZ_ERN_080_z, LDDM_do2_d1$v_incongruent_S1_B11_z)$r,
-                             corr.test(LDDM_do2_d1$FCZ_ERN_080_z, LDDM_do2_d1$a_S1_B11_z)$r,
-                             corr.test(LDDM_do2_d1$FCZ_ERN_080_z, LDDM_do2_d1$t_S1_B11_z)$r,
-                             corr.test(LDDM_do2_d1$FCZ_ERN_080_z, LDDM_do2_d1$z_S1_B11_z)$r),
-                        p_nominal = c(corr.test(LDDM_do2_d1$FCZ_ERN_080_z, LDDM_do2_d1$v_S1_B11_z)$p,
-                             corr.test(LDDM_do2_d1$FCZ_ERN_080_z, LDDM_do2_d1$v_congruent_S1_B11_z)$p,
-                             corr.test(LDDM_do2_d1$FCZ_ERN_080_z, LDDM_do2_d1$v_incongruent_S1_B11_z)$p,
-                             corr.test(LDDM_do2_d1$FCZ_ERN_080_z, LDDM_do2_d1$a_S1_B11_z)$p,
-                             corr.test(LDDM_do2_d1$FCZ_ERN_080_z, LDDM_do2_d1$t_S1_B11_z)$p,
-                             corr.test(LDDM_do2_d1$FCZ_ERN_080_z, LDDM_do2_d1$z_S1_B11_z)$p)); ERN_table_d1$p_corrected <- p.adjust(ERN_table_d1$p_nominal, method="fdr"); ERN_table_d1[,2:4] <- round(ERN_table_d1[,2:4], 3)
+                        r= c(corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$v_S1_B11_z)$r,
+                             corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$v_congruent_S1_B11_z)$r,
+                             corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$v_incongruent_S1_B11_z)$r,
+                             corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$a_S1_B11_z)$r,
+                             corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$t_S1_B11_z)$r,
+                             corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$z_S1_B11_z)$r),
+                        p_nominal = c(corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$v_S1_B11_z)$p,
+                             corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$v_congruent_S1_B11_z)$p,
+                             corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$v_incongruent_S1_B11_z)$p,
+                             corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$a_S1_B11_z)$p,
+                             corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$t_S1_B11_z)$p,
+                             corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$z_S1_B11_z)$p)); ERN_table_d1$p_corrected <- p.adjust(ERN_table_d1$p_nominal, method="fdr"); ERN_table_d1[,2:4] <- round(ERN_table_d1[,2:4], 3)
 ERN_table_d1
 
 write.csv(ERN_table_d1, here("./tables/sttr_ERN_table_d1.csv"))
@@ -313,18 +314,18 @@ write.csv(t(P3_table_d1_alt4), here("./tables/P3_table_d1_alt4.csv"))
   # filter(v_incongruent_S2_B11>0 & v_congruent_S2_B11>2)
 
 ERN_table_d2 <- data.frame(parameters= c("v", "v_congruent", "v_incongruent", "a", "t", "z"),
-                        r= c(corr.test(LDDM_do2_d2$FCZ_ERN_080_z, LDDM_do2_d2$v_S2_B11_z)$r,
-                             corr.test(LDDM_do2_d2$FCZ_ERN_080_z, LDDM_do2_d2$v_congruent_S2_B11_z)$r,
-                             corr.test(LDDM_do2_d2$FCZ_ERN_080_z, LDDM_do2_d2$v_incongruent_S2_B11_z)$r,
-                             corr.test(LDDM_do2_d2$FCZ_ERN_080_z, LDDM_do2_d2$a_S2_B11_z)$r,
-                             corr.test(LDDM_do2_d2$FCZ_ERN_080_z, LDDM_do2_d2$t_S2_B11_z)$r,
-                             corr.test(LDDM_do2_d2$FCZ_ERN_080_z, LDDM_do2_d2$z_S2_B11_z)$r),
-                        p_nominal = c(corr.test(LDDM_do2_d2$FCZ_ERN_080_z, LDDM_do2_d2$v_S2_B11_z)$p,
-                             corr.test(LDDM_do2_d2$FCZ_ERN_080_z, LDDM_do2_d2$v_congruent_S2_B11_z)$p,
-                             corr.test(LDDM_do2_d2$FCZ_ERN_080_z, LDDM_do2_d2$v_incongruent_S2_B11_z)$p,
-                             corr.test(LDDM_do2_d2$FCZ_ERN_080_z, LDDM_do2_d2$a_S2_B11_z)$p,
-                             corr.test(LDDM_do2_d2$FCZ_ERN_080_z, LDDM_do2_d2$t_S2_B11_z)$p,
-                             corr.test(LDDM_do2_d2$FCZ_ERN_080_z, LDDM_do2_d2$z_S2_B11_z)$p)); ERN_table_d2$p_corrected <- p.adjust(ERN_table_d2$p_nominal, method="fdr"); ERN_table_d2[,2:4] <- round(ERN_table_d2[,2:4], 3)
+                        r= c(corr.test(LDDM_do2_d2_not_outliers$FCZ_ERN_080_z, LDDM_do2_d2_not_outliers$v_S2_B11_z)$r,
+                             corr.test(LDDM_do2_d2_not_outliers$FCZ_ERN_080_z, LDDM_do2_d2_not_outliers$v_congruent_S2_B11_z)$r,
+                             corr.test(LDDM_do2_d2_not_outliers$FCZ_ERN_080_z, LDDM_do2_d2_not_outliers$v_incongruent_S2_B11_z)$r,
+                             corr.test(LDDM_do2_d2_not_outliers$FCZ_ERN_080_z, LDDM_do2_d2_not_outliers$a_S2_B11_z)$r,
+                             corr.test(LDDM_do2_d2_not_outliers$FCZ_ERN_080_z, LDDM_do2_d2_not_outliers$t_S2_B11_z)$r,
+                             corr.test(LDDM_do2_d2_not_outliers$FCZ_ERN_080_z, LDDM_do2_d2_not_outliers$z_S2_B11_z)$r),
+                        p_nominal = c(corr.test(LDDM_do2_d2_not_outliers$FCZ_ERN_080_z, LDDM_do2_d2_not_outliers$v_S2_B11_z)$p,
+                             corr.test(LDDM_do2_d2_not_outliers$FCZ_ERN_080_z, LDDM_do2_d2_not_outliers$v_congruent_S2_B11_z)$p,
+                             corr.test(LDDM_do2_d2_not_outliers$FCZ_ERN_080_z, LDDM_do2_d2_not_outliers$v_incongruent_S2_B11_z)$p,
+                             corr.test(LDDM_do2_d2_not_outliers$FCZ_ERN_080_z, LDDM_do2_d2_not_outliers$a_S2_B11_z)$p,
+                             corr.test(LDDM_do2_d2_not_outliers$FCZ_ERN_080_z, LDDM_do2_d2_not_outliers$t_S2_B11_z)$p,
+                             corr.test(LDDM_do2_d2_not_outliers$FCZ_ERN_080_z, LDDM_do2_d2_not_outliers$z_S2_B11_z)$p)); ERN_table_d2$p_corrected <- p.adjust(ERN_table_d2$p_nominal, method="fdr"); ERN_table_d2[,2:4] <- round(ERN_table_d2[,2:4], 3)
 ERN_table_d2
 
 write.csv(ERN_table_d2, here("./tables/sttr_ERN_table_d2.csv"))
@@ -342,18 +343,18 @@ Nominal replication of Day 1: ERN nominally significantly related to v (congruen
 ### 2.1.3 Day 3
 ```{r}
 ERN_table_d3 <- data.frame(parameters= c("v", "v_congruent", "v_incongruent", "a", "t", "z"),
-                        r= c(corr.test(LDDM_do2_d3$FCZ_ERN_080_z, LDDM_do2_d3$v_S3_B11_z)$r,
-                             corr.test(LDDM_do2_d3$FCZ_ERN_080_z, LDDM_do2_d3$v_congruent_S3_B11_z)$r,
-                             corr.test(LDDM_do2_d3$FCZ_ERN_080_z, LDDM_do2_d3$v_incongruent_S3_B11_z)$r,
-                             corr.test(LDDM_do2_d3$FCZ_ERN_080_z, LDDM_do2_d3$a_S3_B11_z)$r,
-                             corr.test(LDDM_do2_d3$FCZ_ERN_080_z, LDDM_do2_d3$t_S3_B11_z)$r,
-                             corr.test(LDDM_do2_d3$FCZ_ERN_080_z, LDDM_do2_d3$z_S3_B11_z)$r),
-                        p_nominal = c(corr.test(LDDM_do2_d3$FCZ_ERN_080_z, LDDM_do2_d3$v_S3_B11_z)$p,
-                             corr.test(LDDM_do2_d3$FCZ_ERN_080_z, LDDM_do2_d3$v_congruent_S3_B11_z)$p,
-                             corr.test(LDDM_do2_d3$FCZ_ERN_080_z, LDDM_do2_d3$v_incongruent_S3_B11_z)$p,
-                             corr.test(LDDM_do2_d3$FCZ_ERN_080_z, LDDM_do2_d3$a_S3_B11_z)$p,
-                             corr.test(LDDM_do2_d3$FCZ_ERN_080_z, LDDM_do2_d3$t_S3_B11_z)$p,
-                             corr.test(LDDM_do2_d3$FCZ_ERN_080_z, LDDM_do2_d3$z_S3_B11_z)$p)); ERN_table_d3$p_corrected <- p.adjust(ERN_table_d3$p_nominal, method="fdr"); ERN_table_d3[,2:4] <- round(ERN_table_d3[,2:4], 3)
+                        r= c(corr.test(LDDM_do2_d3_not_outliers$FCZ_ERN_080_z, LDDM_do2_d3_not_outliers$v_S3_B11_z)$r,
+                             corr.test(LDDM_do2_d3_not_outliers$FCZ_ERN_080_z, LDDM_do2_d3_not_outliers$v_congruent_S3_B11_z)$r,
+                             corr.test(LDDM_do2_d3_not_outliers$FCZ_ERN_080_z, LDDM_do2_d3_not_outliers$v_incongruent_S3_B11_z)$r,
+                             corr.test(LDDM_do2_d3_not_outliers$FCZ_ERN_080_z, LDDM_do2_d3_not_outliers$a_S3_B11_z)$r,
+                             corr.test(LDDM_do2_d3_not_outliers$FCZ_ERN_080_z, LDDM_do2_d3_not_outliers$t_S3_B11_z)$r,
+                             corr.test(LDDM_do2_d3_not_outliers$FCZ_ERN_080_z, LDDM_do2_d3_not_outliers$z_S3_B11_z)$r),
+                        p_nominal = c(corr.test(LDDM_do2_d3_not_outliers$FCZ_ERN_080_z, LDDM_do2_d3_not_outliers$v_S3_B11_z)$p,
+                             corr.test(LDDM_do2_d3_not_outliers$FCZ_ERN_080_z, LDDM_do2_d3_not_outliers$v_congruent_S3_B11_z)$p,
+                             corr.test(LDDM_do2_d3_not_outliers$FCZ_ERN_080_z, LDDM_do2_d3_not_outliers$v_incongruent_S3_B11_z)$p,
+                             corr.test(LDDM_do2_d3_not_outliers$FCZ_ERN_080_z, LDDM_do2_d3_not_outliers$a_S3_B11_z)$p,
+                             corr.test(LDDM_do2_d3_not_outliers$FCZ_ERN_080_z, LDDM_do2_d3_not_outliers$t_S3_B11_z)$p,
+                             corr.test(LDDM_do2_d3_not_outliers$FCZ_ERN_080_z, LDDM_do2_d3_not_outliers$z_S3_B11_z)$p)); ERN_table_d3$p_corrected <- p.adjust(ERN_table_d3$p_nominal, method="fdr"); ERN_table_d3[,2:4] <- round(ERN_table_d3[,2:4], 3)
 ERN_table_d3
 
 write.csv(ERN_table_d3, here("./tables/sttr_ERN_table_d3.csv"))
@@ -821,18 +822,31 @@ r_half_ci_',s,' <- ci_cor(LDDM_first',s,'$flanker_score_d1, LDDM_second',s,'$fla
 r_sb_ci_lower_',s,' <- (2*r_half_ci_',s,'$interval[1])/(1+r_half_ci_',s,'$interval[1])
 r_sb_ci_upper_',s,' <- (2*r_half_ci_',s,'$interval[2])/(1+r_half_ci_',s,'$interval[2])
 r_sb_',s,' <- (2*r_half_',s,')/(1+r_half_',s,')
+
+r_acc_half_',s,' <- cor(LDDM_first',s,'$accuracy, LDDM_second',s,'$accuracy, use="pairwise")
+r_acc_half_ci_',s,' <- ci_cor(LDDM_first',s,'$accuracy, LDDM_second',s,'$accuracy, use="pairwise")
+r_acc_sb_ci_lower_',s,' <- (2*r_acc_half_ci_',s,'$interval[1])/(1+r_acc_half_ci_',s,'$interval[1])
+r_acc_sb_ci_upper_',s,' <- (2*r_acc_half_ci_',s,'$interval[2])/(1+r_acc_half_ci_',s,'$interval[2])
+r_acc_sb_',s,' <- (2*r_acc_half_',s,')/(1+r_acc_half_',s,')
+
 ')))
 }
 
 spearman_brown_d1 <- data.frame(trials=seq(15,165,15),
                              r=rep(NA,length(seq(15,165,15))),
                              r_ci_lower=rep(NA,length(seq(15,165,15))),
-                             r_ci_upper=rep(NA,length(seq(15,165,15))))
+                             r_ci_upper=rep(NA,length(seq(15,165,15))),
+                             r_acc=rep(NA,length(seq(15,165,15))),
+                             r_acc_ci_lower=rep(NA,length(seq(15,165,15))),
+                             r_acc_ci_upper=rep(NA,length(seq(15,165,15))))
 i=1
 for (s in seq(15,165,15)){
   eval(parse(text=paste0('spearman_brown_d1[i,2] <- round(as.numeric(r_sb_',s,'),3)
                          spearman_brown_d1[i,3] <- round(as.numeric(r_sb_ci_lower_',s,'),3)
-                         spearman_brown_d1[i,4] <- round(as.numeric(r_sb_ci_upper_',s,'),3)')))
+                         spearman_brown_d1[i,4] <- round(as.numeric(r_sb_ci_upper_',s,'),3)
+                         spearman_brown_d1[i,5] <- round(as.numeric(r_acc_sb_',s,'),3)
+                         spearman_brown_d1[i,6] <- round(as.numeric(r_acc_sb_ci_lower_',s,'),3)
+                         spearman_brown_d1[i,7] <- round(as.numeric(r_acc_sb_ci_upper_',s,'),3)')))
   i=i+1
 }
 spearman_brown_d1
@@ -860,28 +874,28 @@ LDDM_first',s,'_1 <- LDDM_cleaning04_d2_reliability %>% filter(trial<=',s,')
 LDDM_second',s,'_1 <- LDDM_cleaning04_d2_reliability %>% filter(trial< ',(s*2)+1,' & trial>',s,')
   
 LDDM_first',s,'_2 <- LDDM_first',s,'_1 %>%
-  group_by(subj_idx) %>%
-  summarise(accuracy_score = sum(response==1)*(5/length(trial)))
+  group_by(subj_idx) %>% # per subject
+  summarise(accuracy_score = sum(response==1)*(5/length(trial))) # accuracy score per NIH TOoolbox manual
 LDDM_second',s,'_2 <- LDDM_second',s,'_1 %>%
   group_by(subj_idx) %>%
-  summarise(accuracy_score = sum(response==1)*(5/length(trial)))
+  summarise(accuracy_score = sum(response==1)*(5/length(trial))) # accuracy score per NIH TOoolbox manual
 
 LDDM_first',s,'_3 <-  LDDM_first',s,'_1 %>%
   group_by(subj_idx) %>% # per subject
-  filter(stim=="incongruent" & response==1) %>% #incongruent trials with correct response
+  filter(stim=="incongruent" & response==1) %>% # incongruent trials with correct response
   mutate(mean_rt = mean(rt),
-         sd_rt = sd(rt)) %>% # compute individual mean and sd RT
-  filter(rt>=0.1 & rt>(mean_rt - 3*sd_rt) & rt<(mean_rt + 3*sd_rt)) %>% #remove trials less than 100ms and less than 3SD below or 2SD above the mean RT
+         sd_rt = sd(rt)) %>% # compute individual mean and sd RT for use below
+  filter(rt>=0.1 & rt>(mean_rt - 3*sd_rt) & rt<(mean_rt + 3*sd_rt)) %>% # remove trials less than 100ms and less than 3SD below or 3SD above the mean RT
   summarise(med_rt = median(rt)*1000) %>% # compute individual level median RT
-  mutate(rt_score = 5-(5*((log(med_rt)-log(250))/(log(1000)-log(250)))))
+  mutate(rt_score = 5-(5*((log(med_rt)-log(250))/(log(1000)-log(250))))) # compute RT score to go into flanker score
 LDDM_second',s,'_3 <-  LDDM_second',s,'_1 %>%
   group_by(subj_idx) %>% # per subject
-  filter(stim=="incongruent" & response==1) %>% #incongruent trials with correct response
+  filter(stim=="incongruent" & response==1) %>% # incongruent trials with correct response
   mutate(mean_rt = mean(rt),
-         sd_rt = sd(rt)) %>% # compute individual mean and sd RT
-  filter(rt>=0.1 & rt>(mean_rt - 3*sd_rt) & rt<(mean_rt + 3*sd_rt)) %>% #remove trials less than 100ms and less than 3SD below or 2SD above the mean RT
+         sd_rt = sd(rt)) %>% # compute individual mean and sd RT for use below
+  filter(rt>=0.1 & rt>(mean_rt - 3*sd_rt) & rt<(mean_rt + 3*sd_rt)) %>% # remove trials less than 100ms and less than 3SD below or 3SD above the mean RT
   summarise(med_rt = median(rt)*1000) %>% # compute individual level median RT
-  mutate(rt_score = 5-(5*((log(med_rt)-log(250))/(log(1000)-log(250)))))
+  mutate(rt_score = 5-(5*((log(med_rt)-log(250))/(log(1000)-log(250))))) # compute RT score to go into flanker score
 
 LDDM_first',s,' <- LDDM_first',s,'_1 %>%
   full_join(LDDM_first',s,'_2, by = "subj_idx") %>%
@@ -889,7 +903,7 @@ LDDM_first',s,' <- LDDM_first',s,'_1 %>%
   group_by(subj_idx) %>% # per subject
   mutate(total_accuracy_perc = sum(response==1)/length(response)) %>% # compute total accuracy percentage
   summarise(flanker_score_list_d2 = if_else(total_accuracy_perc>=0.8, accuracy_score+rt_score, accuracy_score),
-            accuracy = mean(total_accuracy_perc)) %>%# if accuracy is above 80% then add accuracy and rt flanker scores, if not base the flanker score only on accuracy
+            accuracy = mean(total_accuracy_perc)) %>% # if accuracy is above 80% then add accuracy and rt flanker scores, if not base the flanker score only on accuracy; also compute a regular percentage based accuracy (ie percent of trials when subject was correct)
   transmute(ID=subj_idx, flanker_score_list_d2=flanker_score_list_d2, accuracy=accuracy) %>%
   group_by(ID) %>% # per subject
   summarise(flanker_score_d2 = mean(flanker_score_list_d2),
@@ -900,7 +914,7 @@ LDDM_second',s,' <- LDDM_second',s,'_1 %>%
   group_by(subj_idx) %>% # per subject
   mutate(total_accuracy_perc = sum(response==1)/length(response)) %>% # compute total accuracy percentage
   summarise(flanker_score_list_d2 = if_else(total_accuracy_perc>=0.8, accuracy_score+rt_score, accuracy_score),
-            accuracy = mean(total_accuracy_perc)) %>%# if accuracy is above 80% then add accuracy and rt flanker scores, if not base the flanker score only on accuracy
+            accuracy = mean(total_accuracy_perc)) %>% # if accuracy is above 80% then add accuracy and rt flanker scores, if not base the flanker score only on accuracy; also compute a regular percentage based accuracy (ie percent of trials when subject was correct)
   transmute(ID=subj_idx, flanker_score_list_d2=flanker_score_list_d2, accuracy=accuracy) %>%
   group_by(ID) %>% # per subject
   summarise(flanker_score_d2 = mean(flanker_score_list_d2),
@@ -911,18 +925,31 @@ r_half_ci_',s,' <- ci_cor(LDDM_first',s,'$flanker_score_d2, LDDM_second',s,'$fla
 r_sb_ci_lower_',s,' <- (2*r_half_ci_',s,'$interval[1])/(1+r_half_ci_',s,'$interval[1])
 r_sb_ci_upper_',s,' <- (2*r_half_ci_',s,'$interval[2])/(1+r_half_ci_',s,'$interval[2])
 r_sb_',s,' <- (2*r_half_',s,')/(1+r_half_',s,')
+
+r_acc_half_',s,' <- cor(LDDM_first',s,'$accuracy, LDDM_second',s,'$accuracy, use="pairwise")
+r_acc_half_ci_',s,' <- ci_cor(LDDM_first',s,'$accuracy, LDDM_second',s,'$accuracy, use="pairwise")
+r_acc_sb_ci_lower_',s,' <- (2*r_acc_half_ci_',s,'$interval[1])/(1+r_acc_half_ci_',s,'$interval[1])
+r_acc_sb_ci_upper_',s,' <- (2*r_acc_half_ci_',s,'$interval[2])/(1+r_acc_half_ci_',s,'$interval[2])
+r_acc_sb_',s,' <- (2*r_acc_half_',s,')/(1+r_acc_half_',s,')
+
 ')))
 }
 
 spearman_brown_d2 <- data.frame(trials=seq(15,165,15),
                              r=rep(NA,length(seq(15,165,15))),
                              r_ci_lower=rep(NA,length(seq(15,165,15))),
-                             r_ci_upper=rep(NA,length(seq(15,165,15))))
+                             r_ci_upper=rep(NA,length(seq(15,165,15))),
+                             r_acc=rep(NA,length(seq(15,165,15))),
+                             r_acc_ci_lower=rep(NA,length(seq(15,165,15))),
+                             r_acc_ci_upper=rep(NA,length(seq(15,165,15))))
 i=1
 for (s in seq(15,165,15)){
   eval(parse(text=paste0('spearman_brown_d2[i,2] <- round(as.numeric(r_sb_',s,'),3)
                          spearman_brown_d2[i,3] <- round(as.numeric(r_sb_ci_lower_',s,'),3)
-                         spearman_brown_d2[i,4] <- round(as.numeric(r_sb_ci_upper_',s,'),3)')))
+                         spearman_brown_d2[i,4] <- round(as.numeric(r_sb_ci_upper_',s,'),3)
+                         spearman_brown_d2[i,5] <- round(as.numeric(r_acc_sb_',s,'),3)
+                         spearman_brown_d2[i,6] <- round(as.numeric(r_acc_sb_ci_lower_',s,'),3)
+                         spearman_brown_d2[i,7] <- round(as.numeric(r_acc_sb_ci_upper_',s,'),3)')))
   i=i+1
 }
 spearman_brown_d2
@@ -957,28 +984,28 @@ LDDM_first',s,'_1 <- LDDM_cleaning04_d3_reliability %>% filter(trial<=',s,')
 LDDM_second',s,'_1 <- LDDM_cleaning04_d3_reliability %>% filter(trial< ',(s*2)+1,' & trial>',s,')
   
 LDDM_first',s,'_2 <- LDDM_first',s,'_1 %>%
-  group_by(subj_idx) %>%
-  summarise(accuracy_score = sum(response==1)*(5/length(trial)))
+  group_by(subj_idx) %>% # per subject
+  summarise(accuracy_score = sum(response==1)*(5/length(trial))) # accuracy score per NIH TOoolbox manual
 LDDM_second',s,'_2 <- LDDM_second',s,'_1 %>%
   group_by(subj_idx) %>%
-  summarise(accuracy_score = sum(response==1)*(5/length(trial)))
+  summarise(accuracy_score = sum(response==1)*(5/length(trial))) # accuracy score per NIH TOoolbox manual
 
 LDDM_first',s,'_3 <-  LDDM_first',s,'_1 %>%
   group_by(subj_idx) %>% # per subject
-  filter(stim=="incongruent" & response==1) %>% #incongruent trials with correct response
+  filter(stim=="incongruent" & response==1) %>% # incongruent trials with correct response
   mutate(mean_rt = mean(rt),
-         sd_rt = sd(rt)) %>% # compute individual mean and sd RT
-  filter(rt>=0.1 & rt>(mean_rt - 3*sd_rt) & rt<(mean_rt + 3*sd_rt)) %>% #remove trials less than 100ms and less than 3SD below or 2SD above the mean RT
+         sd_rt = sd(rt)) %>% # compute individual mean and sd RT for use below
+  filter(rt>=0.1 & rt>(mean_rt - 3*sd_rt) & rt<(mean_rt + 3*sd_rt)) %>% # remove trials less than 100ms and less than 3SD below or 3SD above the mean RT
   summarise(med_rt = median(rt)*1000) %>% # compute individual level median RT
-  mutate(rt_score = 5-(5*((log(med_rt)-log(250))/(log(1000)-log(250)))))
+  mutate(rt_score = 5-(5*((log(med_rt)-log(250))/(log(1000)-log(250))))) # compute RT score to go into flanker score
 LDDM_second',s,'_3 <-  LDDM_second',s,'_1 %>%
   group_by(subj_idx) %>% # per subject
-  filter(stim=="incongruent" & response==1) %>% #incongruent trials with correct response
+  filter(stim=="incongruent" & response==1) %>% # incongruent trials with correct response
   mutate(mean_rt = mean(rt),
-         sd_rt = sd(rt)) %>% # compute individual mean and sd RT
-  filter(rt>=0.1 & rt>(mean_rt - 3*sd_rt) & rt<(mean_rt + 3*sd_rt)) %>% #remove trials less than 100ms and less than 3SD below or 2SD above the mean RT
+         sd_rt = sd(rt)) %>% # compute individual mean and sd RT for use below
+  filter(rt>=0.1 & rt>(mean_rt - 3*sd_rt) & rt<(mean_rt + 3*sd_rt)) %>% # remove trials less than 100ms and less than 3SD below or 3SD above the mean RT
   summarise(med_rt = median(rt)*1000) %>% # compute individual level median RT
-  mutate(rt_score = 5-(5*((log(med_rt)-log(250))/(log(1000)-log(250)))))
+  mutate(rt_score = 5-(5*((log(med_rt)-log(250))/(log(1000)-log(250))))) # compute RT score to go into flanker score
 
 LDDM_first',s,' <- LDDM_first',s,'_1 %>%
   full_join(LDDM_first',s,'_2, by = "subj_idx") %>%
@@ -986,7 +1013,7 @@ LDDM_first',s,' <- LDDM_first',s,'_1 %>%
   group_by(subj_idx) %>% # per subject
   mutate(total_accuracy_perc = sum(response==1)/length(response)) %>% # compute total accuracy percentage
   summarise(flanker_score_list_d3 = if_else(total_accuracy_perc>=0.8, accuracy_score+rt_score, accuracy_score),
-            accuracy = mean(total_accuracy_perc)) %>%# if accuracy is above 80% then add accuracy and rt flanker scores, if not base the flanker score only on accuracy
+            accuracy = mean(total_accuracy_perc)) %>% # if accuracy is above 80% then add accuracy and rt flanker scores, if not base the flanker score only on accuracy; also compute a regular percentage based accuracy (ie percent of trials when subject was correct)
   transmute(ID=subj_idx, flanker_score_list_d3=flanker_score_list_d3, accuracy=accuracy) %>%
   group_by(ID) %>% # per subject
   summarise(flanker_score_d3 = mean(flanker_score_list_d3),
@@ -997,7 +1024,7 @@ LDDM_second',s,' <- LDDM_second',s,'_1 %>%
   group_by(subj_idx) %>% # per subject
   mutate(total_accuracy_perc = sum(response==1)/length(response)) %>% # compute total accuracy percentage
   summarise(flanker_score_list_d3 = if_else(total_accuracy_perc>=0.8, accuracy_score+rt_score, accuracy_score),
-            accuracy = mean(total_accuracy_perc)) %>%# if accuracy is above 80% then add accuracy and rt flanker scores, if not base the flanker score only on accuracy
+            accuracy = mean(total_accuracy_perc)) %>% # if accuracy is above 80% then add accuracy and rt flanker scores, if not base the flanker score only on accuracy; also compute a regular percentage based accuracy (ie percent of trials when subject was correct)
   transmute(ID=subj_idx, flanker_score_list_d3=flanker_score_list_d3, accuracy=accuracy) %>%
   group_by(ID) %>% # per subject
   summarise(flanker_score_d3 = mean(flanker_score_list_d3),
@@ -1008,18 +1035,31 @@ r_half_ci_',s,' <- ci_cor(LDDM_first',s,'$flanker_score_d3, LDDM_second',s,'$fla
 r_sb_ci_lower_',s,' <- (2*r_half_ci_',s,'$interval[1])/(1+r_half_ci_',s,'$interval[1])
 r_sb_ci_upper_',s,' <- (2*r_half_ci_',s,'$interval[2])/(1+r_half_ci_',s,'$interval[2])
 r_sb_',s,' <- (2*r_half_',s,')/(1+r_half_',s,')
+
+r_acc_half_',s,' <- cor(LDDM_first',s,'$accuracy, LDDM_second',s,'$accuracy, use="pairwise")
+r_acc_half_ci_',s,' <- ci_cor(LDDM_first',s,'$accuracy, LDDM_second',s,'$accuracy, use="pairwise")
+r_acc_sb_ci_lower_',s,' <- (2*r_acc_half_ci_',s,'$interval[1])/(1+r_acc_half_ci_',s,'$interval[1])
+r_acc_sb_ci_upper_',s,' <- (2*r_acc_half_ci_',s,'$interval[2])/(1+r_acc_half_ci_',s,'$interval[2])
+r_acc_sb_',s,' <- (2*r_acc_half_',s,')/(1+r_acc_half_',s,')
+
 ')))
 }
 
 spearman_brown_d3 <- data.frame(trials=seq(15,165,15),
                              r=rep(NA,length(seq(15,165,15))),
                              r_ci_lower=rep(NA,length(seq(15,165,15))),
-                             r_ci_upper=rep(NA,length(seq(15,165,15))))
+                             r_ci_upper=rep(NA,length(seq(15,165,15))),
+                             r_acc=rep(NA,length(seq(15,165,15))),
+                             r_acc_ci_lower=rep(NA,length(seq(15,165,15))),
+                             r_acc_ci_upper=rep(NA,length(seq(15,165,15))))
 i=1
 for (s in seq(15,165,15)){
   eval(parse(text=paste0('spearman_brown_d3[i,2] <- round(as.numeric(r_sb_',s,'),3)
                          spearman_brown_d3[i,3] <- round(as.numeric(r_sb_ci_lower_',s,'),3)
-                         spearman_brown_d3[i,4] <- round(as.numeric(r_sb_ci_upper_',s,'),3)')))
+                         spearman_brown_d3[i,4] <- round(as.numeric(r_sb_ci_upper_',s,'),3)
+                         spearman_brown_d3[i,5] <- round(as.numeric(r_acc_sb_',s,'),3)
+                         spearman_brown_d3[i,6] <- round(as.numeric(r_acc_sb_ci_lower_',s,'),3)
+                         spearman_brown_d3[i,7] <- round(as.numeric(r_acc_sb_ci_upper_',s,'),3)')))
   i=i+1
 }
 spearman_brown_d3
@@ -1037,6 +1077,9 @@ ggplot(spearman_brown_d3, aes(x=trials, y=r, group=1)) +
 LDDM_do2_d1$accuracy_d1 <- LDDM_do2_d1$accuracy
 LDDM_do2_d2$accuracy_d2 <- LDDM_do2_d2$accuracy
 LDDM_do2_d3$accuracy_d3 <- LDDM_do2_d3$accuracy
+
+LDDM_do2 <- full_join(LDDM_do2_d1, LDDM_do2_d2, by="ID") %>%
+  full_join(LDDM_do2_d3, by="ID")
 
 # Days 1 to 2
 icc(LDDM_do2[c("accuracy_d1","accuracy_d2")])
@@ -1253,10 +1296,35 @@ mr_P3_table_d3_acc <- data.frame(Parameters=c("v","v_congruent","v_incongruent",
                        tidy(lm(PZ_P3_onset_incon_z ~ z_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[3]))
 write.csv(mr_P3_table_d3_acc, here("./tables/mr_P3_table_d3_acc.csv"))
 ```
+
+# 7. SOBP Stats
+```{r}
+sum(complete.cases(LDDM_do2_d1_not_outliers$v_S1_B11_z))
+sum(complete.cases(LDDM_do2_d2_not_outliers$v_S2_B11_z))
+sum(complete.cases(LDDM_do2_d3_not_outliers$v_S3_B11_z))
+
+summary(lm(FCZ_ERN_080_z ~ v_S1_B11_z + flanker_score_d1_z + accuracy_z, LDDM_do2_d1_not_outliers))
+summary(lm(FCZ_ERN_080_z ~ v_S2_B11_z + flanker_score_d2_z + accuracy_z, LDDM_do2_d2_not_outliers))
+summary(lm(FCZ_ERN_080_z ~ v_S3_B11_z + flanker_score_d3_z + accuracy_z, LDDM_do2_d3_not_outliers))
+
+summary(lm(FCZ_ERN_080_z ~ v_S1_B11_z, LDDM_do2_d1_not_outliers))
+summary(lm(FCZ_ERN_080_z ~ v_S2_B11_z, LDDM_do2_d2_not_outliers))
+summary(lm(FCZ_ERN_080_z ~ v_S3_B11_z, LDDM_do2_d3_not_outliers))
+```
+
 # 6. Closing out
   In this step, go ahead and close out of the file and quit R without saving
   the work space.
 ```{r}
-   # renv::snapshot()   #Take a snapshot of environment
+save(LDDM_do2_d1_not_outliers, file=here("./data/LDDM_do2_d1_not_outliers.RData"))
+save(LDDM_do2_d2_not_outliers, file=here("./data/LDDM_do2_d2_not_outliers.RData"))
+save(LDDM_do2_d3_not_outliers, file=here("./data/LDDM_do2_d3_not_outliers.RData"))
+
+save(LDDM_cleaning04_calc3_1to3, file=here("./data/LDDM_cleaning04_calc3_1to3.RData"))
+save(LDDM_do2_irr, file=here("./data/LDDM_do2_irr.RData"))
+save(LDDM_do2, file=here("./data/LDDM_do2.RData"))
+save(spearman_brown_d1, file=here("./data/spearman_brown_d1.RData"))
+save(spearman_brown_d2, file=here("./data/spearman_brown_d2.RData"))
+save(spearman_brown_d3, file=here("./data/spearman_brown_d3.RData"))
 ```
 

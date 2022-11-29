@@ -350,18 +350,31 @@ r_half_ci_',s,' <- ci_cor(LDDM_first',s,'$flanker_score_rdoc, LDDM_second',s,'$f
 r_sb_ci_lower_',s,' <- (2*r_half_ci_',s,'$interval[1])/(1+r_half_ci_',s,'$interval[1])
 r_sb_ci_upper_',s,' <- (2*r_half_ci_',s,'$interval[2])/(1+r_half_ci_',s,'$interval[2])
 r_sb_',s,' <- (2*r_half_',s,')/(1+r_half_',s,')
+
+r_acc_half_',s,' <- cor(LDDM_first',s,'$accuracy, LDDM_second',s,'$accuracy, use="pairwise")
+r_acc_half_ci_',s,' <- ci_cor(LDDM_first',s,'$accuracy, LDDM_second',s,'$accuracy, use="pairwise")
+r_acc_sb_ci_lower_',s,' <- (2*r_acc_half_ci_',s,'$interval[1])/(1+r_acc_half_ci_',s,'$interval[1])
+r_acc_sb_ci_upper_',s,' <- (2*r_acc_half_ci_',s,'$interval[2])/(1+r_acc_half_ci_',s,'$interval[2])
+r_acc_sb_',s,' <- (2*r_acc_half_',s,')/(1+r_acc_half_',s,')
+
 ')))
 }
 
 spearman_brown_rdoc <- data.frame(trials=seq(15,165,15),
                              r=rep(NA,length(seq(15,165,15))),
                              r_ci_lower=rep(NA,length(seq(15,165,15))),
-                             r_ci_upper=rep(NA,length(seq(15,165,15))))
+                             r_ci_upper=rep(NA,length(seq(15,165,15))),
+                             r_acc=rep(NA,length(seq(15,165,15))),
+                             r_acc_ci_lower=rep(NA,length(seq(15,165,15))),
+                             r_acc_ci_upper=rep(NA,length(seq(15,165,15))))
 i=1
 for (s in seq(15,165,15)){
   eval(parse(text=paste0('spearman_brown_rdoc[i,2] <- round(as.numeric(r_sb_',s,'),3)
                          spearman_brown_rdoc[i,3] <- round(as.numeric(r_sb_ci_lower_',s,'),3)
-                         spearman_brown_rdoc[i,4] <- round(as.numeric(r_sb_ci_upper_',s,'),3)')))
+                         spearman_brown_rdoc[i,4] <- round(as.numeric(r_sb_ci_upper_',s,'),3)
+                         spearman_brown_rdoc[i,5] <- round(as.numeric(r_acc_sb_',s,'),3)
+                         spearman_brown_rdoc[i,6] <- round(as.numeric(r_acc_sb_ci_lower_',s,'),3)
+                         spearman_brown_rdoc[i,7] <- round(as.numeric(r_acc_sb_ci_upper_',s,'),3)')))
   i=i+1
 }
 spearman_brown_rdoc
@@ -535,8 +548,10 @@ Shift_table
 write.csv(Shift_table, here("./tables/Shift_table.csv"))
 ```
 
-### Multiple regressions
+### 6.1.1 Multiple regressions between shifting and DDM parameters
 ```{r}
+LDDM_do3_rdoc_no_outliers
+
 mr_Shift_table_rdoc_nocov <- data.frame(Parameters=c("v","v_congruent","v_incongruent","a","t","z"),
                       b_ddm=c(tidy(lmer(shift_composite_z ~ B11_avtz_DO_v_v_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc))$estimate[2],
                        tidy(lmer(shift_composite_z ~ B11_avtz_DO_v_v_con_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc))$estimate[2],
@@ -616,6 +631,96 @@ mr_Shift_table_rdoc_cov <- data.frame(Parameters=c("v","v_congruent","v_incongru
 write.csv(mr_Shift_table_rdoc_cov, here("./tables/mr_Shift_table_rdoc_cov.csv"))
 ```
 
+
+## 6.3 Multiple regression between Executive functioning and DDM parameters
+```{r}
+lapply(LDDM_do3_rdoc, attr, "label")
+LDDM_do3_rdoc_no_outliers$NL_time_rev <- -1*LDDM_do3_rdoc_no_outliers$NL_time
+LDDM_do3_rdoc_no_outliers$Inhib_time_rev <- -1*LDDM_do3_rdoc_no_outliers$Inhib_time
+
+LDDM_do3_rdoc_no_outliers$exec_composite <- rowMeans(LDDM_do3_rdoc_no_outliers[,c("FF_cor","Switch_cor","NL_time_rev","Inhib_time_rev")], na.rm=F)
+LDDM_do3_rdoc_no_outliers$exec_composite_z <- scale(LDDM_do3_rdoc_no_outliers$exec_composite, center=T, scale=T)
+
+mr_Exec_table_rdoc_nocov <- data.frame(Parameters=c("v","v_congruent","v_incongruent","a","t","z"),
+                      b_ddm=c(tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[2],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_con_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[2],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_incon_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[2],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_a_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[2],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_t_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[2],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_z_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[2]),
+                      p_ddm=c(tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[2],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_con_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[2],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_incon_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[2],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_a_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[2],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_t_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[2],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_z_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[2]),
+                      b_flanker=c(tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[3],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_con_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[3],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_incon_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[3],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_a_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[3],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_t_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[3],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_z_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[3]),
+                      p_flanker=c(tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[3],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_con_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[3],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_incon_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[3],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_a_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[3],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_t_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[3],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_z_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[3]),
+                       b_acc=c(tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[6],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_con_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[4],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_incon_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[4],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_a_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[4],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_t_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[4],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_z_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[4]),
+                      p_acc=c(tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[4],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_con_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[4],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_incon_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[4],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_a_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[4],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_t_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[4],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_z_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[4]))
+write.csv(mr_Exec_table_rdoc_nocov, here("./tables/mr_Exec_table_rdoc_nocov.csv"))
+
+mr_Exec_table_rdoc_cov <- data.frame(Parameters=c("v","v_congruent","v_incongruent","a","t","z"),
+                      b_ddm=c(tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[2],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_con_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[2],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_incon_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[2],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_a_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[2],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_t_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[2],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_z_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[2]),
+                      p_ddm=c(tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[2],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_con_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[2],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_incon_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[2],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_a_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[2],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_t_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[2],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_z_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[2]),
+                      b_flanker=c(tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[3],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_con_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[3],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_incon_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[3],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_a_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[3],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_t_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[3],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_z_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[3]),
+                      p_flanker=c(tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[3],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_con_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[3],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_incon_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[3],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_a_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[3],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_t_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[3],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_z_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[3]),
+                       b_acc=c(tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[6],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_con_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[6],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_incon_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[6],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_a_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[6],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_t_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[6],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_z_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$estimate[6]),
+                      p_acc=c(tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[6],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_con_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[6],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_v_incon_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[6],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_a_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[6],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_t_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[6],
+                       tidy(lmer(exec_composite_z ~ B11_avtz_DO_v_z_z + flanker_score_rdoc_z + Pred_FSIQ + Motor_time + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))$p.value[6]))
+write.csv(mr_Exec_table_rdoc_cov, here("./tables/mr_Exec_table_rdoc_cov.csv"))
+```
+
+
 # 7. Heritability
 ```{r}
 LDDM_do3_rdoc_sib <- LDDM_do3_rdoc %>%
@@ -631,7 +736,15 @@ LDDM_heritability_table <- data.frame(parameters= c("v", "v_congruent", "v_incon
                            icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_t_z_1","B11_avtz_DO_v_t_z_2")])$value,
                            icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_z_z_1","B11_avtz_DO_v_z_z_2")])$value,
                            icc(LDDM_do3_rdoc_sib[c("flanker_score_rdoc_z_1","flanker_score_rdoc_z_2")])$value,
-                           icc(LDDM_do3_rdoc_sib[c("accuracy_z_1","accuracy_z_2")])$value))
+                           icc(LDDM_do3_rdoc_sib[c("accuracy_z_1","accuracy_z_2")])$value),
+                           p=c(icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_v_z_1","B11_avtz_DO_v_v_z_2")])$p.value,
+                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_v_con_z_1","B11_avtz_DO_v_v_con_z_2")])$p.value,
+                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_v_incon_z_1","B11_avtz_DO_v_v_incon_z_2")])$p.value,
+                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_a_z_1","B11_avtz_DO_v_a_z_2")])$p.value,
+                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_t_z_1","B11_avtz_DO_v_t_z_2")])$p.value,
+                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_z_z_1","B11_avtz_DO_v_z_z_2")])$p.value,
+                           icc(LDDM_do3_rdoc_sib[c("flanker_score_rdoc_z_1","flanker_score_rdoc_z_2")])$p.value,
+                           icc(LDDM_do3_rdoc_sib[c("accuracy_z_1","accuracy_z_2")])$p.value))
 
 write.csv(LDDM_heritability_table, "./tables/rdoc_heritability_table.csv")
 ```
@@ -674,7 +787,19 @@ mr_ERN_table_rdoc_acc <- data.frame(Parameters=c("v","v_congruent","v_incongruen
 write.csv(mr_ERN_table_rdoc_acc, here("./tables/mr_ERN_table_rdoc_acc.csv"))
 ```
 
+# 9. SOBP Stats
 ```{r}
-####################  END OF SCRIPT #################### 
+sum(!is.na(LDDM_do3_rdoc_no_outliers$B11_avtz_DO_v_v_z))
+
+summary(lmer(FCz_ERN_080_z ~ B11_avtz_DO_v_v_con_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))
+summary(lmer(FCz_ERN_080_z ~ B11_avtz_DO_v_v_incon_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))
+
+summary(lmer(FCz_ERN_080_z ~ B11_avtz_DO_v_v_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))
+```
+
+```{r}
+save(LDDM_do3_rdoc, file="./data/LDDM_do3_rdoc.RData")
+save(LDDM_do3_rdoc_no_outliers, file="./data/LDDM_do3_rdoc_no_outliers.RData")
+save(spearman_brown_rdoc, file="./data/spearman_brown_rdoc.RData")
 ```
 
