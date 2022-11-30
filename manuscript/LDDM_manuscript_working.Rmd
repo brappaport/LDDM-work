@@ -132,7 +132,7 @@ load(file=here("./data/spearman_brown_rdoc.RData"))
 
 ### Study 1
 
-For Study 1, individuals were recruited from flyers posted around a university campus and screened over the phone to determine eligibility. Inclusion criteria were being 18--60-years-old and right-handed. Exclusion criteria were a history of major medical or neurological problems, or head trauma with loss of consciousness for greater than 15 minutes. Left-handed or ambidextrous individuals were also excluded. Participants were scheduled for 5 laboratory visits, ensuring that consectuive visits occurred 2--14 days apart (median=7). A total of 86 participants provided informed consent and completed the study, with a majority completing all five sessions (n = 74, 86%) and only six participants only completing one session (7%). Within-subject sessions were excluded from analyses for poor accuracy on the flanker task (i.e., \< 50%) or poor EEG data quality (i.e., fewer than 10 artifact-free trials per condition) or missing data. One participant was excluded across all sessions due to below 50% accuracy on the flanker task. See Table 1 for full demographic information on the final sample of ##.
+For Study 1, individuals were recruited from flyers posted around a university campus and screened over the phone to determine eligibility. Inclusion criteria were being 18--60-years-old and right-handed. Exclusion criteria were a history of major medical or neurological problems, or head trauma with loss of consciousness for greater than 15 minutes. Left-handed or ambidextrous individuals were also excluded. Participants were scheduled for 5 laboratory visits, ensuring that consectuive visits occurred 2--14 days apart (median=7). A total of 86 participants provided informed consent and completed the study, with a majority completing all five sessions (n = 74, 86%) and only six participants only completing one session (7%). Within-subject sessions were excluded from analyses for poor accuracy on the flanker task (i.e., < 50%) or poor EEG data quality (i.e., fewer than 10 artifact-free trials per condition) or missing data. One participant was excluded across all sessions due to below 50% accuracy on the flanker task. See Table 1 for full demographic information on the final sample of ##.
 
 ### Study 2
 
@@ -207,7 +207,11 @@ Drift rate and decision threshold distance both demonstrated comparable split-ha
 ```{r Split-half}
 splithalf <- read.csv(here("./tables/splithalf.csv"))
 splithalf[6,] <- c("NIH Toolbox score", spearman_brown_d1[11,2], spearman_brown_d2[11,2], spearman_brown_d3[11,2], spearman_brown_rdoc[11,2])
-splithalf[,1] <- c("Drift rate to congruent stimuli", "Drift rate to incongruent stimuli", "Decision threshold distance", "Non-decision time", "Starting bias", "NIH Toolbox score")
+splithalf[7,] <- c("Raw accuracy", spearman_brown_d1[11,5], spearman_brown_d2[11,5], spearman_brown_d3[11,5], spearman_brown_rdoc[11,5])
+splithalf[,1] <- c("Drift rate to congruent stimuli", "Drift rate to incongruent stimuli", "Decision threshold distance", "Non-decision time", "Starting bias", "NIH Toolbox score", "Raw accuracy")
+# splithalf <- round(splithalf[6:7,2:5], 2)
+
+write.csv(splithalf, file=here("./tables/splithalf_full.csv"))
 
 apa_table(splithalf,
           col.names=c("HDDM paramters","Session 1","Session 2","Session 3", "Study 2"),
@@ -234,7 +238,7 @@ sttr_hddm_variables <- c("v_S1_B11","v_S2_B11","v_S3_B11",
                          "flanker_score_d1","flanker_score_d2","flanker_score_d3",
                          "accuracy_d1","accuracy_d3","accuracy_d3")
 
-sttr_icc_table_123 <- data.frame(
+sttr_icc_table <- data.frame(
                            parameters= c("Drift rate", "Drift rate to congruent stimuli", "Drift rate to incongruent stimuli", "Decision threshold distance", "Non-decision time", "Starting bias", "NIH Toolbox score", "Accuracy"),
                                  
                            ICC=c(icc(LDDM_do2_irr[sttr_hddm_variables[1:3]])$value,
@@ -253,41 +257,191 @@ sttr_icc_table_123 <- data.frame(
                            make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$ubound),
                            make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$ubound),
                            make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$ubound),
-                           make_CI(icc(LDDM_do2[sttr_hddm_variables[22:24]])$lbound,icc(LDDM_do2[sttr_hddm_variables[22:24]])$ubound)))
+                           make_CI(icc(LDDM_do2[sttr_hddm_variables[22:24]])$lbound,icc(LDDM_do2[sttr_hddm_variables[22:24]])$ubound)),
+                           
+                           lower_ci=c(icc(LDDM_do2_irr[sttr_hddm_variables[1:3]])$lbound,
+                           icc(LDDM_do2_irr[sttr_hddm_variables[4:6]])$lbound,
+                           icc(LDDM_do2_irr[sttr_hddm_variables[7:9]])$lbound,
+                           icc(LDDM_do2_irr[sttr_hddm_variables[10:12]])$lbound,
+                           icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$lbound,
+                           icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$lbound,
+                           icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$lbound,
+                           icc(LDDM_do2[sttr_hddm_variables[22:24]])$lbound),
 
-apa_table(sttr_icc_table_123,
+                           upper_ci=c(icc(LDDM_do2_irr[sttr_hddm_variables[1:3]])$ubound,
+                           icc(LDDM_do2_irr[sttr_hddm_variables[4:6]])$ubound,
+                           icc(LDDM_do2_irr[sttr_hddm_variables[7:9]])$ubound,
+                           icc(LDDM_do2_irr[sttr_hddm_variables[10:12]])$ubound,
+                           icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$ubound,
+                           icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$ubound,
+                           icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$ubound,
+                           icc(LDDM_do2[sttr_hddm_variables[22:24]])$ubound)
+                           )
+sttr_icc_table$ICC <- round(sttr_icc_table$ICC, 2)
+write.csv(sttr_icc_table, here("./tables/sttr_icc_table.csv"))
+
+apa_table(sttr_icc_table,
           col.names=c("HDDM Parameters/Other measures", "ICC", "95% CI"),
           align=c("l",rep("c",2)),
           digits=2,
           caption = "Table 3",
           note = "ICC values computed across three within-subject sessions",
 )
+
+sttr_icc_table$parameters <- factor(sttr_icc_table$parameters, levels = sttr_icc_table$parameters)
+ggplot(sttr_icc_table, aes(x=parameters, y=ICC)) +
+  geom_point() +
+  geom_errorbar(aes(ymin=lower_ci, ymax=upper_ci), colour="black", width=.1) +
+  theme(axis.text.x = element_text(color = "#993333", 
+                           size = 8, angle = 45))
 ```
 Across the three sessions of Study 1, drift rate and decision threshold distance both showed higher ICCs than the NIH Toolbox score, though lower than the raw accuracy (see Table 3).
 
 ## Convergent validity
 ### Brain-based measures
 ```{r Correlation tables}
-cor_ERN_table_d1 <- read.csv(file=here("./tables/sttr_ERN_table_d1.csv"))
-cor_ERN_table_d2 <- read.csv(file=here("./tables/sttr_ERN_table_d2.csv"))
-cor_ERN_table_d3 <- read.csv(file=here("./tables/sttr_ERN_table_d3.csv"))
-cor_ERN_table_rdoc <- read.csv(file=here("./tables/rdoc_ERN_table.csv"))
+cor_ERN_table_d1 <- read.csv(file=here("./tables/sttr_d1_correlations.csv"), na.strings=c(""))
+cor_ERN_table_d2 <- read.csv(file=here("./tables/sttr_d2_correlations.csv"), na.strings=c(""))
+cor_ERN_table_d3 <- read.csv(file=here("./tables/sttr_d3_correlations.csv"), na.strings=c(""))
+cor_ERN_table <- read.csv(file=here("./tables/sttr_correlations.csv"), na.strings=c(""))
+cor_ERN_table_rdoc <- read.csv(file=here("./tables/rdoc_correlations.csv"), na.strings=c(""))
+
+cor_ERN_table_new <- cor_ERN_table %>%
+  mutate("Parameters/Measures" = rep(c("ERN","NIH Toolbox","Raw accuracy",
+                  "Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Threshold","Non-decision time","Starting bias"),3)) %>%
+  select("Parameters/Measures", everything()) %>%
+  select(-X)
+
+`Session 1` <- c("ERN","NIH Toolbox","Raw accuracy",
+                  "Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Threshold","Non-decision time","Starting bias")
+`Session 2` <- c("ERN","NIH Toolbox","Raw accuracy",
+                  "Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Threshold","Non-decision time","Starting bias")
+`Session 3` <- c("ERN","NIH Toolbox","Raw accuracy",
+                  "Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Threshold","Non-decision time","Starting bias")
+table_list <- list(`Session 1`, `Session 2`, `Session 3`)
+
+apa_table(cor_ERN_table_new,
+          # added_stub_head=c("Session 1", "Session 2", "Session 3"),
+          stub_indents=table_list,
+          row.names=FALSE,
+          col.names=c("Parameters/Measures", rep(c("ERN","NIH Toolbox","Raw accuracy",
+                  "Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Threshold","Non-decision time","Starting bias"),3)),
+          align=c("l",rep("c",27)),
+          digits=2,
+          caption = "Table 4",
+          note = "Correlations among Study 1 variables",
+          format="html"
+)
 ```
+
 ```{r Multiple regression ERN tables}
 mr_ERN_table_d1 <- read.csv(file=here("./tables/mr_ERN_table_d1.csv"))
 mr_ERN_table_d2 <- read.csv(file=here("./tables/mr_ERN_table_d2.csv"))
 mr_ERN_table_d3 <- read.csv(file=here("./tables/mr_ERN_table_d3.csv"))
 mr_ERN_table_rdoc <- read.csv(file=here("./tables/mr_ERN_table_rdoc.csv"))
-```
 
+mr_table_names <- c("X","parameters", "ddm_est", "ddm_lci", "ddm_uci",
+                                                 "nih_est", "nih_lci", "nih_uci",
+                                                 "acc_est", "acc_lci", "acc_uci")
+
+# Day 1
+mr_ERN_table_d1_raw <- read.csv(file=here("./tables/mr_ERN_table_d1_raw.csv"))
+colnames(mr_ERN_table_d1_raw) <- mr_table_names
+mr_ERN_table_d1_raw_new <- mr_ERN_table_d1_raw %>%
+  select(-X) %>%
+  pivot_longer(cols=ddm_est:acc_uci, names_to=c("measure","stat"), names_sep="_") %>%
+  pivot_wider(names_from=stat, values_from=value)
+
+ggplot(mr_ERN_table_d1_raw_new, aes(x=parameters, y=est, fill=measure)) +
+  geom_bar(position=position_dodge(width = 1), stat = "identity") +
+  geom_errorbar(aes(ymin=lci, ymax=uci), colour="black", width=.1, position=position_dodge(width = 1), stat="identity") +
+  theme(axis.text.x = element_text(color = "#993333", 
+                           size = 8, angle = 45))+
+  ggtitle("Study 1: Session 1")
+
+# Day 2
+mr_ERN_table_d2_raw <- read.csv(file=here("./tables/mr_ERN_table_d2_raw.csv"))
+colnames(mr_ERN_table_d2_raw) <- mr_table_names
+mr_ERN_table_d2_raw_new <- mr_ERN_table_d2_raw %>%
+  select(-X) %>%
+  pivot_longer(cols=ddm_est:acc_uci, names_to=c("measure","stat"), names_sep="_") %>%
+  pivot_wider(names_from=stat, values_from=value)
+
+ggplot(mr_ERN_table_d2_raw_new, aes(x=parameters, y=est, fill=measure)) +
+  geom_bar(position=position_dodge(width = 1), stat = "identity") +
+  geom_errorbar(aes(ymin=lci, ymax=uci), colour="black", width=.1, position=position_dodge(width = 1), stat="identity") +
+  theme(axis.text.x = element_text(color = "#993333", 
+                           size = 8, angle = 45))+
+  ggtitle("Study 1: Session 2")
+
+# Day 3
+mr_ERN_table_d3_raw <- read.csv(file=here("./tables/mr_ERN_table_d3_raw.csv"))
+colnames(mr_ERN_table_d3_raw) <- mr_table_names
+mr_ERN_table_d3_raw_new <- mr_ERN_table_d3_raw %>%
+  select(-X) %>%
+  pivot_longer(cols=ddm_est:acc_uci, names_to=c("measure","stat"), names_sep="_") %>%
+  pivot_wider(names_from=stat, values_from=value)
+
+ggplot(mr_ERN_table_d3_raw_new, aes(x=parameters, y=est, fill=measure)) +
+  geom_bar(position=position_dodge(width = 1), stat = "identity") +
+  geom_errorbar(aes(ymin=lci, ymax=uci), colour="black", width=.1, position=position_dodge(width = 1), stat="identity") +
+  theme(axis.text.x = element_text(color = "#993333", 
+                           size = 8, angle = 45))+
+  ggtitle("Study 1: Session 3")
+
+# RDoC
+mr_ERN_table_rdoc_raw <- read.csv(file=here("./tables/mr_ERN_table_rdoc_raw.csv"))
+colnames(mr_ERN_table_rdoc_raw) <- mr_table_names
+mr_ERN_table_rdoc_raw_new <- mr_ERN_table_rdoc_raw %>%
+  select(-X) %>%
+  pivot_longer(cols=ddm_est:acc_uci, names_to=c("measure","stat"), names_sep="_") %>%
+  pivot_wider(names_from=stat, values_from=value)
+
+ggplot(mr_ERN_table_rdoc_raw_new, aes(x=parameters, y=est, fill=measure)) +
+  geom_bar(position=position_dodge(width = 1), stat = "identity") +
+  geom_errorbar(aes(ymin=lci, ymax=uci), colour="black", width=.1, position=position_dodge(width = 1), stat="identity") +
+  theme(axis.text.x = element_text(color = "#993333", 
+                           size = 8, angle = 45))+
+  ggtitle("Study 2")
+```
 
 
 ### Neuropsychological measures
 ```{r Multiple regression EF tables}
+mr_Inhib_table_rdoc_nocov <- read.csv(file=here("./tables/mr_INHIB_table_rdoc_nocov.csv"))
+mr_Inhib_table_rdoc_cov <- read.csv(file=here("./tables/mr_INHIB_table_rdoc_cov.csv"))
+
+mr_Inhib_table_rdoc_cov_raw <- read.csv(file=here("./tables/mr_INHIB_table_rdoc_cov_raw.csv"))
+colnames(mr_Inhib_table_rdoc_cov_raw) <- mr_table_names
+mr_Inhib_table_rdoc_cov_raw_new <- mr_Inhib_table_rdoc_cov_raw %>%
+  select(-X) %>%
+  pivot_longer(cols=ddm_est:acc_uci, names_to=c("measure","stat"), names_sep="_") %>%
+  pivot_wider(names_from=stat, values_from=value)
+
+ggplot(mr_Inhib_table_rdoc_cov_raw_new, aes(x=parameters, y=est, fill=measure)) +
+  geom_bar(position=position_dodge(width = 1), stat = "identity") +
+  geom_errorbar(aes(ymin=lci, ymax=uci), colour="black", width=.1, position=position_dodge(width = 1), stat="identity") +
+  theme(axis.text.x = element_text(color = "#993333", 
+                           size = 8, angle = 45))+
+  ggtitle("Inhibition")
+
 mr_Exec_table_rdoc_nocov <- read.csv(file=here("./tables/mr_Exec_table_rdoc_nocov.csv"))
 mr_Exec_table_rdoc_cov <- read.csv(file=here("./tables/mr_Exec_table_rdoc_cov.csv"))
-```
 
+mr_Exec_table_rdoc_cov_raw <- read.csv(file=here("./tables/mr_Exec_table_rdoc_cov_raw.csv"))
+colnames(mr_Exec_table_rdoc_cov_raw) <- mr_table_names
+mr_Exec_table_rdoc_cov_raw_new <- mr_Exec_table_rdoc_cov_raw %>%
+  select(-X) %>%
+  pivot_longer(cols=ddm_est:acc_uci, names_to=c("measure","stat"), names_sep="_") %>%
+  pivot_wider(names_from=stat, values_from=value)
+
+ggplot(mr_Exec_table_rdoc_cov_raw_new, aes(x=parameters, y=est, fill=measure)) +
+  geom_bar(position=position_dodge(width = 1), stat = "identity") +
+  geom_errorbar(aes(ymin=lci, ymax=uci), colour="black", width=.1, position=position_dodge(width = 1), stat="identity") +
+  theme(axis.text.x = element_text(color = "#993333", 
+                           size = 8, angle = 45))+
+  ggtitle("Executive functioning")
+```
 
 ### Heritability
 ```{r Heritability}

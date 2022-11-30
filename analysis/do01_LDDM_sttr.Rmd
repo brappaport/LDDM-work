@@ -15,8 +15,19 @@ toc: yes
 # About
 This script does preliminary data analysis comparing the psychometrics of HDDM models vs. raw accuracy vs. NIH Toolbox derived score for the Flanker task of the State-Trait study.
 
-# 1. Get Setup
-## 1.1. Clear everything & set width
+v = **drift rate**: "The parameter of primary interest for the present study is the drift rate, v, which is the average rate of approach to a boundary and indexes the quality or strength of evidence extracted from the stimulus. A large value of drift indicates strong decision evidence, meaning the decision process will approach the appropriate boundary quickly, leading to fast and accurate responses." Larger values of v mean faster accumulation of evidence (faster rate), larger t means slower non-decision time processing.
+
+z = **response bias**: "If participants were
+biased toward one of the two responses (e.g., by increasing the proportion of one response over the other), they would move their starting point closer to that boundary. This produces faster and more probable responses at that boundary since less evidence is needed to reach it." Distance between the the start of the drift process and upper boundary.
+
+a = **separation between the two boundaries**: "response caution or speed/accuracy tradeoffs. If the boundary separation is relatively small, responses will take less time to reach a boundary, leading to faster responses, but they will also be more likely to reach the wrong boundary due to noise in the process, leading to more errors." Larger a means more separation between the correct and incorrect response boundaries
+
+t = **non-decision time**: "takes into account the duration of nondecisional processes...such processes may comprise basic encoding processes, the configuration of working memory for a task, and processes of response execution (i.e., motor activity)." (Voss et al., 2013)
+
+Per Allie, larger values of v mean faster accumulation of evidence (faster rate), larger t means slower non-decision time processing, larger a means more separation between the correct and incorrect response boundaries, and z is the distance from the upper boundary to the start of the drift process.
+
+# Get Setup
+## Clear everything & set width
 ```{r echo=FALSE, results='hide', message=FALSE, warning=FALSE}
     options(width=80, Ncpus = 6) #Set width
     rm(list=ls())     #Remove everything from environment
@@ -24,7 +35,7 @@ This script does preliminary data analysis comparing the psychometrics of HDDM m
     set.seed(312)    #Set seed
 ```
 
-## 1.2. Load Libraries
+## Load Libraries
 ```{r echo=TRUE, results='hide', message=FALSE}
   library(knitr)      #allows rmarkdown files
   library(haven)      #helps import stata
@@ -43,6 +54,80 @@ This script does preliminary data analysis comparing the psychometrics of HDDM m
   library(lmerTest)
   library(broom.mixed)
   library(ggplot2)
+```
+
+## Function correlation_matrix
+```{r}
+correlation_matrix <- function(df, 
+                               type = "pearson",
+                               digits = 3, 
+                               decimal.mark = ".",
+                               use = "all", 
+                               show_significance = TRUE, 
+                               replace_diagonal = FALSE, 
+                               replacement = ""){
+  
+  # check arguments
+  stopifnot({
+    is.numeric(digits)
+    digits >= 0
+    use %in% c("all", "upper", "lower")
+    is.logical(replace_diagonal)
+    is.logical(show_significance)
+    is.character(replacement)
+  })
+  # we need the Hmisc package for this
+  require(Hmisc)
+  
+  # retain only numeric and boolean columns
+  isNumericOrBoolean = vapply(df, function(x) is.numeric(x) | is.logical(x), logical(1))
+  if (sum(!isNumericOrBoolean) > 0) {
+    cat('Dropping non-numeric/-boolean column(s):', paste(names(isNumericOrBoolean)[!isNumericOrBoolean], collapse = ', '), '\n\n')
+  }
+  df = df[isNumericOrBoolean]
+  
+  # transform input data frame to matrix
+  x <- as.matrix(df)
+  
+  # run correlation analysis using Hmisc package
+  correlation_matrix <- Hmisc::rcorr(x, type = )
+  R <- correlation_matrix$r # Matrix of correlation coeficients
+  p <- correlation_matrix$P # Matrix of p-value 
+  
+  # transform correlations to specific character format
+  Rformatted = formatC(R, format = 'f', digits = digits, decimal.mark = decimal.mark)
+  
+  # if there are any negative numbers, we want to put a space before the positives to align all
+  if (sum(R < 0) > 0) {
+    Rformatted = ifelse(R > 0, paste0(' ', Rformatted), Rformatted)
+  }
+  
+  # add significance levels if desired
+  if (show_significance) {
+    # define notions for significance levels; spacing is important.
+    stars <- ifelse(is.na(p), "   ", ifelse(p < .001, "***", ifelse(p < .01, "** ", ifelse(p < .05, "*  ", "   "))))
+    Rformatted = paste0(Rformatted, stars)
+  }
+  # build a new matrix that includes the formatted correlations and their significance stars
+  Rnew <- matrix(Rformatted, ncol = ncol(x))
+  rownames(Rnew) <- colnames(x)
+  colnames(Rnew) <- paste(colnames(x), "", sep =" ")
+  
+  # replace undesired values
+  if (use == 'upper') {
+    Rnew[lower.tri(Rnew, diag = replace_diagonal)] <- replacement
+  } else if (use == 'lower') {
+    Rnew[upper.tri(Rnew, diag = replace_diagonal)] <- replacement
+  } else if (replace_diagonal) {
+    diag(Rnew) <- replacement
+  }
+  
+  return(Rnew)
+}
+
+save_correlation_matrix = function(df, filename, ...) {
+  write.csv2(correlation_matrix(df, ...), file = filename)
+}
 ```
 
 ## Load Data
@@ -88,7 +173,7 @@ load(file=here("./data/LDDM_cleaning04_d3_calc3.RData"))
 LDDM_do2_d3 <- left_join(LDDM_do1_d3, LDDM_cleaning04_d3_calc3, by="ID")
 ```
 
-# SET OUTLIER THRESHOLD HERE
+## Remove outliers
 ```{r}
 LDDM_do2_d1_not_outliers <- LDDM_do2_d1 %>%
   mutate(FCZ_ERN_080 = Winsorize(FCZ_ERN_080, 
@@ -109,7 +194,7 @@ LDDM_do2_d3_not_outliers <- LDDM_do2_d3 %>%
                                     na.rm=T))
 ```
 
-## 1.8 Standardize scores
+## Standardize scores
 ```{r}
 LDDM_do2_d1$v_S1_B11 <- rowMeans(LDDM_do2_d1[,c('v_congruent_S1_B11','v_incongruent_S1_B11')], na.rm=F)
 LDDM_do2_d1_not_outliers$v_S1_B11 <- rowMeans(LDDM_do2_d1_not_outliers[,c('v_congruent_S1_B11','v_incongruent_S1_B11')], na.rm=F)
@@ -161,42 +246,61 @@ for (v in var_list_d3){
 ```
 
 
-# 2. Correlation between ERP measures and DDM parameters
-Bias = z
-Drift rate = v
-Decision boundary separation = a
-Non-decision time = t
-
-Per Allie, larger values of v mean faster accumulation of evidence (faster rate), larger t means slower non-decision time processing, larger a means more separation between the correct and incorrect response boundaries, and z is the distance from the upper boundary to the start of the drift process.
-
-## 2.1 ERN mean amplitude
-### 2.1.1 Day 1
+# Correlations
+## ERN amplitude & DDM
 ```{r}
-ERN_table_d1 <- data.frame(parameters= c("v", "v_congruent", "v_incongruent", "a", "t", "z"),
-                        r= c(corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$v_S1_B11_z)$r,
-                             corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$v_congruent_S1_B11_z)$r,
-                             corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$v_incongruent_S1_B11_z)$r,
-                             corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$a_S1_B11_z)$r,
-                             corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$t_S1_B11_z)$r,
-                             corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$z_S1_B11_z)$r),
-                        p_nominal = c(corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$v_S1_B11_z)$p,
-                             corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$v_congruent_S1_B11_z)$p,
-                             corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$v_incongruent_S1_B11_z)$p,
-                             corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$a_S1_B11_z)$p,
-                             corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$t_S1_B11_z)$p,
-                             corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$z_S1_B11_z)$p)); ERN_table_d1$p_corrected <- p.adjust(ERN_table_d1$p_nominal, method="fdr"); ERN_table_d1[,2:4] <- round(ERN_table_d1[,2:4], 3)
-ERN_table_d1
+LDDM_do2_d1_not_outliers$FCZ_ERN_080_z_d1 <- LDDM_do2_d1_not_outliers$FCZ_ERN_080_z
+LDDM_do2_d2_not_outliers$FCZ_ERN_080_z_d2 <- LDDM_do2_d2_not_outliers$FCZ_ERN_080_z
+LDDM_do2_d3_not_outliers$FCZ_ERN_080_z_d3 <- LDDM_do2_d3_not_outliers$FCZ_ERN_080_z
 
-write.csv(ERN_table_d1, here("./tables/sttr_ERN_table_d1.csv"))
+LDDM_do2_d1_not_outliers$accuracy_z_d1 <- LDDM_do2_d1_not_outliers$accuracy_z
+LDDM_do2_d2_not_outliers$accuracy_z_d2 <- LDDM_do2_d2_not_outliers$accuracy_z
+LDDM_do2_d3_not_outliers$accuracy_z_d3 <- LDDM_do2_d3_not_outliers$accuracy_z
 
-ggplot(LDDM_do2_d1, aes(x=FCZ_ERN_080_z, y=v_S1_B11)) +
-  geom_point() +
-  stat_smooth(method="lm")
+all_measures_d1 <- c("FCZ_ERN_080_z_d1","flanker_score_d1_z","accuracy_z_d1",
+                  "v_S1_B11_z","v_congruent_S1_B11_z","v_incongruent_S1_B11_z","a_S1_B11_z","t_S1_B11_z","z_S1_B11_z")
+all_measures_d2 <- c("FCZ_ERN_080_z_d2","flanker_score_d2_z","accuracy_z_d2",
+                  "v_S2_B11_z","v_congruent_S2_B11_z","v_incongruent_S2_B11_z","a_S2_B11_z","t_S2_B11_z","z_S2_B11_z")
+all_measures_d3 <- c("FCZ_ERN_080_z_d3","flanker_score_d3_z","accuracy_z_d3",
+                  "v_S3_B11_z","v_congruent_S3_B11_z","v_incongruent_S3_B11_z","a_S3_B11_z","t_S3_B11_z","z_S3_B11_z")
+
+sttr_d1_correlations <- correlation_matrix(LDDM_do2_d1_not_outliers[c(all_measures_d1)], type = c("pearson"), use = 'lower', replace_diagonal=TRUE, replacement="")
+sttr_d2_correlations <- correlation_matrix(LDDM_do2_d2_not_outliers[c(all_measures_d2)], type = c("pearson"), use = 'lower', replace_diagonal=TRUE, replacement="")
+sttr_d3_correlations <- correlation_matrix(LDDM_do2_d3_not_outliers[c(all_measures_d3)], type = c("pearson"), use = 'lower', replace_diagonal=TRUE, replacement="")
+
+LDDM_do2_not_outliers <- full_join(LDDM_do2_d1_not_outliers, LDDM_do2_d2_not_outliers, by="ID") %>%
+  full_join(LDDM_do2_d3_not_outliers, by="ID")
+
+sttr_correlations <- correlation_matrix(LDDM_do2_not_outliers[c(all_measures_d1,all_measures_d2,all_measures_d3)], type = c("pearson"), use = 'lower', replace_diagonal=TRUE, replacement="")
+
+write.csv(sttr_d1_correlations, file="./tables/sttr_d1_correlations.csv")
+write.csv(sttr_d2_correlations, file="./tables/sttr_d2_correlations.csv")
+write.csv(sttr_d3_correlations, file="./tables/sttr_d3_correlations.csv")
+write.csv(sttr_correlations, file="./tables/sttr_correlations.csv")
+
+# ERN_table_d1 <- data.frame(parameters= c("v", "v_congruent", "v_incongruent", "a", "t", "z"),
+#                         r= c(corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$v_S1_B11_z)$r,
+#                              corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$v_congruent_S1_B11_z)$r,
+#                              corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$v_incongruent_S1_B11_z)$r,
+#                              corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$a_S1_B11_z)$r,
+#                              corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$t_S1_B11_z)$r,
+#                              corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$z_S1_B11_z)$r),
+#                         p_nominal = c(corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$v_S1_B11_z)$p,
+#                              corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$v_congruent_S1_B11_z)$p,
+#                              corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$v_incongruent_S1_B11_z)$p,
+#                              corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$a_S1_B11_z)$p,
+#                              corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$t_S1_B11_z)$p,
+#                              corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_z, LDDM_do2_d1_not_outliers$z_S1_B11_z)$p)); ERN_table_d1$p_corrected <- p.adjust(ERN_table_d1$p_nominal, method="fdr"); ERN_table_d1[,2:4] <- round(ERN_table_d1[,2:4], 3)
+# ERN_table_d1
+
+# write.csv(ERN_table_d1, here("./tables/sttr_ERN_table_d1.csv"))
+
+# ggplot(LDDM_do2_d1, aes(x=FCZ_ERN_080_z, y=v_S1_B11)) +
+#   geom_point() +
+#   stat_smooth(method="lm")
 ```
-I *think* this is saying that the larger the ERN amplitude (since a more negative ERN is a larger amplitude), the faster the drift rate/accumulation of evidence (v). This is true for congruent and incongruent stimuli, and at FCz, Fz, and Cz.
 
-#### 2.1.1.1 Alternative models
-##### ERN
+### Alternative models
 ```{r}
 ERN_table_d1_alt1 <- data.frame(parameters= c("v", "a", "t"),
                         r= c(corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_z, LDDM_do2_alt_d1$B11_avt_v_z)$r,
@@ -252,509 +356,207 @@ write.csv(t(ERN_table_d1_alt3), here("./tables/ERN_table_d1_alt3.csv"))
 write.csv(t(ERN_table_d1_alt4), here("./tables/ERN_table_d1_alt4.csv"))
 ```
 
-##### P3
-```{r}
-P3_table_d1_alt1 <- data.frame(parameters= c("v", "a", "t"),
-                        r= c(corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avt_v_z)$r,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avt_a_z)$r,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avt_t_z)$r),
-                        p_nominal = c(corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avt_v_z)$p,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avt_a_z)$p,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avt_t_z)$p)); P3_table_d1_alt1$p_corrected <- p.adjust(P3_table_d1_alt1$p_nominal, method="fdr"); P3_table_d1_alt1[,2:4] <- round(P3_table_d1_alt1[,2:4], 3)
-
-P3_table_d1_alt2 <- data.frame(parameters= c("v", "a", "t", "z"),
-                        r= c(corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_v_z)$r,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_a_z)$r,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_t_z)$r,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_z_z)$r),
-                        p_nominal = c(corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_v_z)$p,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_a_z)$p,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_t_z)$p,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_z_z)$p)); P3_table_d1_alt2$p_corrected <- p.adjust(P3_table_d1_alt2$p_nominal, method="fdr"); P3_table_d1_alt2[,2:4] <- round(P3_table_d1_alt2[,2:4], 3)
-
-P3_table_d1_alt3 <- data.frame(parameters= c("v_congruent", "v_incongruent", "a", "t_congruent","t_incongruent", "z"),
-                        r= c(corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_v_con_z)$r,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_v_incon_z)$r,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_a_z)$r,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_t_con_z)$r,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_t_incon_z)$r,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_z_z)$r),
-                        p_nominal = c(corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_v_con_z)$p,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_v_incon_z)$p,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_a_z)$p,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_t_con_z)$p,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_t_incon_z)$p,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_z_z)$p)); P3_table_d1_alt3$p_corrected <- p.adjust(P3_table_d1_alt3$p_nominal, method="fdr"); P3_table_d1_alt3[,2:4] <- round(P3_table_d1_alt3[,2:4], 3)
-
-P3_table_d1_alt4 <- data.frame(parameters= c("v_congruent", "v_incongruent", "a", "t_congruent","t_incongruent", "z_congruent", "z_incongruent"),
-                        r= c(corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_v_con_z)$r,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_v_incon_z)$r,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_a_z)$r,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_t_con_z)$r,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_t_incon_z)$r,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_z_con_z)$r,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_z_incon_z)$r),
-                        p_nominal = c(corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_v_con_z)$p,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_v_incon_z)$p,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_a_z)$p,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_t_con_z)$p,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_t_incon_z)$p,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_z_con_z)$p,
-                             corr.test(LDDM_do2_alt_d1$PZ_P3_onset_incon_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_z_incon_z)$p)); P3_table_d1_alt4$p_corrected <- p.adjust(P3_table_d1_alt4$p_nominal, method="fdr"); P3_table_d1_alt4[,2:4] <- round(P3_table_d1_alt4[,2:4], 3)
-
-write.csv(t(P3_table_d1_alt1), here("./tables/P3_table_d1_alt1.csv"))
-write.csv(t(P3_table_d1_alt2), here("./tables/P3_table_d1_alt2.csv"))
-write.csv(t(P3_table_d1_alt3), here("./tables/P3_table_d1_alt3.csv"))
-write.csv(t(P3_table_d1_alt4), here("./tables/P3_table_d1_alt4.csv"))
-```
-
-### 2.1.2 Day 2
-```{r}
-# LDDM_do2_d2 <- LDDM_do2_d2 %>%
-  # filter(v_incongruent_S2_B11>0 & v_congruent_S2_B11>2)
-
-ERN_table_d2 <- data.frame(parameters= c("v", "v_congruent", "v_incongruent", "a", "t", "z"),
-                        r= c(corr.test(LDDM_do2_d2_not_outliers$FCZ_ERN_080_z, LDDM_do2_d2_not_outliers$v_S2_B11_z)$r,
-                             corr.test(LDDM_do2_d2_not_outliers$FCZ_ERN_080_z, LDDM_do2_d2_not_outliers$v_congruent_S2_B11_z)$r,
-                             corr.test(LDDM_do2_d2_not_outliers$FCZ_ERN_080_z, LDDM_do2_d2_not_outliers$v_incongruent_S2_B11_z)$r,
-                             corr.test(LDDM_do2_d2_not_outliers$FCZ_ERN_080_z, LDDM_do2_d2_not_outliers$a_S2_B11_z)$r,
-                             corr.test(LDDM_do2_d2_not_outliers$FCZ_ERN_080_z, LDDM_do2_d2_not_outliers$t_S2_B11_z)$r,
-                             corr.test(LDDM_do2_d2_not_outliers$FCZ_ERN_080_z, LDDM_do2_d2_not_outliers$z_S2_B11_z)$r),
-                        p_nominal = c(corr.test(LDDM_do2_d2_not_outliers$FCZ_ERN_080_z, LDDM_do2_d2_not_outliers$v_S2_B11_z)$p,
-                             corr.test(LDDM_do2_d2_not_outliers$FCZ_ERN_080_z, LDDM_do2_d2_not_outliers$v_congruent_S2_B11_z)$p,
-                             corr.test(LDDM_do2_d2_not_outliers$FCZ_ERN_080_z, LDDM_do2_d2_not_outliers$v_incongruent_S2_B11_z)$p,
-                             corr.test(LDDM_do2_d2_not_outliers$FCZ_ERN_080_z, LDDM_do2_d2_not_outliers$a_S2_B11_z)$p,
-                             corr.test(LDDM_do2_d2_not_outliers$FCZ_ERN_080_z, LDDM_do2_d2_not_outliers$t_S2_B11_z)$p,
-                             corr.test(LDDM_do2_d2_not_outliers$FCZ_ERN_080_z, LDDM_do2_d2_not_outliers$z_S2_B11_z)$p)); ERN_table_d2$p_corrected <- p.adjust(ERN_table_d2$p_nominal, method="fdr"); ERN_table_d2[,2:4] <- round(ERN_table_d2[,2:4], 3)
-ERN_table_d2
-
-write.csv(ERN_table_d2, here("./tables/sttr_ERN_table_d2.csv"))
-
-ggplot(LDDM_do2_d2, aes(x=FCZ_ERN_080_z, y=v_congruent_S2_B11)) +
-  geom_point() +
-  stat_smooth(method="lm")
-
-ggplot(LDDM_do2_d2, aes(x=FCZ_ERN_080_z, y=v_S2_B11)) +
-  geom_point() +
-  stat_smooth(method="lm")
-```
-Nominal replication of Day 1: ERN nominally significantly related to v (congruent) and average v, but not when FDR-corrected.
-
-### 2.1.3 Day 3
-```{r}
-ERN_table_d3 <- data.frame(parameters= c("v", "v_congruent", "v_incongruent", "a", "t", "z"),
-                        r= c(corr.test(LDDM_do2_d3_not_outliers$FCZ_ERN_080_z, LDDM_do2_d3_not_outliers$v_S3_B11_z)$r,
-                             corr.test(LDDM_do2_d3_not_outliers$FCZ_ERN_080_z, LDDM_do2_d3_not_outliers$v_congruent_S3_B11_z)$r,
-                             corr.test(LDDM_do2_d3_not_outliers$FCZ_ERN_080_z, LDDM_do2_d3_not_outliers$v_incongruent_S3_B11_z)$r,
-                             corr.test(LDDM_do2_d3_not_outliers$FCZ_ERN_080_z, LDDM_do2_d3_not_outliers$a_S3_B11_z)$r,
-                             corr.test(LDDM_do2_d3_not_outliers$FCZ_ERN_080_z, LDDM_do2_d3_not_outliers$t_S3_B11_z)$r,
-                             corr.test(LDDM_do2_d3_not_outliers$FCZ_ERN_080_z, LDDM_do2_d3_not_outliers$z_S3_B11_z)$r),
-                        p_nominal = c(corr.test(LDDM_do2_d3_not_outliers$FCZ_ERN_080_z, LDDM_do2_d3_not_outliers$v_S3_B11_z)$p,
-                             corr.test(LDDM_do2_d3_not_outliers$FCZ_ERN_080_z, LDDM_do2_d3_not_outliers$v_congruent_S3_B11_z)$p,
-                             corr.test(LDDM_do2_d3_not_outliers$FCZ_ERN_080_z, LDDM_do2_d3_not_outliers$v_incongruent_S3_B11_z)$p,
-                             corr.test(LDDM_do2_d3_not_outliers$FCZ_ERN_080_z, LDDM_do2_d3_not_outliers$a_S3_B11_z)$p,
-                             corr.test(LDDM_do2_d3_not_outliers$FCZ_ERN_080_z, LDDM_do2_d3_not_outliers$t_S3_B11_z)$p,
-                             corr.test(LDDM_do2_d3_not_outliers$FCZ_ERN_080_z, LDDM_do2_d3_not_outliers$z_S3_B11_z)$p)); ERN_table_d3$p_corrected <- p.adjust(ERN_table_d3$p_nominal, method="fdr"); ERN_table_d3[,2:4] <- round(ERN_table_d3[,2:4], 3)
-ERN_table_d3
-
-write.csv(ERN_table_d3, here("./tables/sttr_ERN_table_d3.csv"))
-
-ggplot(LDDM_do2_d3, aes(x=FCZ_ERN_080_z, y=v_congruent_S3_B11)) +
-  geom_point() +
-  stat_smooth(method="lm")
-
-ggplot(LDDM_do2_d3, aes(x=FCZ_ERN_080_z, y=v_S3_B11)) +
-  geom_point() +
-  stat_smooth(method="lm")
-```
-
-## 2.2 P3 onset
-### 2.2.1 Day 1
-```{r}
-P3_table_d1 <- data.frame(parameters= c(rep(c("v", "v_congruent", "v_incongruent", "a", "t", "z"),1)),
-                        r= c(corr.test(LDDM_do2_d1$PZ_P3_onset_incon_z, LDDM_do2_d1$v_S1_B11_z)$r,
-                             corr.test(LDDM_do2_d1$PZ_P3_onset_con_z, LDDM_do2_d1$v_congruent_S1_B11_z)$r,
-                             corr.test(LDDM_do2_d1$PZ_P3_onset_incon_z, LDDM_do2_d1$v_incongruent_S1_B11_z)$r,
-                             corr.test(LDDM_do2_d1$PZ_P3_onset_incon_z, LDDM_do2_d1$a_S1_B11_z)$r,
-                             corr.test(LDDM_do2_d1$PZ_P3_onset_incon_z, LDDM_do2_d1$t_S1_B11_z)$r,
-                             corr.test(LDDM_do2_d1$PZ_P3_onset_incon_z, LDDM_do2_d1$z_S1_B11_z)$r),
-                        p_nominal = c(corr.test(LDDM_do2_d1$PZ_P3_onset_incon_z, LDDM_do2_d1$v_S1_B11_z)$p,
-                             corr.test(LDDM_do2_d1$PZ_P3_onset_con_z, LDDM_do2_d1$v_congruent_S1_B11_z)$p,
-                             corr.test(LDDM_do2_d1$PZ_P3_onset_incon_z, LDDM_do2_d1$v_incongruent_S1_B11_z)$p,
-                             corr.test(LDDM_do2_d1$PZ_P3_onset_incon_z, LDDM_do2_d1$a_S1_B11_z)$p,
-                             corr.test(LDDM_do2_d1$PZ_P3_onset_incon_z, LDDM_do2_d1$t_S1_B11_z)$p,
-                             corr.test(LDDM_do2_d1$PZ_P3_onset_incon_z, LDDM_do2_d1$z_S1_B11_z)$p)); P3_table_d1$p_corrected <- p.adjust(P3_table_d1$p_nominal, method="fdr"); P3_table_d1[,2:4] <- round(P3_table_d1[,2:4], 3)
-P3_table_d1
-
-write.csv(P3_table_d1, here("./tables/sttr_P3_table_d1.csv"))
-
-ggplot(LDDM_do2_d1, aes(x=PZ_P3_onset_incon_z, y=v_congruent_S1_B11)) +
-  geom_point() +
-  stat_smooth(method="lm")
-```
-P3 nominally significantly related to v (congruent) and the average v, but not when FDR-corrected.
-
-### 2.2.2 Day 2
-```{r}
-P3_table_d2 <- data.frame(parameters= c(rep(c("v", "v_congruent", "v_incongruent", "a", "t", "z"),1)),
-                        r= c(corr.test(LDDM_do2_d2$PZ_P3_onset_incon_z, LDDM_do2_d2$v_S2_B11_z)$r,
-                             corr.test(LDDM_do2_d2$PZ_P3_onset_con_z, LDDM_do2_d2$v_congruent_S2_B11_z)$r,
-                             corr.test(LDDM_do2_d2$PZ_P3_onset_incon_z, LDDM_do2_d2$v_incongruent_S2_B11_z)$r,
-                             corr.test(LDDM_do2_d2$PZ_P3_onset_incon_z, LDDM_do2_d2$a_S2_B11_z)$r,
-                             corr.test(LDDM_do2_d2$PZ_P3_onset_incon_z, LDDM_do2_d2$t_S2_B11_z)$r,
-                             corr.test(LDDM_do2_d2$PZ_P3_onset_incon_z, LDDM_do2_d2$z_S2_B11_z)$r),
-                        p_nominal = c(corr.test(LDDM_do2_d2$PZ_P3_onset_incon_z, LDDM_do2_d2$v_S2_B11_z)$p,
-                             corr.test(LDDM_do2_d2$PZ_P3_onset_con_z, LDDM_do2_d2$v_congruent_S2_B11_z)$p,
-                             corr.test(LDDM_do2_d2$PZ_P3_onset_incon_z, LDDM_do2_d2$v_incongruent_S2_B11_z)$p,
-                             corr.test(LDDM_do2_d2$PZ_P3_onset_incon_z, LDDM_do2_d2$a_S2_B11_z)$p,
-                             corr.test(LDDM_do2_d2$PZ_P3_onset_incon_z, LDDM_do2_d2$t_S2_B11_z)$p,
-                             corr.test(LDDM_do2_d2$PZ_P3_onset_incon_z, LDDM_do2_d2$z_S2_B11_z)$p)); P3_table_d2$p_corrected <- p.adjust(P3_table_d2$p_nominal, method="fdr"); P3_table_d2[,2:4] <- round(P3_table_d2[,2:4], 3)
-P3_table_d2
-
-write.csv(P3_table_d2, here("./tables/sttr_P3_table_d2.csv"))
-
-ggplot(LDDM_do2_d2, aes(x=PZ_P3_onset_incon_z, y=v_congruent_S2_B11)) +
-  geom_point() +
-  stat_smooth(method="lm")
-```
-P3 nominally significantly related to t and trend-level nominally related to v (congruent), but not when FDR-corrected.
-
-### 2.2.3 Day 3
-```{r}
-P3_table_d3 <- data.frame(parameters= c(rep(c("v", "v_congruent", "v_incongruent", "a", "t", "z"),1)),
-                        r= c(corr.test(LDDM_do2_d3$PZ_P3_onset_incon_z, LDDM_do2_d3$v_S3_B11_z)$r,
-                             corr.test(LDDM_do2_d3$PZ_P3_onset_con_z, LDDM_do2_d3$v_congruent_S3_B11_z)$r,
-                             corr.test(LDDM_do2_d3$PZ_P3_onset_incon_z, LDDM_do2_d3$v_incongruent_S3_B11_z)$r,
-                             corr.test(LDDM_do2_d3$PZ_P3_onset_incon_z, LDDM_do2_d3$a_S3_B11_z)$r,
-                             corr.test(LDDM_do2_d3$PZ_P3_onset_incon_z, LDDM_do2_d3$t_S3_B11_z)$r,
-                             corr.test(LDDM_do2_d3$PZ_P3_onset_incon_z, LDDM_do2_d3$z_S3_B11_z)$r),
-                        p_nominal = c(corr.test(LDDM_do2_d3$PZ_P3_onset_incon_z, LDDM_do2_d3$v_S3_B11_z)$p,
-                             corr.test(LDDM_do2_d3$PZ_P3_onset_con_z, LDDM_do2_d3$v_congruent_S3_B11_z)$p,
-                             corr.test(LDDM_do2_d3$PZ_P3_onset_incon_z, LDDM_do2_d3$v_incongruent_S3_B11_z)$p,
-                             corr.test(LDDM_do2_d3$PZ_P3_onset_incon_z, LDDM_do2_d3$a_S3_B11_z)$p,
-                             corr.test(LDDM_do2_d3$PZ_P3_onset_incon_z, LDDM_do2_d3$t_S3_B11_z)$p,
-                             corr.test(LDDM_do2_d3$PZ_P3_onset_incon_z, LDDM_do2_d3$z_S3_B11_z)$p)); P3_table_d3$p_corrected <- p.adjust(P3_table_d3$p_nominal, method="fdr"); P3_table_d3[,2:4] <- round(P3_table_d3[,2:4], 3)
-P3_table_d3
-
-write.csv(P3_table_d3, here("./tables/sttr_P3_table_d3.csv"))
-
-ggplot(LDDM_do2_d3, aes(x=PZ_P3_onset_incon_z, y=v_S3_B11)) +
-  geom_point() +
-  stat_smooth(method="lm")
-```
-
-```{r}
-library(corrplot)
-all_measures_d1 <- c("FCZ_ERN_080","FCZ_ERN_0100","Congruent_PZ_fpl","Incongruent_PZ_fpl",
-                  "z_S1_B11","v_congruent_S1_B11","v_incongruent_S1_B11","v_S1_B11","a_S1_B11","t_S1_B11")
-all_measures_d2 <- c("FCZ_ERN_080","FCZ_ERN_0100","Congruent_PZ_fpl","Incongruent_PZ_fpl",
-                  "z_S2_B11","v_congruent_S2_B11","v_incongruent_S2_B11","v_S2_B11","a_S2_B11","t_S2_B11")
-all_measures_d3 <- c("FCZ_ERN_080","FCZ_ERN_0100","Congruent_PZ_fpl","Incongruent_PZ_fpl",
-                  "z_S3_B11","v_congruent_S3_B11","v_incongruent_S3_B11","v_S3_B11","a_S3_B11","t_S3_B11")
-corrplot(cor(LDDM_do2_d1[c(all_measures_d1)],use="pairwise.complete.obs"), method="circle")
-corrplot(cor(LDDM_do2_d2[c(all_measures_d2)],use="pairwise.complete.obs"), method="circle")
-corrplot(cor(LDDM_do2_d3[c(all_measures_d3)],use="pairwise.complete.obs"), method="circle")
-```
-
-
-# 3.  Compared to typical Flanker metrics
+#  Multiple regressions
 ### Day 1
 ```{r}
-# ERN
-mr_ERN_table_d1 <- data.frame(Parameters=c("v","v_congruent","v_incongruent","a","t","z"),
-                      b_ddm=c(tidy(lm(FCZ_ERN_080_z ~ v_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ v_congruent_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ v_incongruent_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ a_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ t_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ z_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[2]),
-                      p_ddm=c(tidy(lm(FCZ_ERN_080_z ~ v_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ v_congruent_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ v_incongruent_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ a_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ t_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ z_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[2]),
-                      b_flanker=c(tidy(lm(FCZ_ERN_080_z ~ v_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ v_congruent_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ v_incongruent_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ a_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ t_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ z_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[3]),
-                      p_flanker=c(tidy(lm(FCZ_ERN_080_z ~ v_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ v_congruent_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ v_incongruent_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ a_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ t_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ z_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[3]))
+make_CI <- function(lower, upper) {
+  paste0("[", round(lower,2), ", ", round(upper,2), "]")
+}
+
+i=1
+mr_ERN_table_d1 <- as.data.frame(matrix(nrow=6, ncol=4))
+mr_ERN_table_d1[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Threshold","Non-decision time","Starting bias")
+mr_ERN_table_d1_raw <- as.data.frame(matrix(nrow=6, ncol=4))
+mr_ERN_table_d1_raw[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Threshold","Non-decision time","Starting bias")
+
+for (var in c("v_S1_B11_z","v_congruent_S1_B11_z","v_incongruent_S1_B11_z","a_S1_B11_z","t_S1_B11_z","z_S1_B11_z")) {
+  eval(parse(text=paste0("
+             model <- lm(FCZ_ERN_080_z ~ ",var," + flanker_score_d1_z + accuracy_z, LDDM_do2_d1_not_outliers)
+             
+             mr_ERN_table_d1[i,2] <- paste0(round(tidy(model)$estimate[2],2), ifelse(tidy(model)$p.value[2]<0.01, '** ', ifelse(tidy(model)$p.value[2]<0.05, '* ', ' ')), 
+                                            make_CI(confint(model)[2,1], confint(model)[2,2]))
+             mr_ERN_table_d1[i,3] <- paste0(round(tidy(model)$estimate[3],2), ifelse(tidy(model)$p.value[3]<0.01, '** ', ifelse(tidy(model)$p.value[3]<0.05, '* ', ' ')), 
+                                            make_CI(confint(model)[3,1], confint(model)[3,2]))
+             mr_ERN_table_d1[i,4] <- paste0(round(tidy(model)$estimate[4],2), ifelse(tidy(model)$p.value[4]<0.01, '** ', ifelse(tidy(model)$p.value[4]<0.05, '* ', ' ')), 
+                                            make_CI(confint(model)[4,1], confint(model)[4,2]))
+                                            
+            mr_ERN_table_d1_raw[i,2] <- tidy(model)$estimate[2]
+            mr_ERN_table_d1_raw[i,3] <- confint(model)[2,1]
+            mr_ERN_table_d1_raw[i,4] <- confint(model)[2,2]
+            
+            mr_ERN_table_d1_raw[i,5] <- tidy(model)$estimate[3]
+            mr_ERN_table_d1_raw[i,6] <- confint(model)[3,1]
+            mr_ERN_table_d1_raw[i,7] <- confint(model)[3,2]
+            
+            mr_ERN_table_d1_raw[i,8] <- tidy(model)$estimate[4]
+            mr_ERN_table_d1_raw[i,9] <- confint(model)[4,1]
+            mr_ERN_table_d1_raw[i,10] <- confint(model)[4,2]
+                                   ")))
+  i=i+1
+}
+colnames(mr_ERN_table_d1) <- c("Parameters","DDM", "NIH Toolbox", "Raw accuracy")
+
 write.csv(mr_ERN_table_d1, here("./tables/mr_ERN_table_d1.csv"))
+write.csv(mr_ERN_table_d1_raw, here("./tables/mr_ERN_table_d1_raw.csv"))
 
-corr.test(LDDM_do2_d1$flanker_score_d1_z, LDDM_do2_d1$FCZ_ERN_080_z, use="complete.obs", method="pearson")
-
-ggplot(filter(LDDM_do2_d1), aes(x=FCZ_ERN_080_z, y=flanker_score_d1)) +
-  geom_point() +
-  stat_smooth(method="lm")
-
-ggplot(filter(LDDM_do2_d1, flanker_score_d1>4), aes(x=FCZ_ERN_080_z, y=flanker_score_d1)) +
-  geom_point() +
-  stat_smooth(method="lm")
-
-# P3
-mr_P3_table_d1 <- data.frame(Parameters=c("v","v_congruent","v_incongruent","a","t","z"),
-                      b_ddm=c(tidy(lm(PZ_P3_onset_incon_z ~ v_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[2],
-                       tidy(lm(PZ_P3_onset_con_z ~ v_congruent_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_incongruent_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ a_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ t_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ z_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[2]),
-                      p_ddm=c(tidy(lm(PZ_P3_onset_incon_z ~ v_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[2],
-                       tidy(lm(PZ_P3_onset_con_z ~ v_congruent_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_incongruent_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ a_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ t_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ z_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[2]),
-                      b_flanker=c(tidy(lm(PZ_P3_onset_incon_z ~ v_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[3],
-                       tidy(lm(PZ_P3_onset_con_z ~ v_congruent_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_incongruent_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ a_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ t_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ z_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[3]),
-                      p_flanker=c(tidy(lm(PZ_P3_onset_incon_z ~ v_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[3],
-                       tidy(lm(PZ_P3_onset_con_z ~ v_congruent_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_incongruent_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ a_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ t_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ z_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[3]))
-write.csv(mr_P3_table_d1, here("./tables/mr_P3_table_d1.csv"))
-
-corr.test(LDDM_do2_d1$flanker_score_d1, LDDM_do2_d1$PZ_P3_onset_incon_z, use="complete.obs", method="pearson")
-corr.test(LDDM_do2_d1$accuracy_z, LDDM_do2_d1$PZ_P3_onset_incon_z, use="complete.obs", method="pearson")
+# ggplot(filter(LDDM_do2_d1_not_outliers), aes(x=FCZ_ERN_080_z, y=flanker_score_d1)) +
+#   geom_point() +
+#   stat_smooth(method="lm")
+# 
+# ggplot(filter(LDDM_do2_d1_not_outliers, flanker_score_d1>4), aes(x=FCZ_ERN_080_z, y=flanker_score_d1)) +
+#   geom_point() +
+#   stat_smooth(method="lm")
 ```
-DDM parameters largely do not explain significant variance over-and-above average RT and accuracy (0.125*correct responses), though this is likely due to considerable covariation between DDM parameters and RT/accuracy. They also do not explain variance over-and-above a typical "flanker score" that incorporates accuracy and RT info in a summed score.
 
 ### Day 2
 ```{r}
-# ERN
-mr_ERN_table_d2 <- data.frame(Parameters=c("v","v_congruent","v_incongruent","a","t","z"),
-                      b_ddm=c(tidy(lm(FCZ_ERN_080_z ~ v_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ v_congruent_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ v_incongruent_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ a_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ t_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ z_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[2]),
-                      p_ddm=c(tidy(lm(FCZ_ERN_080_z ~ v_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ v_congruent_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ v_incongruent_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ a_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ t_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ z_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[2]),
-                      b_flanker=c(tidy(lm(FCZ_ERN_080_z ~ v_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ v_congruent_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ v_incongruent_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ a_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ t_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ z_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[3]),
-                      p_flanker=c(tidy(lm(FCZ_ERN_080_z ~ v_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ v_congruent_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ v_incongruent_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ a_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ t_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ z_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[3]))
+i=1
+mr_ERN_table_d2 <- as.data.frame(matrix(nrow=6, ncol=4))
+mr_ERN_table_d2[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Threshold","Non-decision time","Starting bias")
+mr_ERN_table_d2_raw <- as.data.frame(matrix(nrow=6, ncol=4))
+mr_ERN_table_d2_raw[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Threshold","Non-decision time","Starting bias")
+
+for (var in c("v_S2_B11_z","v_congruent_S2_B11_z","v_incongruent_S2_B11_z","a_S2_B11_z","t_S2_B11_z","z_S2_B11_z")) {
+  eval(parse(text=paste0("
+             model <- lm(FCZ_ERN_080_z ~ ",var," + flanker_score_d2_z + accuracy_z, LDDM_do2_d2_not_outliers)
+             
+             mr_ERN_table_d2[i,2] <- paste0(round(tidy(model)$estimate[2],2), ifelse(tidy(model)$p.value[2]<0.01, '** ', ifelse(tidy(model)$p.value[2]<0.05, '* ', ' ')), 
+                                            make_CI(confint(model)[2,1], confint(model)[2,2]))
+             mr_ERN_table_d2[i,3] <- paste0(round(tidy(model)$estimate[3],2), ifelse(tidy(model)$p.value[3]<0.01, '** ', ifelse(tidy(model)$p.value[3]<0.05, '* ', ' ')), 
+                                            make_CI(confint(model)[3,1], confint(model)[3,2]))
+             mr_ERN_table_d2[i,4] <- paste0(round(tidy(model)$estimate[4],2), ifelse(tidy(model)$p.value[4]<0.01, '** ', ifelse(tidy(model)$p.value[4]<0.05, '* ', ' ')), 
+                                            make_CI(confint(model)[4,1], confint(model)[4,2]))
+
+            mr_ERN_table_d2_raw[i,2] <- tidy(model)$estimate[2]
+            mr_ERN_table_d2_raw[i,3] <- confint(model)[2,1]
+            mr_ERN_table_d2_raw[i,4] <- confint(model)[2,2]
+            
+            mr_ERN_table_d2_raw[i,5] <- tidy(model)$estimate[3]
+            mr_ERN_table_d2_raw[i,6] <- confint(model)[3,1]
+            mr_ERN_table_d2_raw[i,7] <- confint(model)[3,2]
+            
+            mr_ERN_table_d2_raw[i,8] <- tidy(model)$estimate[4]
+            mr_ERN_table_d2_raw[i,9] <- confint(model)[4,1]
+            mr_ERN_table_d2_raw[i,10] <- confint(model)[4,2]
+                                   ")))
+  i=i+1
+}
+colnames(mr_ERN_table_d2) <- c("Parameters","DDM", "NIH Toolbox", "Raw accuracy")
+
 write.csv(mr_ERN_table_d2, here("./tables/mr_ERN_table_d2.csv"))
+write.csv(mr_ERN_table_d2_raw, here("./tables/mr_ERN_table_d2_raw.csv"))
 
-corr.test(LDDM_do2_d2$flanker_score_d2_z, LDDM_do2_d2$FCZ_ERN_080_z, use="complete.obs", method="pearson")
-
-ggplot(filter(LDDM_do2_d2), aes(x=FCZ_ERN_080_z, y=flanker_score_d2)) +
-  geom_point() +
-  stat_smooth(method="lm")
-
-ggplot(filter(LDDM_do2_d2, flanker_score_d2>4), aes(x=FCZ_ERN_080_z, y=flanker_score_d2)) +
-  geom_point() +
-  stat_smooth(method="lm")
-
-ggplot(filter(LDDM_do2_d2, flanker_score_d2>4), aes(x=FCZ_ERN_080_z, y=v_S2_B11)) +
-  geom_point() +
-  stat_smooth(method="lm")
-
-
-# P3
-mr_P3_table_d2 <- data.frame(Parameters=c("v","v_congruent","v_incongruent","a","t","z"),
-                      b_ddm=c(tidy(lm(PZ_P3_onset_incon_z ~ v_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[2],
-                       tidy(lm(PZ_P3_onset_con_z ~ v_congruent_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_incongruent_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ a_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ t_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ z_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[2]),
-                      p_ddm=c(tidy(lm(PZ_P3_onset_incon_z ~ v_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[2],
-                       tidy(lm(PZ_P3_onset_con_z ~ v_congruent_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_incongruent_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ a_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ t_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ z_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[2]),
-                      b_flanker=c(tidy(lm(PZ_P3_onset_incon_z ~ v_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[3],
-                       tidy(lm(PZ_P3_onset_con_z ~ v_congruent_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_incongruent_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ a_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ t_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ z_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[3]),
-                      p_flanker=c(tidy(lm(PZ_P3_onset_incon_z ~ v_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_congruent_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_incongruent_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ a_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ t_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ z_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[3]))
-write.csv(mr_P3_table_d2, here("./tables/mr_P3_table_d2.csv"))
-
-corr.test(LDDM_do2_d2$flanker_score_d2, LDDM_do2_d2$PZ_P3_onset_incon_z, use="complete.obs", method="pearson")
-corr.test(LDDM_do2_d2$accuracy_z, LDDM_do2_d2$PZ_P3_onset_incon_z, use="complete.obs", method="pearson")
+# ggplot(filter(LDDM_do2_d2), aes(x=FCZ_ERN_080_z, y=flanker_score_d2)) +
+#   geom_point() +
+#   stat_smooth(method="lm")
+# 
+# ggplot(filter(LDDM_do2_d2, flanker_score_d2>4), aes(x=FCZ_ERN_080_z, y=flanker_score_d2)) +
+#   geom_point() +
+#   stat_smooth(method="lm")
+# 
+# ggplot(filter(LDDM_do2_d2, flanker_score_d2>4), aes(x=FCZ_ERN_080_z, y=v_S2_B11)) +
+#   geom_point() +
+#   stat_smooth(method="lm")
 ```
-DDM parameters no longer explain variance in ERN better than typical flanker score. Of note the two are strongly correlated at r=`r round(corr.test(LDDM_do2_d2$flanker_score_d2, LDDM_do2_d2$v_S2_B11, use="complete.obs", method="pearson"_z)$r,3)`.
-
-However, the alpha parameter (boundary separation) explains variances better than the flanker score on P3 congruent and incongruent onset. 
-
 
 ### Day 3
 ```{r}
-# ERN
-mr_ERN_table_d3 <- data.frame(Parameters=c("v","v_congruent","v_incongruent","a","t","z"),
-                      b_ddm=c(tidy(lm(FCZ_ERN_080_z ~ v_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ v_congruent_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ v_incongruent_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ a_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ t_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ z_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[2]),
-                      p_ddm=c(tidy(lm(FCZ_ERN_080_z ~ v_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ v_congruent_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ v_incongruent_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ a_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ t_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ z_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[2]),
-                      b_flanker=c(tidy(lm(FCZ_ERN_080_z ~ v_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ v_congruent_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ v_incongruent_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ a_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ t_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ z_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[3]),
-                      p_flanker=c(tidy(lm(FCZ_ERN_080_z ~ v_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ v_congruent_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ v_incongruent_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ a_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ t_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ z_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[3]))
+i=1
+mr_ERN_table_d3 <- as.data.frame(matrix(nrow=6, ncol=4))
+mr_ERN_table_d3[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Threshold","Non-decision time","Starting bias")
+mr_ERN_table_d3_raw <- as.data.frame(matrix(nrow=6, ncol=4))
+mr_ERN_table_d3_raw[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Threshold","Non-decision time","Starting bias")
+
+for (var in c("v_S3_B11_z","v_congruent_S3_B11_z","v_incongruent_S3_B11_z","a_S3_B11_z","t_S3_B11_z","z_S3_B11_z")) {
+  eval(parse(text=paste0("
+             model <- lm(FCZ_ERN_080_z ~ ",var," + flanker_score_d3_z + accuracy_z, LDDM_do2_d3_not_outliers)
+             
+             mr_ERN_table_d3[i,2] <- paste0(round(tidy(model)$estimate[2],2), ifelse(tidy(model)$p.value[2]<0.01, '** ', ifelse(tidy(model)$p.value[2]<0.05, '* ', ' ')), 
+                                            make_CI(confint(model)[2,1], confint(model)[2,2]))
+             mr_ERN_table_d3[i,3] <- paste0(round(tidy(model)$estimate[3],2), ifelse(tidy(model)$p.value[3]<0.01, '** ', ifelse(tidy(model)$p.value[3]<0.05, '* ', ' ')), 
+                                            make_CI(confint(model)[3,1], confint(model)[3,2]))
+             mr_ERN_table_d3[i,4] <- paste0(round(tidy(model)$estimate[4],2), ifelse(tidy(model)$p.value[4]<0.01, '** ', ifelse(tidy(model)$p.value[4]<0.05, '* ', ' ')), 
+                                            make_CI(confint(model)[4,1], confint(model)[4,2]))
+
+            mr_ERN_table_d3_raw[i,2] <- tidy(model)$estimate[2]
+            mr_ERN_table_d3_raw[i,3] <- confint(model)[2,1]
+            mr_ERN_table_d3_raw[i,4] <- confint(model)[2,2]
+            
+            mr_ERN_table_d3_raw[i,5] <- tidy(model)$estimate[3]
+            mr_ERN_table_d3_raw[i,6] <- confint(model)[3,1]
+            mr_ERN_table_d3_raw[i,7] <- confint(model)[3,2]
+            
+            mr_ERN_table_d3_raw[i,8] <- tidy(model)$estimate[4]
+            mr_ERN_table_d3_raw[i,9] <- confint(model)[4,1]
+            mr_ERN_table_d3_raw[i,10] <- confint(model)[4,2]
+                                   ")))
+  i=i+1
+}
+colnames(mr_ERN_table_d3) <- c("Parameters","DDM", "NIH Toolbox", "Raw accuracy")
+
 write.csv(mr_ERN_table_d3, here("./tables/mr_ERN_table_d3.csv"))
+write.csv(mr_ERN_table_d3_raw, here("./tables/mr_ERN_table_d3_raw.csv"))
 
-corr.test(LDDM_do2_d3$flanker_score_d3_z, LDDM_do2_d3$FCZ_ERN_080_z, use="complete.obs", method="pearson")
-
-ggplot(filter(LDDM_do2_d3), aes(x=FCZ_ERN_080_z, y=flanker_score_d3)) +
-  geom_point() +
-  stat_smooth(method="lm")
-
-ggplot(filter(LDDM_do2_d3, flanker_score_d3>4), aes(x=FCZ_ERN_080_z, y=flanker_score_d3)) +
-  geom_point() +
-  stat_smooth(method="lm")
-
-ggplot(filter(LDDM_do2_d3, flanker_score_d3>4), aes(x=FCZ_ERN_080_z, y=v_S3_B11)) +
-  geom_point() +
-  stat_smooth(method="lm")
-
-
-# P3
-mr_P3_table_d3 <- data.frame(Parameters=c("v","v_congruent","v_incongruent","a","t","z"),
-                      b_ddm=c(tidy(lm(PZ_P3_onset_incon_z ~ v_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[2],
-                       tidy(lm(PZ_P3_onset_con_z ~ v_congruent_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_incongruent_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ a_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ t_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ z_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[2]),
-                      p_ddm=c(tidy(lm(PZ_P3_onset_incon_z ~ v_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[2],
-                       tidy(lm(PZ_P3_onset_con_z ~ v_congruent_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_incongruent_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ a_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ t_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ z_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[2]),
-                      b_flanker=c(tidy(lm(PZ_P3_onset_incon_z ~ v_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[3],
-                       tidy(lm(PZ_P3_onset_con_z ~ v_congruent_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_incongruent_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ a_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ t_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ z_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[3]),
-                      p_flanker=c(tidy(lm(PZ_P3_onset_incon_z ~ v_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_congruent_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_incongruent_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ a_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ t_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ z_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[3]))
-write.csv(mr_P3_table_d3, here("./tables/mr_P3_table_d3.csv"))
-
-corr.test(LDDM_do2_d3$flanker_score_d3, LDDM_do2_d3$PZ_P3_onset_incon_z, use="complete.obs", method="pearson")
-corr.test(LDDM_do2_d3$accuracy_z, LDDM_do2_d3$PZ_P3_onset_incon_z, use="complete.obs", method="pearson")
+# ggplot(filter(LDDM_do2_d3), aes(x=FCZ_ERN_080_z, y=flanker_score_d3)) +
+#   geom_point() +
+#   stat_smooth(method="lm")
+# 
+# ggplot(filter(LDDM_do2_d3, flanker_score_d3>4), aes(x=FCZ_ERN_080_z, y=flanker_score_d3)) +
+#   geom_point() +
+#   stat_smooth(method="lm")
+# 
+# ggplot(filter(LDDM_do2_d3, flanker_score_d3>4), aes(x=FCZ_ERN_080_z, y=v_S3_B11)) +
+#   geom_point() +
+#   stat_smooth(method="lm")
 ```
 
-# 4. Reliability
-## 4.1 DDM paramters
+# Reliability
+## Test-retest (ICC)
 ```{r}
-# LDDM_do2_d1$v_S1_B8 <- rowMeans(LDDM_do2_d1[,c('v_congruent_S1_B8','v_incongruent_S1_B8')], na.rm=F)
-# LDDM_do2_d2$v_S2_B8 <- rowMeans(LDDM_do2_d2[,c('v_congruent_S2_B8','v_incongruent_S2_B8')], na.rm=F)
+LDDM_do2_d1$accuracy_d1 <- LDDM_do2_d1$accuracy
+LDDM_do2_d2$accuracy_d2 <- LDDM_do2_d2$accuracy
+LDDM_do2_d3$accuracy_d3 <- LDDM_do2_d3$accuracy
 
-LDDM_do2_irr <- left_join(LDDM_do2_d1, LDDM_do2_d2, by="ID") %>%
-  left_join(LDDM_do2_d3, by="ID")
+LDDM_do2_irr <- full_join(LDDM_do2_d1, LDDM_do2_d2, by="ID") %>%
+  full_join(LDDM_do2_d3, by="ID")
+
 library("irr")
 
-sttr_icc_table_12 <- data.frame(parameters= c("v", "v_congruent", "v_incongruent", "a", "t", "z", "nihtoolbox_flanker"),
-                           ICC=c(icc(LDDM_do2_irr[c("v_S1_B11","v_S2_B11")])$value,
-                           icc(LDDM_do2_irr[c("v_congruent_S1_B11.x","v_congruent_S2_B11.x")])$value,
-                           icc(LDDM_do2_irr[c("v_incongruent_S1_B11.x","v_incongruent_S2_B11.x")])$value,
-                           icc(LDDM_do2_irr[c("a_S1_B11.x","a_S2_B11.x")])$value,
-                           icc(LDDM_do2_irr[c("t_S1_B11.x","t_S2_B11.x")])$value,
-                           icc(LDDM_do2_irr[c("z_S1_B11.x","z_S2_B11.x")])$value,
-                           icc(LDDM_do2_irr[c("flanker_score_d1","flanker_score_d2")])$value))
+# sttr_icc_table_12 <- data.frame(parameters= c("v", "v_congruent", "v_incongruent", "a", "t", "z", "nihtoolbox_flanker"),
+#                            ICC=c(icc(LDDM_do2_irr[c("v_S1_B11","v_S2_B11")])$value,
+#                            icc(LDDM_do2_irr[c("v_congruent_S1_B11.x","v_congruent_S2_B11.x")])$value,
+#                            icc(LDDM_do2_irr[c("v_incongruent_S1_B11.x","v_incongruent_S2_B11.x")])$value,
+#                            icc(LDDM_do2_irr[c("a_S1_B11.x","a_S2_B11.x")])$value,
+#                            icc(LDDM_do2_irr[c("t_S1_B11.x","t_S2_B11.x")])$value,
+#                            icc(LDDM_do2_irr[c("z_S1_B11.x","z_S2_B11.x")])$value,
+#                            icc(LDDM_do2_irr[c("flanker_score_d1","flanker_score_d2")])$value))
+# 
+# sttr_icc_table_23 <- data.frame(parameters= c("v", "v_congruent", "v_incongruent", "a", "t", "z", "nihtoolbox_flanker"),
+#                            ICC=c(icc(LDDM_do2_irr[c("v_S1_B11","v_S2_B11","v_S3_B11")])$value,
+#                            icc(LDDM_do2_irr[c("v_congruent_S2_B11.x","v_congruent_S3_B11.x")])$value,
+#                            icc(LDDM_do2_irr[c("v_incongruent_S2_B11.x","v_incongruent_S3_B11.x")])$value,
+#                            icc(LDDM_do2_irr[c("a_S2_B11.x","a_S3_B11.x")])$value,
+#                            icc(LDDM_do2_irr[c("t_S2_B11.x","t_S3_B11.x")])$value,
+#                            icc(LDDM_do2_irr[c("z_S2_B11.x","z_S3_B11.x")])$value,
+#                            icc(LDDM_do2_irr[c("flanker_score_d2","flanker_score_d3")])$value))
 
-sttr_icc_table_23 <- data.frame(parameters= c("v", "v_congruent", "v_incongruent", "a", "t", "z", "nihtoolbox_flanker"),
-                           ICC=c(icc(LDDM_do2_irr[c("v_S1_B11","v_S2_B11","v_S3_B11")])$value,
-                           icc(LDDM_do2_irr[c("v_congruent_S2_B11.x","v_congruent_S3_B11.x")])$value,
-                           icc(LDDM_do2_irr[c("v_incongruent_S2_B11.x","v_incongruent_S3_B11.x")])$value,
-                           icc(LDDM_do2_irr[c("a_S2_B11.x","a_S3_B11.x")])$value,
-                           icc(LDDM_do2_irr[c("t_S2_B11.x","t_S3_B11.x")])$value,
-                           icc(LDDM_do2_irr[c("z_S2_B11.x","z_S3_B11.x")])$value,
-                           icc(LDDM_do2_irr[c("flanker_score_d2","flanker_score_d3")])$value))
-
-sttr_icc_table_123 <- data.frame(parameters= c("v", "v_congruent", "v_incongruent", "a", "t", "z", "nihtoolbox_flanker"),
+sttr_icc_table_123 <- data.frame(parameters= c("Drift rate", "Drift rate (congruent)", "Drift rate (incongruent)", "Threshold", "Non-decision time", "Starting bias", "NIH Toolbox", "Raw accuracy"),
                            ICC=c(icc(LDDM_do2_irr[c("v_S1_B11","v_S2_B11","v_S3_B11")])$value,
                            icc(LDDM_do2_irr[c("v_congruent_S1_B11.x","v_congruent_S2_B11.x","v_congruent_S3_B11.x")])$value,
                            icc(LDDM_do2_irr[c("v_incongruent_S1_B11.x","v_incongruent_S2_B11.x","v_incongruent_S3_B11.x")])$value,
                            icc(LDDM_do2_irr[c("a_S1_B11.x","a_S2_B11.x","a_S3_B11.x")])$value,
                            icc(LDDM_do2_irr[c("t_S1_B11.x","t_S2_B11.x","t_S3_B11.x")])$value,
                            icc(LDDM_do2_irr[c("z_S1_B11.x","z_S2_B11.x","z_S3_B11.x")])$value,
-                           icc(LDDM_do2_irr[c("flanker_score_d1","flanker_score_d2","flanker_score_d3")])$value))
+                           icc(LDDM_do2_irr[c("flanker_score_d1","flanker_score_d2","flanker_score_d3")])$value,
+                           icc(LDDM_do2_irr[c("accuracy_d1","accuracy_d2","accuracy_d3")])$value))
 
-write.csv(sttr_icc_table_12, "./tables/sttr_icc_table_12.csv")
-write.csv(sttr_icc_table_23, "./tables/sttr_icc_table_23.csv")
+# write.csv(sttr_icc_table_12, "./tables/sttr_icc_table_12.csv")
+# write.csv(sttr_icc_table_23, "./tables/sttr_icc_table_23.csv")
 write.csv(sttr_icc_table_123, "./tables/sttr_icc_table_123.csv")
 ```
 
-## 4.2 Typical Flanker metrics
-### 4.2.1 ICC
-```{r}
-LDDM_cleaning04_calc3_1to2 <- left_join(LDDM_cleaning04_d1_calc3, LDDM_cleaning04_d2_calc3, by="ID")
-LDDM_cleaning04_calc3_2to3 <- left_join(LDDM_cleaning04_d2_calc3, LDDM_cleaning04_d3_calc3, by="ID")
-LDDM_cleaning04_calc3_1to3 <- LDDM_cleaning04_d1_calc3 %>%
-  left_join(LDDM_cleaning04_d2_calc3, by="ID") %>%
-  left_join(LDDM_cleaning04_d3_calc3, by="ID")
-
-# Days 1 to 2
-icc(LDDM_cleaning04_calc3_1to2[c("flanker_score_d1","flanker_score_d2")])
-icc(LDDM_cleaning04_calc3_1to2[c("flanker_score_d1_truncated","flanker_score_d2_truncated")])
-
-# Days 2 to 3
-icc(LDDM_cleaning04_calc3_2to3[c("flanker_score_d2","flanker_score_d3")])
-icc(LDDM_cleaning04_calc3_2to3[c("flanker_score_d2_truncated","flanker_score_d3_truncated")])
-
-# All three days
-icc(LDDM_cleaning04_calc3_1to3[c("flanker_score_d1","flanker_score_d2","flanker_score_d3")])
-icc(LDDM_cleaning04_calc3_1to3[c("flanker_score_d1_truncated","flanker_score_d2_truncated","flanker_score_d3_truncated")])
-```
-
-### 4.2.2 Split half reliability (Spearman-Brown prophecy)
-#### Day 1
+## Split half reliability (Spearman-Brown prophecy)
+### Day 1
 ```{r}
 load(file=here("./data/LDDM_cleaning04_fullbeh_d1.RData"))
 library(confintr)
@@ -849,16 +651,16 @@ for (s in seq(15,165,15)){
                          spearman_brown_d1[i,7] <- round(as.numeric(r_acc_sb_ci_upper_',s,'),3)')))
   i=i+1
 }
-spearman_brown_d1
-
-ggplot(spearman_brown_d1, aes(x=trials, y=r, group=1)) +
-  geom_line() +
-  geom_point() +
-  scale_y_continuous(limits = c(0, 1)) +
-  geom_ribbon(aes(ymin = r_ci_lower, ymax = r_ci_upper), alpha = 0.2)
+# spearman_brown_d1
+# 
+# ggplot(spearman_brown_d1, aes(x=trials, y=r, group=1)) +
+#   geom_line() +
+#   geom_point() +
+#   scale_y_continuous(limits = c(0, 1)) +
+#   geom_ribbon(aes(ymin = r_ci_lower, ymax = r_ci_upper), alpha = 0.2)
 ```
 
-#### Day 2
+### Day 2
 ```{r}
 load(file=here("./data/LDDM_cleaning04_fullbeh_d2.RData"))
 
@@ -952,16 +754,16 @@ for (s in seq(15,165,15)){
                          spearman_brown_d2[i,7] <- round(as.numeric(r_acc_sb_ci_upper_',s,'),3)')))
   i=i+1
 }
-spearman_brown_d2
-
-ggplot(spearman_brown_d2, aes(x=trials, y=r, group=1)) +
-  geom_line() +
-  geom_point() +
-  scale_y_continuous(limits = c(0, 1)) +
-  geom_ribbon(aes(ymin = r_ci_lower, ymax = r_ci_upper), alpha = 0.2)
+# spearman_brown_d2
+# 
+# ggplot(spearman_brown_d2, aes(x=trials, y=r, group=1)) +
+#   geom_line() +
+#   geom_point() +
+#   scale_y_continuous(limits = c(0, 1)) +
+#   geom_ribbon(aes(ymin = r_ci_lower, ymax = r_ci_upper), alpha = 0.2)
 ```
 
-#### Day 3
+### Day 3
 ```{r}
 # Calculate typical metrics
 load(file=here("./data/LDDM_cleaning04_fullbeh_d3.RData"))
@@ -1062,257 +864,16 @@ for (s in seq(15,165,15)){
                          spearman_brown_d3[i,7] <- round(as.numeric(r_acc_sb_ci_upper_',s,'),3)')))
   i=i+1
 }
-spearman_brown_d3
-
-ggplot(spearman_brown_d3, aes(x=trials, y=r, group=1)) +
-  geom_line() +
-  geom_point() +
-  scale_y_continuous(limits = c(0, 1)) +
-  geom_ribbon(aes(ymin = r_ci_lower, ymax = r_ci_upper), alpha = 0.2)
+# spearman_brown_d3
+# 
+# ggplot(spearman_brown_d3, aes(x=trials, y=r, group=1)) +
+#   geom_line() +
+#   geom_point() +
+#   scale_y_continuous(limits = c(0, 1)) +
+#   geom_ribbon(aes(ymin = r_ci_lower, ymax = r_ci_upper), alpha = 0.2)
 ```
 
-## 4.3 Accuracy
-### 4.3.1 ICC
-```{r}
-LDDM_do2_d1$accuracy_d1 <- LDDM_do2_d1$accuracy
-LDDM_do2_d2$accuracy_d2 <- LDDM_do2_d2$accuracy
-LDDM_do2_d3$accuracy_d3 <- LDDM_do2_d3$accuracy
-
-LDDM_do2 <- full_join(LDDM_do2_d1, LDDM_do2_d2, by="ID") %>%
-  full_join(LDDM_do2_d3, by="ID")
-
-# Days 1 to 2
-icc(LDDM_do2[c("accuracy_d1","accuracy_d2")])
-# Days 2 to 3
-icc(LDDM_do2[c("accuracy_d2","accuracy_d3")])
-# All three days
-icc(LDDM_do2[c("accuracy_d1","accuracy_d2","accuracy_d3")])
-```
-
-# 5. Group level accuracy from first to second half of task
-```{r}
-LDDM_accuracy_d1_1 <- LDDM_cleaning04_d1_calc1 %>%
-  filter(block<6) %>%
-  group_by(subj_idx) %>%
-  summarise(accuracy_score = sum(response==1)*(5/length(trial)))
-
-LDDM_accuracy_d1_2 <- LDDM_cleaning04_d1_calc1 %>%
-  filter(block>=6) %>%
-  group_by(subj_idx) %>%
-  summarise(accuracy_score = sum(response==1)*(5/length(trial)))
-
-t.test(LDDM_accuracy_d1_1$accuracy_score, LDDM_accuracy_d1_2$accuracy_score)
-
-LDDM_accuracy_d2_1 <- LDDM_cleaning04_d2_calc1 %>%
-  filter(block<6) %>%
-  group_by(subj_idx) %>%
-  summarise(accuracy_score = sum(response==1)*(5/length(trial)))
-
-LDDM_accuracy_d2_2 <- LDDM_cleaning04_d2_calc1 %>%
-  filter(block>=6) %>%
-  group_by(subj_idx) %>%
-  summarise(accuracy_score = sum(response==1)*(5/length(trial)))
-
-t.test(LDDM_accuracy_d2_1$accuracy_score, LDDM_accuracy_d2_2$accuracy_score)
-```
-Participants are not significantly more accurate in the first 5 than second 6 blocks of the task on both Day 1 and Day 2.
-
-# 6. Accuracy
-## 6.1 Accuracy-ERN correlations
-```{r}
-corr.test(LDDM_do2_d1$FCZ_ERN_080_z, LDDM_do2_d1$accuracy_z)
-corr.test(LDDM_do2_d2$FCZ_ERN_080_z, LDDM_do2_d2$accuracy_z)
-corr.test(LDDM_do2_d3$FCZ_ERN_080_z, LDDM_do2_d3$accuracy_z)
-```
-
-## 6.3 Multiple regressions
-## Day 1
-```{r}
-mr_ERN_table_d1_acc <- data.frame(Parameters=c("v","v_congruent","v_incongruent","a","t","z"),
-                      b_ddm=c(tidy(lm(FCZ_ERN_080_z ~ v_S1_B11_z + accuracy_z, LDDM_do2_d1))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ v_congruent_S1_B11_z + accuracy_z, LDDM_do2_d1))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ v_incongruent_S1_B11_z + accuracy_z, LDDM_do2_d1))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ a_S1_B11_z + accuracy_z, LDDM_do2_d1))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ t_S1_B11_z + accuracy_z, LDDM_do2_d1))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ z_S1_B11_z + accuracy_z, LDDM_do2_d1))$estimate[2]),
-                      p_ddm=c(tidy(lm(FCZ_ERN_080_z ~ v_S1_B11_z + accuracy_z, LDDM_do2_d1))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ v_congruent_S1_B11_z + accuracy_z, LDDM_do2_d1))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ v_incongruent_S1_B11_z + accuracy_z, LDDM_do2_d1))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ a_S1_B11_z + accuracy_z, LDDM_do2_d1))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ t_S1_B11_z + accuracy_z, LDDM_do2_d1))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ z_S1_B11_z + accuracy_z, LDDM_do2_d1))$p.value[2]),
-                      b_acc=c(tidy(lm(FCZ_ERN_080_z ~ v_S1_B11_z + accuracy_z, LDDM_do2_d1))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ v_congruent_S1_B11_z + accuracy_z, LDDM_do2_d1))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ v_incongruent_S1_B11_z + accuracy_z, LDDM_do2_d1))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ a_S1_B11_z + accuracy_z, LDDM_do2_d1))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ t_S1_B11_z + accuracy_z, LDDM_do2_d1))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ z_S1_B11_z + accuracy_z, LDDM_do2_d1))$estimate[3]),
-                      p_acc=c(tidy(lm(FCZ_ERN_080_z ~ v_S1_B11_z + accuracy_z, LDDM_do2_d1))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ v_congruent_S1_B11_z + accuracy_z, LDDM_do2_d1))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ v_incongruent_S1_B11_z + accuracy_z, LDDM_do2_d1))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ a_S1_B11_z + accuracy_z, LDDM_do2_d1))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ t_S1_B11_z + accuracy_z, LDDM_do2_d1))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ z_S1_B11_z + accuracy_z, LDDM_do2_d1))$p.value[3]))
-write.csv(mr_ERN_table_d1_acc, here("./tables/mr_ERN_table_d1_acc.csv"))
-
-mr_P3_table_d1_acc <- data.frame(Parameters=c("v","v_congruent","v_incongruent","a","t","z"),
-                      b_ddm=c(tidy(lm(PZ_P3_onset_incon_z ~ v_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[2],
-                       tidy(lm(PZ_P3_onset_con_z ~ v_congruent_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_incongruent_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ a_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ t_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ z_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[2]),
-                      p_ddm=c(tidy(lm(PZ_P3_onset_incon_z ~ v_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[2],
-                       tidy(lm(PZ_P3_onset_con_z ~ v_congruent_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_incongruent_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ a_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ t_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ z_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[2]),
-                      b_acc=c(tidy(lm(PZ_P3_onset_incon_z ~ v_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[3],
-                       tidy(lm(PZ_P3_onset_con_z ~ v_congruent_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_incongruent_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ a_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ t_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ z_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$estimate[3]),
-                      p_acc=c(tidy(lm(PZ_P3_onset_incon_z ~ v_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[3],
-                       tidy(lm(PZ_P3_onset_con_z ~ v_congruent_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_incongruent_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ a_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ t_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ z_S1_B11_z + flanker_score_d1_z, LDDM_do2_d1))$p.value[3]))
-write.csv(mr_P3_table_d1_acc, here("./tables/mr_P3_table_d1_acc.csv"))
-```
-
-## Day 2
-```{r}
-mr_ERN_table_d2_acc <- data.frame(Parameters=c("v","v_congruent","v_incongruent","a","t","z"),
-                      b_ddm=c(tidy(lm(FCZ_ERN_080_z ~ v_S2_B11_z + accuracy_z, LDDM_do2_d2))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ v_congruent_S2_B11_z + accuracy_z, LDDM_do2_d2))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ v_incongruent_S2_B11_z + accuracy_z, LDDM_do2_d2))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ a_S2_B11_z + accuracy_z, LDDM_do2_d2))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ t_S2_B11_z + accuracy_z, LDDM_do2_d2))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ z_S2_B11_z + accuracy_z, LDDM_do2_d2))$estimate[2]),
-                      p_ddm=c(tidy(lm(FCZ_ERN_080_z ~ v_S2_B11_z + accuracy_z, LDDM_do2_d2))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ v_congruent_S2_B11_z + accuracy_z, LDDM_do2_d2))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ v_incongruent_S2_B11_z + accuracy_z, LDDM_do2_d2))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ a_S2_B11_z + accuracy_z, LDDM_do2_d2))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ t_S2_B11_z + accuracy_z, LDDM_do2_d2))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ z_S2_B11_z + accuracy_z, LDDM_do2_d2))$p.value[2]),
-                      b_acc=c(tidy(lm(FCZ_ERN_080_z ~ v_S2_B11_z + accuracy_z, LDDM_do2_d2))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ v_congruent_S2_B11_z + accuracy_z, LDDM_do2_d2))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ v_incongruent_S2_B11_z + accuracy_z, LDDM_do2_d2))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ a_S2_B11_z + accuracy_z, LDDM_do2_d2))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ t_S2_B11_z + accuracy_z, LDDM_do2_d2))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ z_S2_B11_z + accuracy_z, LDDM_do2_d2))$estimate[3]),
-                      p_acc=c(tidy(lm(FCZ_ERN_080_z ~ v_S2_B11_z + accuracy_z, LDDM_do2_d2))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ v_congruent_S2_B11_z + accuracy_z, LDDM_do2_d2))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ v_incongruent_S2_B11_z + accuracy_z, LDDM_do2_d2))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ a_S2_B11_z + accuracy_z, LDDM_do2_d2))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ t_S2_B11_z + accuracy_z, LDDM_do2_d2))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ z_S2_B11_z + accuracy_z, LDDM_do2_d2))$p.value[3]))
-write.csv(mr_ERN_table_d2_acc, here("./tables/mr_ERN_table_d2_acc.csv"))
-
-mr_P3_table_d2_acc <- data.frame(Parameters=c("v","v_congruent","v_incongruent","a","t","z"),
-                      b_ddm=c(tidy(lm(PZ_P3_onset_incon_z ~ v_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[2],
-                       tidy(lm(PZ_P3_onset_con_z ~ v_congruent_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_incongruent_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ a_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ t_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ z_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[2]),
-                      p_ddm=c(tidy(lm(PZ_P3_onset_incon_z ~ v_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[2],
-                       tidy(lm(PZ_P3_onset_con_z ~ v_congruent_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_incongruent_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ a_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ t_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ z_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[2]),
-                      b_acc=c(tidy(lm(PZ_P3_onset_incon_z ~ v_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[3],
-                       tidy(lm(PZ_P3_onset_con_z ~ v_congruent_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_incongruent_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ a_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ t_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ z_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$estimate[3]),
-                      p_acc=c(tidy(lm(PZ_P3_onset_incon_z ~ v_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[3],
-                       tidy(lm(PZ_P3_onset_con_z ~ v_congruent_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_incongruent_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ a_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ t_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ z_S2_B11_z + flanker_score_d2_z, LDDM_do2_d2))$p.value[3]))
-write.csv(mr_P3_table_d2_acc, here("./tables/mr_P3_table_d2_acc.csv"))
-```
-
-## Day 3
-```{r}
-mr_ERN_table_d3_acc <- data.frame(Parameters=c("v","v_congruent","v_incongruent","a","t","z"),
-                      b_ddm=c(tidy(lm(FCZ_ERN_080_z ~ v_S3_B11_z + accuracy_z, LDDM_do2_d3))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ v_congruent_S3_B11_z + accuracy_z, LDDM_do2_d3))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ v_incongruent_S3_B11_z + accuracy_z, LDDM_do2_d3))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ a_S3_B11_z + accuracy_z, LDDM_do2_d3))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ t_S3_B11_z + accuracy_z, LDDM_do2_d3))$estimate[2],
-                       tidy(lm(FCZ_ERN_080_z ~ z_S3_B11_z + accuracy_z, LDDM_do2_d3))$estimate[2]),
-                      p_ddm=c(tidy(lm(FCZ_ERN_080_z ~ v_S3_B11_z + accuracy_z, LDDM_do2_d3))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ v_congruent_S3_B11_z + accuracy_z, LDDM_do2_d3))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ v_incongruent_S3_B11_z + accuracy_z, LDDM_do2_d3))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ a_S3_B11_z + accuracy_z, LDDM_do2_d3))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ t_S3_B11_z + accuracy_z, LDDM_do2_d3))$p.value[2],
-                       tidy(lm(FCZ_ERN_080_z ~ z_S3_B11_z + accuracy_z, LDDM_do2_d3))$p.value[2]),
-                      b_acc=c(tidy(lm(FCZ_ERN_080_z ~ v_S3_B11_z + accuracy_z, LDDM_do2_d3))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ v_congruent_S3_B11_z + accuracy_z, LDDM_do2_d3))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ v_incongruent_S3_B11_z + accuracy_z, LDDM_do2_d3))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ a_S3_B11_z + accuracy_z, LDDM_do2_d3))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ t_S3_B11_z + accuracy_z, LDDM_do2_d3))$estimate[3],
-                       tidy(lm(FCZ_ERN_080_z ~ z_S3_B11_z + accuracy_z, LDDM_do2_d3))$estimate[3]),
-                      p_acc=c(tidy(lm(FCZ_ERN_080_z ~ v_S3_B11_z + accuracy_z, LDDM_do2_d3))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ v_congruent_S3_B11_z + accuracy_z, LDDM_do2_d3))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ v_incongruent_S3_B11_z + accuracy_z, LDDM_do2_d3))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ a_S3_B11_z + accuracy_z, LDDM_do2_d3))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ t_S3_B11_z + accuracy_z, LDDM_do2_d3))$p.value[3],
-                       tidy(lm(FCZ_ERN_080_z ~ z_S3_B11_z + accuracy_z, LDDM_do2_d3))$p.value[3]))
-write.csv(mr_ERN_table_d3_acc, here("./tables/mr_ERN_table_d3_acc.csv"))
-
-mr_P3_table_d3_acc <- data.frame(Parameters=c("v","v_congruent","v_incongruent","a","t","z"),
-                      b_ddm=c(tidy(lm(PZ_P3_onset_incon_z ~ v_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[2],
-                       tidy(lm(PZ_P3_onset_con_z ~ v_congruent_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_incongruent_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ a_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ t_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ z_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[2]),
-                      p_ddm=c(tidy(lm(PZ_P3_onset_incon_z ~ v_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[2],
-                       tidy(lm(PZ_P3_onset_con_z ~ v_congruent_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_incongruent_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ a_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ t_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[2],
-                       tidy(lm(PZ_P3_onset_incon_z ~ z_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[2]),
-                      b_acc=c(tidy(lm(PZ_P3_onset_incon_z ~ v_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[3],
-                       tidy(lm(PZ_P3_onset_con_z ~ v_congruent_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_incongruent_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ a_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ t_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ z_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$estimate[3]),
-                      p_acc=c(tidy(lm(PZ_P3_onset_incon_z ~ v_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[3],
-                       tidy(lm(PZ_P3_onset_con_z ~ v_congruent_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ v_incongruent_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ a_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ t_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[3],
-                       tidy(lm(PZ_P3_onset_incon_z ~ z_S3_B11_z + flanker_score_d3_z, LDDM_do2_d3))$p.value[3]))
-write.csv(mr_P3_table_d3_acc, here("./tables/mr_P3_table_d3_acc.csv"))
-```
-
-# 7. SOBP Stats
-```{r}
-sum(complete.cases(LDDM_do2_d1_not_outliers$v_S1_B11_z))
-sum(complete.cases(LDDM_do2_d2_not_outliers$v_S2_B11_z))
-sum(complete.cases(LDDM_do2_d3_not_outliers$v_S3_B11_z))
-
-summary(lm(FCZ_ERN_080_z ~ v_S1_B11_z + flanker_score_d1_z + accuracy_z, LDDM_do2_d1_not_outliers))
-summary(lm(FCZ_ERN_080_z ~ v_S2_B11_z + flanker_score_d2_z + accuracy_z, LDDM_do2_d2_not_outliers))
-summary(lm(FCZ_ERN_080_z ~ v_S3_B11_z + flanker_score_d3_z + accuracy_z, LDDM_do2_d3_not_outliers))
-
-summary(lm(FCZ_ERN_080_z ~ v_S1_B11_z, LDDM_do2_d1_not_outliers))
-summary(lm(FCZ_ERN_080_z ~ v_S2_B11_z, LDDM_do2_d2_not_outliers))
-summary(lm(FCZ_ERN_080_z ~ v_S3_B11_z, LDDM_do2_d3_not_outliers))
-```
-
-# 6. Closing out
+# Saving datasets
   In this step, go ahead and close out of the file and quit R without saving
   the work space.
 ```{r}
@@ -1320,11 +881,10 @@ save(LDDM_do2_d1_not_outliers, file=here("./data/LDDM_do2_d1_not_outliers.RData"
 save(LDDM_do2_d2_not_outliers, file=here("./data/LDDM_do2_d2_not_outliers.RData"))
 save(LDDM_do2_d3_not_outliers, file=here("./data/LDDM_do2_d3_not_outliers.RData"))
 
-save(LDDM_cleaning04_calc3_1to3, file=here("./data/LDDM_cleaning04_calc3_1to3.RData"))
+# save(LDDM_cleaning04_calc3_1to3, file=here("./data/LDDM_cleaning04_calc3_1to3.RData"))
 save(LDDM_do2_irr, file=here("./data/LDDM_do2_irr.RData"))
-save(LDDM_do2, file=here("./data/LDDM_do2.RData"))
+# save(LDDM_do2, file=here("./data/LDDM_do2.RData"))
 save(spearman_brown_d1, file=here("./data/spearman_brown_d1.RData"))
 save(spearman_brown_d2, file=here("./data/spearman_brown_d2.RData"))
 save(spearman_brown_d3, file=here("./data/spearman_brown_d3.RData"))
 ```
-
