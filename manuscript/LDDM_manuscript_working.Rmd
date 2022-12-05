@@ -220,6 +220,20 @@ apa_table(splithalf,
           caption = "Table 2",
           note = "",
           col_spanners=list(`Study 1`=c(2,4)))
+
+spearman_brown_d1_plot <- spearman_brown_d1 %>%
+  pivot_longer(-c(trials), names_to="Measure") %>%
+  separate(Measure, "_", into = c("Measure", "Stat")) %>%
+  pivot_wider(names_from=Stat, values_from=value) %>%
+  mutate(r=`NA`) %>%
+  select(-c(`NA`))
+
+ggplot(spearman_brown_d1_plot, aes(x=trials, y=r, fill=Measure)) +
+  geom_line(aes(color=Measure)) +
+  geom_point(aes(color=Measure)) +
+  scale_y_continuous(limits = c(-0.2, 1)) +
+  geom_ribbon(aes(ymin = cilower, ymax = ciupper), alpha = 0.2) +
+  theme_apa()
 ```
 
 
@@ -236,10 +250,11 @@ sttr_hddm_variables <- c("v_S1_B11","v_S2_B11","v_S3_B11",
                          "t_S1_B11.x","t_S2_B11.x","t_S3_B11.x",
                          "z_S1_B11.x","z_S2_B11.x","z_S3_B11.x",
                          "flanker_score_d1","flanker_score_d2","flanker_score_d3",
-                         "accuracy_d1","accuracy_d3","accuracy_d3")
+                         "accuracy_d1","accuracy_d2","accuracy_d3",
+                         "accuracy_incongruent_d1","accuracy_incongruent_d2","accuracy_incongruent_d3")
 
 sttr_icc_table <- data.frame(
-                           parameters= c("Drift rate", "Drift rate to congruent stimuli", "Drift rate to incongruent stimuli", "Decision threshold distance", "Non-decision time", "Starting bias", "NIH Toolbox score", "Accuracy"),
+                           parameters= c("Drift rate", "Drift rate to congruent stimuli", "Drift rate to incongruent stimuli", "Decision threshold distance", "Non-decision time", "Starting bias", "NIH Toolbox score", "Accuracy", "Accuracy (incongruent)"),
                                  
                            ICC=c(icc(LDDM_do2_irr[sttr_hddm_variables[1:3]])$value,
                            icc(LDDM_do2_irr[sttr_hddm_variables[4:6]])$value,
@@ -248,7 +263,8 @@ sttr_icc_table <- data.frame(
                            icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$value,
                            icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$value,
                            icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$value,
-                           icc(LDDM_do2[sttr_hddm_variables[22:24]])$value),
+                           icc(LDDM_do2[sttr_hddm_variables[22:24]])$value,
+                           icc(LDDM_do2[sttr_hddm_variables[25:27]])$value),
                            
                            CI=c(make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[1:3]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[1:3]])$ubound),
                            make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[4:6]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[4:6]])$ubound),
@@ -257,7 +273,8 @@ sttr_icc_table <- data.frame(
                            make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$ubound),
                            make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$ubound),
                            make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$ubound),
-                           make_CI(icc(LDDM_do2[sttr_hddm_variables[22:24]])$lbound,icc(LDDM_do2[sttr_hddm_variables[22:24]])$ubound)),
+                           make_CI(icc(LDDM_do2[sttr_hddm_variables[22:24]])$lbound,icc(LDDM_do2[sttr_hddm_variables[22:24]])$ubound),
+                           make_CI(icc(LDDM_do2[sttr_hddm_variables[25:27]])$lbound,icc(LDDM_do2[sttr_hddm_variables[25:27]])$ubound)),
                            
                            lower_ci=c(icc(LDDM_do2_irr[sttr_hddm_variables[1:3]])$lbound,
                            icc(LDDM_do2_irr[sttr_hddm_variables[4:6]])$lbound,
@@ -266,7 +283,8 @@ sttr_icc_table <- data.frame(
                            icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$lbound,
                            icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$lbound,
                            icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$lbound,
-                           icc(LDDM_do2[sttr_hddm_variables[22:24]])$lbound),
+                           icc(LDDM_do2[sttr_hddm_variables[22:24]])$lbound,
+                           icc(LDDM_do2[sttr_hddm_variables[25:27]])$lbound),
 
                            upper_ci=c(icc(LDDM_do2_irr[sttr_hddm_variables[1:3]])$ubound,
                            icc(LDDM_do2_irr[sttr_hddm_variables[4:6]])$ubound,
@@ -275,25 +293,33 @@ sttr_icc_table <- data.frame(
                            icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$ubound,
                            icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$ubound,
                            icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$ubound,
-                           icc(LDDM_do2[sttr_hddm_variables[22:24]])$ubound)
+                           icc(LDDM_do2[sttr_hddm_variables[22:24]])$ubound,
+                           icc(LDDM_do2[sttr_hddm_variables[25:27]])$ubound)
                            )
 sttr_icc_table$ICC <- round(sttr_icc_table$ICC, 2)
 write.csv(sttr_icc_table, here("./tables/sttr_icc_table.csv"))
 
-apa_table(sttr_icc_table,
+apa_table(sttr_icc_table[,1:3],
           col.names=c("HDDM Parameters/Other measures", "ICC", "95% CI"),
           align=c("l",rep("c",2)),
           digits=2,
           caption = "Table 3",
           note = "ICC values computed across three within-subject sessions",
 )
-
-sttr_icc_table$parameters <- factor(sttr_icc_table$parameters, levels = sttr_icc_table$parameters)
-ggplot(sttr_icc_table, aes(x=parameters, y=ICC)) +
+```
+```{r Test-retest plot, fig.width=5, fig.height=5}
+library(scales)
+library(forcats)
+sttr_icc_table$parameters <- fct_rev(factor(sttr_icc_table$parameters, levels = sttr_icc_table$parameters))
+ggplot(sttr_icc_table[c(1:4,7:8),], aes(y=parameters, x=ICC)) +
   geom_point() +
-  geom_errorbar(aes(ymin=lower_ci, ymax=upper_ci), colour="black", width=.1) +
-  theme(axis.text.x = element_text(color = "#993333", 
-                           size = 8, angle = 45))
+  geom_text(aes(label=ICC),vjust=-0.75)+
+  geom_errorbar(aes(xmin=lower_ci, xmax=upper_ci), colour="black", width=.1) +
+  scale_x_continuous(limits = c(0, 1), breaks=seq(0,1,0.1)) +
+  scale_y_discrete(labels = label_wrap(10)) +
+  labs(y="HDDM parameters/Measures", x="ICC (95% CI)") +
+  # scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
+  theme_apa()
 ```
 Across the three sessions of Study 1, drift rate and decision threshold distance both showed higher ICCs than the NIH Toolbox score, though lower than the raw accuracy (see Table 3).
 
