@@ -60,15 +60,15 @@ LDDM_cleaning02_DDM2$ID <- LDDM_cleaning02_DDM2$id
 LDDM_cleaning02_DDM3 <- read.csv(here("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/DDM_Results/Block_Based_Day3/Day3_Block11_Alternative_Models.csv"))
 LDDM_cleaning02_DDM3$ID <- LDDM_cleaning02_DDM3$id
 
-LDDM_cleaning02_frac_prak_latency <- read.csv("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/eeg_processing/erppath/frac_peak_latency_p3_200800.csv")[,1:14]
+LDDM_cleaning02_frac_prak_latency <- read.csv("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/eeg_processing/erppath/frac_peak_latency_p3_200800.csv")[,1:15]
 LDDM_cleaning02_frac_prak_latency <- LDDM_cleaning02_frac_prak_latency %>% 
   rename_with(~paste0(., "_fpl"), contains("bin"))
 
-LDDM_cleaning02_mean_amplitude_ERN_CRN_080 <- read.csv("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/eeg_processing/erppath/mean_amplitude_ERN_CRN_080.csv")[,1:14]
+LDDM_cleaning02_mean_amplitude_ERN_CRN_080 <- read.csv("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/eeg_processing/erppath/mean_amplitude_ERN_CRN_080.csv")[,1:15]
 LDDM_cleaning02_mean_amplitude_ERN_CRN_080 <- LDDM_cleaning02_mean_amplitude_ERN_CRN_080 %>% 
   rename_with(~paste0(., "_080"), contains("bin"))
 
-LDDM_cleaning02_mean_amplitude_ERN_CRN_0100 <- read.csv("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/eeg_processing/erppath/mean_amplitude_ERN_CRN_0100.csv")[,1:14]
+LDDM_cleaning02_mean_amplitude_ERN_CRN_0100 <- read.csv("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/eeg_processing/erppath/mean_amplitude_ERN_CRN_0100.csv")[,1:15]
 LDDM_cleaning02_mean_amplitude_ERN_CRN_0100 <- LDDM_cleaning02_mean_amplitude_ERN_CRN_0100 %>% 
   rename_with(~paste0(., "_0100"), contains("bin"))
 
