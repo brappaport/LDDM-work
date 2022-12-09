@@ -173,26 +173,23 @@ Executive function was estimated using a mean composite of four measures from th
 Individual-level parameters were imported into R `r cite_r("LDDM.bib")` where remaining analyses were conducted, primarily using the following packages: tidyverse , ggplot2, DescTools, lme4, lmerTest, broom, broom.mixed, psych, here, confintr, irr, MASS, knitr, and papaja.
 
 ### Outliers
+Outliers on ERN, inhibition, and executive functioning were windsorized, such that values greater than 3 standard deviations from the mean were replaced the maximum/minimum allowed value (the mean ± 3 standard deviations).
 
 ### Missing data
-
-Correlations, multiple regressions and ICCs use listwise deletion of subjects if they are missing any measure/time point
+Correlations, multiple regressions, and ICCs use listwise deletion of subjects if they are missing any measure/time point. 
 
 ### Reliability: test-retest and split-half
-
 Measure reliability was examined two ways: split-half and test-retest. First, split-half reliability was calculated by splitting the trials in half and using the Spearman Brown prediction formula (CITE) to calculate the reliability. Split-half reliability was also examined at increments of 15 trials (e.g., first 15 trials vs second 15 trials, first 30 trials vs next 30 trials, etc.) to assess the point at which this measure reaches stability. Test-retest reliability was calculated as the intraclass correlation coefficient (ICC) between all three days of day from Study 1. The ICCs between day 1 and 2, and day 2 and 3 were also calculated and are presented in the supplement.
 
 ### Correlations
-
-Raw two-sided Pearson correlation coefficients were initially examined between the ERN magnitude or neuropsychological score and each measure.
+Raw two-sided Spearman rho correlation coefficients were initially examined between the ERN magnitude or neuropsychological score and each measure.
 
 ### Multiple regressions
+Multiple regression models were used to assess the relative variance accounted for in the ERN and neuropsychological scores by DDM parameters, NIH Toolbox score, and raw accuracy when estimated simultaneously. That is, each model included as predictors: one ddm parameter, the NIH Toolbox score, and raw accuracy. In Study 1, linear multiple regression models were used; in Study 2, linear mixed effect multiple regression models were used to account for within-family random intercept between sibling pairs.
 
-Multiple regression models were used to assess the relative variance accounted for in the ERN and neuropsychological scores by DDM parameters, NIH Toolbox score, and raw accuracy when estimated simultaneously. That is, each model included as predictors: one ddm parameter, the NIH Toolbox score, and raw accuracy. In Study 2, linear mixed effect multiple regression models were used to account for within-family random intercept between sibling pairs.
+### Familiarity
 
-### Heritability
-
-Heritability was estimated at the ICC between siblings from the same family in Study 2.
+Familiarity was estimated at the ICC between siblings from the same family in Study 2.
 
 # Results
 
@@ -203,7 +200,10 @@ Heritability was estimated at the ICC between siblings from the same family in S
 ## Reliability
 
 ### Split-half
-Drift rate and decision threshold distance both demonstrated comparable split-half reliability to raw accuracy and better split-half reliability than the NIH Toolbox score across all three sessions in Study 1, as well as in Study 2 (see Table 2).
+Drift rate and decision threshold distance both demonstrated comparable split-half reliability to raw accuracy and the NIH Toolbox score across all three sessions in Study 1, as well as in Study 2 (see Table 2).
+
+Of note, examining change in split half reliability at increments of 15 trials (e.g., first 15 trials vs second 15 trials, first 30 trials vs next 30 trials, etc.) showed that drift rate began to plateau at 105 trials.
+
 ```{r Split-half}
 splithalf <- read.csv(here("./tables/splithalf.csv"))
 splithalf[6,] <- c("NIH Toolbox score", spearman_brown_d1[11,2], spearman_brown_d2[11,2], spearman_brown_d3[11,2], spearman_brown_rdoc[11,2])
@@ -231,11 +231,64 @@ spearman_brown_d1_plot <- spearman_brown_d1 %>%
 ggplot(spearman_brown_d1_plot, aes(x=trials, y=r, fill=Measure)) +
   geom_line(aes(color=Measure)) +
   geom_point(aes(color=Measure)) +
+  # geom_ribbon(aes(ymin = cilower, ymax = ciupper, fill=Measure), alpha = 0.2) +
   scale_y_continuous(limits = c(-0.2, 1)) +
-  geom_ribbon(aes(ymin = cilower, ymax = ciupper), alpha = 0.2) +
-  theme_apa()
-```
+  scale_color_discrete(name="Measure", labels=c(str_wrap("NIH Toolbox",width=5), str_wrap("Accuracy (incongruent)",width=5), str_wrap("Drift rate (congruent)", width=5), str_wrap("Drift rate (incongruent)", width=5), str_wrap("Distance between threshold", width=5))) +
+  scale_fill_discrete(guide=NULL) +
+  theme_apa() +
+  theme(legend.position="top")
 
+spearman_brown_d2_plot <- spearman_brown_d2 %>%
+  pivot_longer(-c(trials), names_to="Measure") %>%
+  separate(Measure, "_", into = c("Measure", "Stat")) %>%
+  pivot_wider(names_from=Stat, values_from=value) %>%
+  mutate(r=`NA`) %>%
+  select(-c(`NA`))
+
+ggplot(spearman_brown_d2_plot, aes(x=trials, y=r, fill=Measure)) +
+  geom_line(aes(color=Measure)) +
+  geom_point(aes(color=Measure)) +
+  geom_ribbon(aes(ymin = cilower, ymax = ciupper, fill=Measure), alpha = 0.2) +
+  scale_y_continuous(limits = c(0, 1)) +
+  scale_color_discrete(name="Measure", labels=c(str_wrap("NIH Toolbox",width=5), str_wrap("Accuracy (incongruent)",width=5), str_wrap("Drift rate (congruent)", width=5), str_wrap("Drift rate (incongruent)", width=5), str_wrap("Distance between threshold", width=5))) +
+  scale_fill_discrete(guide=NULL) +
+  theme_apa() +
+  theme(legend.position="top")
+
+spearman_brown_d3_plot <- spearman_brown_d3 %>%
+  pivot_longer(-c(trials), names_to="Measure") %>%
+  separate(Measure, "_", into = c("Measure", "Stat")) %>%
+  pivot_wider(names_from=Stat, values_from=value) %>%
+  mutate(r=`NA`) %>%
+  select(-c(`NA`))
+
+ggplot(spearman_brown_d3_plot, aes(x=trials, y=r, fill=Measure)) +
+  geom_line(aes(color=Measure)) +
+  geom_point(aes(color=Measure)) +
+  geom_ribbon(aes(ymin = cilower, ymax = ciupper, fill=Measure), alpha = 0.2) +
+  scale_y_continuous(limits = c(0, 1)) +
+  scale_color_discrete(name="Measure", labels=c(str_wrap("NIH Toolbox",width=5), str_wrap("Accuracy (incongruent)",width=5), str_wrap("Drift rate (congruent)", width=5), str_wrap("Drift rate (incongruent)", width=5), str_wrap("Distance between threshold", width=5))) +
+  scale_fill_discrete(guide=NULL) +
+  theme_apa() +
+  theme(legend.position="top")
+
+spearman_brown_rdoc_plot <- spearman_brown_rdoc %>%
+  pivot_longer(-c(trials), names_to="Measure") %>%
+  separate(Measure, "_", into = c("Measure", "Stat")) %>%
+  pivot_wider(names_from=Stat, values_from=value) %>%
+  mutate(r=`NA`) %>%
+  select(-c(`NA`))
+
+ggplot(spearman_brown_rdoc_plot, aes(x=trials, y=r)) +
+  geom_line(aes(color=Measure)) +
+  geom_point(aes(color=Measure)) +
+  geom_ribbon(aes(ymin = cilower, ymax = ciupper, fill=Measure), alpha = 0.2) +
+  scale_y_continuous(limits = c(0, 1)) +
+  scale_color_discrete(name="Measure", labels=c(str_wrap("NIH Toolbox",width=5), str_wrap("Accuracy (incongruent)",width=5), str_wrap("Drift rate (congruent)", width=5), str_wrap("Drift rate (incongruent)", width=5), str_wrap("Distance between threshold", width=5))) +
+  scale_fill_discrete(guide=NULL) +
+  theme_apa() +
+  theme(legend.position="top")
+```
 
 ### Test-retest
 ```{r Test-retest}
@@ -249,9 +302,9 @@ sttr_hddm_variables <- c("v_S1_B11","v_S2_B11","v_S3_B11",
                          "a_S1_B11.x","a_S2_B11.x","a_S3_B11.x",
                          "t_S1_B11.x","t_S2_B11.x","t_S3_B11.x",
                          "z_S1_B11.x","z_S2_B11.x","z_S3_B11.x",
-                         "flanker_score_d1","flanker_score_d2","flanker_score_d3",
-                         "accuracy_d1","accuracy_d2","accuracy_d3",
-                         "accuracy_incongruent_d1","accuracy_incongruent_d2","accuracy_incongruent_d3")
+                         "flanker_score_d1_z","flanker_score_d2_z","flanker_score_d3_z",
+                         "accuracy_d1_z","accuracy_d2_z","accuracy_d3_z",
+                         "accuracy_incongruent_d1_z","accuracy_incongruent_d2_z","accuracy_incongruent_d3_z")
 
 sttr_icc_table <- data.frame(
                            parameters= c("Drift rate", "Drift rate to congruent stimuli", "Drift rate to incongruent stimuli", "Decision threshold distance", "Non-decision time", "Starting bias", "NIH Toolbox score", "Accuracy", "Accuracy (incongruent)"),
@@ -263,8 +316,8 @@ sttr_icc_table <- data.frame(
                            icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$value,
                            icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$value,
                            icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$value,
-                           icc(LDDM_do2[sttr_hddm_variables[22:24]])$value,
-                           icc(LDDM_do2[sttr_hddm_variables[25:27]])$value),
+                           icc(LDDM_do2_irr[sttr_hddm_variables[22:24]])$value,
+                           icc(LDDM_do2_irr[sttr_hddm_variables[25:27]])$value),
                            
                            CI=c(make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[1:3]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[1:3]])$ubound),
                            make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[4:6]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[4:6]])$ubound),
@@ -273,8 +326,8 @@ sttr_icc_table <- data.frame(
                            make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$ubound),
                            make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$ubound),
                            make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$ubound),
-                           make_CI(icc(LDDM_do2[sttr_hddm_variables[22:24]])$lbound,icc(LDDM_do2[sttr_hddm_variables[22:24]])$ubound),
-                           make_CI(icc(LDDM_do2[sttr_hddm_variables[25:27]])$lbound,icc(LDDM_do2[sttr_hddm_variables[25:27]])$ubound)),
+                           make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[22:24]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[22:24]])$ubound),
+                           make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[25:27]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[25:27]])$ubound)),
                            
                            lower_ci=c(icc(LDDM_do2_irr[sttr_hddm_variables[1:3]])$lbound,
                            icc(LDDM_do2_irr[sttr_hddm_variables[4:6]])$lbound,
@@ -283,8 +336,8 @@ sttr_icc_table <- data.frame(
                            icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$lbound,
                            icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$lbound,
                            icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$lbound,
-                           icc(LDDM_do2[sttr_hddm_variables[22:24]])$lbound,
-                           icc(LDDM_do2[sttr_hddm_variables[25:27]])$lbound),
+                           icc(LDDM_do2_irr[sttr_hddm_variables[22:24]])$lbound,
+                           icc(LDDM_do2_irr[sttr_hddm_variables[25:27]])$lbound),
 
                            upper_ci=c(icc(LDDM_do2_irr[sttr_hddm_variables[1:3]])$ubound,
                            icc(LDDM_do2_irr[sttr_hddm_variables[4:6]])$ubound,
@@ -293,9 +346,10 @@ sttr_icc_table <- data.frame(
                            icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$ubound,
                            icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$ubound,
                            icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$ubound,
-                           icc(LDDM_do2[sttr_hddm_variables[22:24]])$ubound,
-                           icc(LDDM_do2[sttr_hddm_variables[25:27]])$ubound)
+                           icc(LDDM_do2_irr[sttr_hddm_variables[22:24]])$ubound,
+                           icc(LDDM_do2_irr[sttr_hddm_variables[25:27]])$ubound)
                            )
+
 sttr_icc_table$ICC <- round(sttr_icc_table$ICC, 2)
 write.csv(sttr_icc_table, here("./tables/sttr_icc_table.csv"))
 
@@ -321,7 +375,7 @@ ggplot(sttr_icc_table[c(1:4,7:8),], aes(y=parameters, x=ICC)) +
   # scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
   theme_apa()
 ```
-Across the three sessions of Study 1, drift rate and decision threshold distance both showed higher ICCs than the NIH Toolbox score, though lower than the raw accuracy (see Table 3).
+Across the three sessions of Study 1, drift rate and decision threshold distance both showed comparable ICCs to the NIH Toolbox score, though lower than the raw accuracy (see Table 3).
 
 ## Convergent validity
 ### Brain-based measures
@@ -333,30 +387,28 @@ cor_ERN_table <- read.csv(file=here("./tables/sttr_correlations.csv"), na.string
 cor_ERN_table_rdoc <- read.csv(file=here("./tables/rdoc_correlations.csv"), na.strings=c(""))
 
 cor_ERN_table_new <- cor_ERN_table %>%
-  mutate("Parameters/Measures" = rep(c("ERN","NIH Toolbox","Raw accuracy",
+  mutate("Parameters/Measures" = rep(c("ERN","NIH Toolbox","Raw accuracy","Accuracy (incongruent)", "Log accuracy (congruent)",
                   "Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Threshold","Non-decision time","Starting bias"),3)) %>%
   select("Parameters/Measures", everything()) %>%
   select(-X)
 
-`Session 1` <- c("ERN","NIH Toolbox","Raw accuracy",
+`Session 1` <- c("ERN","NIH Toolbox","Raw accuracy","Accuracy (incongruent)", "Log accuracy (congruent)",
                   "Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Threshold","Non-decision time","Starting bias")
-`Session 2` <- c("ERN","NIH Toolbox","Raw accuracy",
-                  "Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Threshold","Non-decision time","Starting bias")
-`Session 3` <- c("ERN","NIH Toolbox","Raw accuracy",
-                  "Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Threshold","Non-decision time","Starting bias")
+`Session 2` <- `Session 1`
+`Session 3` <- `Session 1`
 table_list <- list(`Session 1`, `Session 2`, `Session 3`)
 
 apa_table(cor_ERN_table_new,
           # added_stub_head=c("Session 1", "Session 2", "Session 3"),
           stub_indents=table_list,
           row.names=FALSE,
-          col.names=c("Parameters/Measures", rep(c("ERN","NIH Toolbox","Raw accuracy",
+          col.names=c("Parameters/Measures", rep(c("ERN","NIH Toolbox","Raw accuracy","Accuracy (incongruent)", "Log accuracy (congruent)",
                   "Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Threshold","Non-decision time","Starting bias"),3)),
           align=c("l",rep("c",27)),
           digits=2,
           caption = "Table 4",
           note = "Correlations among Study 1 variables",
-          format="html"
+          format="latex"
 )
 ```
 
@@ -374,16 +426,26 @@ mr_table_names <- c("X","parameters", "ddm_est", "ddm_lci", "ddm_uci",
 mr_ERN_table_d1_raw <- read.csv(file=here("./tables/mr_ERN_table_d1_raw.csv"))
 colnames(mr_ERN_table_d1_raw) <- mr_table_names
 mr_ERN_table_d1_raw_new <- mr_ERN_table_d1_raw %>%
-  select(-X) %>%
   pivot_longer(cols=ddm_est:acc_uci, names_to=c("measure","stat"), names_sep="_") %>%
   pivot_wider(names_from=stat, values_from=value)
 
-ggplot(mr_ERN_table_d1_raw_new, aes(x=parameters, y=est, fill=measure)) +
-  geom_bar(position=position_dodge(width = 1), stat = "identity") +
-  geom_errorbar(aes(ymin=lci, ymax=uci), colour="black", width=.1, position=position_dodge(width = 1), stat="identity") +
-  theme(axis.text.x = element_text(color = "#993333", 
-                           size = 8, angle = 45))+
-  ggtitle("Study 1: Session 1")
+mr_ERN_table_d1_raw_new <- mr_ERN_table_d1_raw_new %>%
+  mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy", NA)))) %>%
+  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy", "Drift rate","Threshold")))
+
+ern_d1 <- ggplot(mr_ERN_table_d1_raw_new[c(1:3, 10:12),], aes(x=est, label=parameters, y=measure_new, color=measure)) +
+  geom_point(position=position_dodge(width = 1), stat = "identity") +
+  geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
+  geom_vline(xintercept = 0) +
+  labs(y="HDDM model parameter", x="beta [95% CI]") +
+  # scale_y_discrete(name="Measure", labels=c("Accuracy", "NIH Toolbox")) +
+  facet_grid(parameters~., scales = "free", space = "fixed") + #facet by group
+  theme_apa() +
+  theme(strip.background = element_blank(), #remove background for facet labels
+        strip.text.y = element_blank(),
+        panel.border = element_rect(colour = "black", fill = NA), #add black border
+        panel.spacing = unit(0, "lines"), #remove space between facets)
+        legend.position = "none") #hide legend
 
 # Day 2
 mr_ERN_table_d2_raw <- read.csv(file=here("./tables/mr_ERN_table_d2_raw.csv"))
@@ -393,12 +455,23 @@ mr_ERN_table_d2_raw_new <- mr_ERN_table_d2_raw %>%
   pivot_longer(cols=ddm_est:acc_uci, names_to=c("measure","stat"), names_sep="_") %>%
   pivot_wider(names_from=stat, values_from=value)
 
-ggplot(mr_ERN_table_d2_raw_new, aes(x=parameters, y=est, fill=measure)) +
-  geom_bar(position=position_dodge(width = 1), stat = "identity") +
-  geom_errorbar(aes(ymin=lci, ymax=uci), colour="black", width=.1, position=position_dodge(width = 1), stat="identity") +
-  theme(axis.text.x = element_text(color = "#993333", 
-                           size = 8, angle = 45))+
-  ggtitle("Study 1: Session 2")
+mr_ERN_table_d2_raw_new <- mr_ERN_table_d2_raw_new %>%
+  mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy", NA)))) %>%
+  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy", "Drift rate","Threshold")))
+
+ern_d2 <- ggplot(mr_ERN_table_d2_raw_new[c(1:3, 10:12),], aes(x=est, label=parameters, y=measure_new, color=measure)) +
+  geom_point(position=position_dodge(width = 1), stat = "identity") +
+  geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
+  geom_vline(xintercept = 0) +
+  labs(y="HDDM model parameter", x="beta [95% CI]") +
+  # scale_y_discrete(name="Measure", labels=c("Accuracy", "NIH Toolbox")) +
+  facet_grid(parameters~., scales = "free", space = "fixed") + #facet by group
+  theme_apa() +
+  theme(strip.background = element_blank(), #remove background for facet labels
+        strip.text.y = element_blank(),
+        panel.border = element_rect(colour = "black", fill = NA), #add black border
+        panel.spacing = unit(0, "lines"), #remove space between facets)
+        legend.position = "none") #hide legend
 
 # Day 3
 mr_ERN_table_d3_raw <- read.csv(file=here("./tables/mr_ERN_table_d3_raw.csv"))
@@ -408,12 +481,23 @@ mr_ERN_table_d3_raw_new <- mr_ERN_table_d3_raw %>%
   pivot_longer(cols=ddm_est:acc_uci, names_to=c("measure","stat"), names_sep="_") %>%
   pivot_wider(names_from=stat, values_from=value)
 
-ggplot(mr_ERN_table_d3_raw_new, aes(x=parameters, y=est, fill=measure)) +
-  geom_bar(position=position_dodge(width = 1), stat = "identity") +
-  geom_errorbar(aes(ymin=lci, ymax=uci), colour="black", width=.1, position=position_dodge(width = 1), stat="identity") +
-  theme(axis.text.x = element_text(color = "#993333", 
-                           size = 8, angle = 45))+
-  ggtitle("Study 1: Session 3")
+mr_ERN_table_d3_raw_new <- mr_ERN_table_d3_raw_new %>%
+  mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy", NA)))) %>%
+  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy", "Drift rate","Threshold")))
+
+ern_d3 <- ggplot(mr_ERN_table_d3_raw_new[c(1:3, 10:12),], aes(x=est, label=parameters, y=measure_new, color=measure)) +
+  geom_point(position=position_dodge(width = 1), stat = "identity") +
+  geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
+  geom_vline(xintercept = 0) +
+  labs(y="HDDM model parameter", x="beta [95% CI]") +
+  # scale_y_discrete(name="Measure", labels=c("Accuracy", "NIH Toolbox")) +
+  facet_grid(parameters~., scales = "free", space = "fixed") + #facet by group
+  theme_apa() +
+  theme(strip.background = element_blank(), #remove background for facet labels
+        strip.text.y = element_blank(),
+        panel.border = element_rect(colour = "black", fill = NA), #add black border
+        panel.spacing = unit(0, "lines"), #remove space between facets)
+        legend.position = "none") #hide legend
 
 # RDoC
 mr_ERN_table_rdoc_raw <- read.csv(file=here("./tables/mr_ERN_table_rdoc_raw.csv"))
@@ -423,13 +507,45 @@ mr_ERN_table_rdoc_raw_new <- mr_ERN_table_rdoc_raw %>%
   pivot_longer(cols=ddm_est:acc_uci, names_to=c("measure","stat"), names_sep="_") %>%
   pivot_wider(names_from=stat, values_from=value)
 
-ggplot(mr_ERN_table_rdoc_raw_new, aes(x=parameters, y=est, fill=measure)) +
-  geom_bar(position=position_dodge(width = 1), stat = "identity") +
-  geom_errorbar(aes(ymin=lci, ymax=uci), colour="black", width=.1, position=position_dodge(width = 1), stat="identity") +
-  theme(axis.text.x = element_text(color = "#993333", 
-                           size = 8, angle = 45))+
-  ggtitle("Study 2")
+fit_rdoc <- lmer(FCz_ERN_080 ~ B11_avtz_DO_v_v + flanker_score_rdoc_z + accuracy_incongruent_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers)
+ggplot(LDDM_do3_rdoc_no_outliers, aes(x = B11_avtz_DO_v_v, y = FCz_ERN_080)) +
+  labs(x="ERN mean ampitude (µV)",y="Drift rate")+
+  geom_point(shape = 16, size=1.8) +
+  geom_abline(aes(intercept=`(Intercept)`, slope=B11_avtz_DO_v_v), as.data.frame(t(fixef(fit_rdoc)))) +
+  theme_apa()
+
+mr_ERN_table_rdoc_raw_new <- mr_ERN_table_rdoc_raw_new %>%
+  mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy", NA)))) %>%
+  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy", "Drift rate","Threshold")))
+
+ern_rdoc <- ggplot(mr_ERN_table_rdoc_raw_new[c(1:3, 10:12),], aes(x=est, label=parameters, y=measure_new, color=measure)) +
+  geom_point(position=position_dodge(width = 1), stat = "identity") +
+  geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
+  geom_vline(xintercept = 0) +
+  labs(y="HDDM model parameter", x="beta [95% CI]") +
+  # scale_y_discrete(name="Measure", labels=c("Accuracy", "NIH Toolbox")) +
+  facet_grid(parameters~., scales = "free", space = "fixed") + #facet by group
+  theme_apa() +
+  theme(strip.background = element_blank(), #remove background for facet labels
+        strip.text.y = element_blank(),
+        panel.border = element_rect(colour = "black", fill = NA), #add black border
+        panel.spacing = unit(0, "lines"), #remove space between facets)
+        legend.position = "none") #hide legend
 ```
+```{r, fig.width=7.5 fig.height=6}
+library(ggpubr)
+ern <- ggarrange(ern_d1 + rremove("xylab"), 
+          ern_d2 + rremove("xylab") + rremove("y.text") + rremove("y.ticks"),
+          ern_d3 + rremove("xylab") + rremove("y.text") + rremove("y.ticks"),
+          ern_rdoc + rremove("xylab") + rremove("y.text") + rremove("y.ticks"),
+          ncol=4, nrow=1,
+          widths = c(1.51, 1, 1, 1))
+
+annotate_figure(ern_sttr, left = grid::textGrob("HDDM model parameter", rot = 90, vjust = 1, gp = grid::gpar(cex = 1.3)),
+                bottom = grid::textGrob("beta [95% CI]", gp = grid::gpar(cex = 1.3)),
+                fig.lab.size=12)
+```
+
 
 
 ### Neuropsychological measures
@@ -444,12 +560,30 @@ mr_Inhib_table_rdoc_cov_raw_new <- mr_Inhib_table_rdoc_cov_raw %>%
   pivot_longer(cols=ddm_est:acc_uci, names_to=c("measure","stat"), names_sep="_") %>%
   pivot_wider(names_from=stat, values_from=value)
 
-ggplot(mr_Inhib_table_rdoc_cov_raw_new, aes(x=parameters, y=est, fill=measure)) +
-  geom_bar(position=position_dodge(width = 1), stat = "identity") +
-  geom_errorbar(aes(ymin=lci, ymax=uci), colour="black", width=.1, position=position_dodge(width = 1), stat="identity") +
-  theme(axis.text.x = element_text(color = "#993333", 
-                           size = 8, angle = 45))+
-  ggtitle("Inhibition")
+mr_Inhib_table_rdoc_cov_raw_new <- mr_Inhib_table_rdoc_cov_raw_new %>%
+  mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy", NA)))) %>%
+  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy", "Drift rate","Threshold")))
+
+inh <- ggplot(mr_Inhib_table_rdoc_cov_raw_new[c(1:3, 10:12),], aes(x=est, label=parameters, y=measure_new, color=measure)) +
+  geom_point(position=position_dodge(width = 1), stat = "identity") +
+  geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
+  geom_vline(xintercept = 0) +
+  labs(y="HDDM model parameter", x="beta [95% CI]") +
+  # scale_y_discrete(name="Measure", labels=c("Accuracy", "NIH Toolbox")) +
+  facet_grid(parameters~., scales = "free", space = "fixed") + #facet by group
+  theme_apa() +
+  theme(strip.background = element_blank(), #remove background for facet labels
+        strip.text.y = element_blank(),
+        panel.border = element_rect(colour = "black", fill = NA), #add black border
+        panel.spacing = unit(0, "lines"), #remove space between facets)
+        legend.position = "none") #hide legend
+
+# ggplot(mr_Inhib_table_rdoc_cov_raw_new, aes(x=parameters, y=est, fill=measure)) +
+#   geom_bar(position=position_dodge(width = 1), stat = "identity") +
+#   geom_errorbar(aes(ymin=lci, ymax=uci), colour="black", width=.1, position=position_dodge(width = 1), stat="identity") +
+#   theme(axis.text.x = element_text(color = "#993333", 
+#                            size = 8, angle = 45))+
+#   ggtitle("Inhibition")
 
 mr_Exec_table_rdoc_nocov <- read.csv(file=here("./tables/mr_Exec_table_rdoc_nocov.csv"))
 mr_Exec_table_rdoc_cov <- read.csv(file=here("./tables/mr_Exec_table_rdoc_cov.csv"))
@@ -461,17 +595,46 @@ mr_Exec_table_rdoc_cov_raw_new <- mr_Exec_table_rdoc_cov_raw %>%
   pivot_longer(cols=ddm_est:acc_uci, names_to=c("measure","stat"), names_sep="_") %>%
   pivot_wider(names_from=stat, values_from=value)
 
-ggplot(mr_Exec_table_rdoc_cov_raw_new, aes(x=parameters, y=est, fill=measure)) +
-  geom_bar(position=position_dodge(width = 1), stat = "identity") +
-  geom_errorbar(aes(ymin=lci, ymax=uci), colour="black", width=.1, position=position_dodge(width = 1), stat="identity") +
-  theme(axis.text.x = element_text(color = "#993333", 
-                           size = 8, angle = 45))+
-  ggtitle("Executive functioning")
+# ggplot(mr_Exec_table_rdoc_cov_raw_new, aes(x=parameters, y=est, fill=measure)) +
+#   geom_bar(position=position_dodge(width = 1), stat = "identity") +
+#   geom_errorbar(aes(ymin=lci, ymax=uci), colour="black", width=.1, position=position_dodge(width = 1), stat="identity") +
+#   theme(axis.text.x = element_text(color = "#993333", 
+#                            size = 8, angle = 45))+
+#   ggtitle("Executive functioning")
+
+
+mr_Exec_table_rdoc_cov_raw_new <- mr_Exec_table_rdoc_cov_raw_new %>%
+  mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy", NA)))) %>%
+  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy", "Drift rate","Threshold")))
+
+ef <- ggplot(mr_Exec_table_rdoc_cov_raw_new[c(1:3, 10:12),], aes(x=est, label=parameters, y=measure_new, color=measure)) +
+  geom_point(position=position_dodge(width = 1), stat = "identity") +
+  geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
+  geom_vline(xintercept = 0) +
+  labs(y="HDDM model parameter", x="beta [95% CI]") +
+  # scale_y_discrete(name="Measure", labels=c("Accuracy", "NIH Toolbox")) +
+  facet_grid(parameters~., scales = "free", space = "fixed") + #facet by group
+  theme_apa() +
+  theme(strip.background = element_blank(), #remove background for facet labels
+        strip.text.y = element_blank(),
+        panel.border = element_rect(colour = "black", fill = NA), #add black border
+        panel.spacing = unit(0, "lines"), #remove space between facets)
+        legend.position = "none") #hide legend
+```
+```{r, fig.width=7.5 fig.height=6}
+val_rdoc <- ggarrange(inh + rremove("xylab") + rremove("y.text") + rremove("y.ticks"),
+          ef + rremove("xylab") + rremove("y.text") + rremove("y.ticks"),
+          ncol=2, nrow=1,
+          widths = c(1.55, 1))
+
+annotate_figure(val_rdoc, left = grid::textGrob("HDDM model parameter", rot = 90, vjust = 1, gp = grid::gpar(cex = 1.3)),
+                bottom = grid::textGrob("beta [95% CI]", gp = grid::gpar(cex = 1.3)),
+                fig.lab.size=12)
 ```
 
-### Heritability
-```{r Heritability}
-rdoc_heritability_table <- read.csv(here("./tables/rdoc_heritability_table.csv"))
+### Familiarity
+```{r Familiarity}
+rdoc_familiarity_table <- read.csv(here("./tables/rdoc_heritability_table.csv"))
 ```
 
 
