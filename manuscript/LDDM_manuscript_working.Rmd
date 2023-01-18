@@ -13,13 +13,17 @@ author:
       - "Methodology"
       - "Writing - Original Draft Preparation"
       - "Writing - Review & Editing"
-  - name          : "Allison Letkiewicz"
+  - name          : "Allison M. Letkiewicz"
     affiliation   : "1"
     role:
       - "Conceptualization"
       - "Formal Analysis"
       - "Methodology"
       - "Writing - Original Draft Preparation"
+      - "Writing - Review & Editing"
+    - name          : "Savannah Buchanan"
+    affiliation   : "1"
+    role:
       - "Writing - Review & Editing"
   - name          : "Anna Weinberg"
     affiliation   : "2"
@@ -28,12 +32,8 @@ author:
       - "Investigation"
       - "Project Administration"
       - "Writing - Review & Editing"
-  - name          : "Savannah Buchanan"
-    affiliation   : "1"
-    role:
-      - "Writing - Original Draft Preparation"
-      - "Writing - Review & Editing"
-  - name          : "Stewart Shankman"
+
+  - name          : "Stewart A. Shankman"
     affiliation   : "1"
     role:
       - "Conceptualization"
@@ -49,9 +49,11 @@ affiliation:
     institution   : "Department of Psychiatry, Feinberg School of Medicine, Northwestern University"
   - id            : "2"
     institution   : "Department of Psychology, McGill University"
+    
 abstract: |
   
-  Despite advantages of computational models to study cognitive functions that underlie psychiatric disorders, little research has compared the psychometric properties of these models to simpler behavioral measures. We examined the reliability and validity of three behavioral measures of a cognitive control task: the Eriksen flanker, specifically 1) raw accuracy, 2) a NIH Toolbox derived score that incorporates reaction time and accuracy, and 3) parameters of a hierarchical drift diffusion model (HDDM). Participants from two independent studies—one cross-sectional sample (N=392) and one longitudinal sample with three time points (N=79, 70, 68, respectively)—completed the Flanker task while electroencephalography data was collected. Behavioral data were processed using with HDDM yielding five parameters: drift rate to congruent/incongruent stimuli, separation between decision boundaries, non-decision time, and starting bias. In the two studies, drift rate, particularly for congruent stimuli, demonstrated better split-half and test-retest reliability than the NIH Toolbox score. Drift rate also demonstrated better convergent validity with brain measures (i.e., the error-related negativity event-related potential component) and neuropsychological measures of inhibition and executive function. Results showed that faster accumulation of evidence (drift rate) was related to 1) larger ERN amplitudes and 2) faster and more accurate inhibition and shifting over and above the NIH Toolbox and raw accuracy scores and covariates (IQ, motor speed). Given enough trials, these models can be fit to extant data. Thus, findings suggest that these models may be powerful tools in identifying aberrations in cognitive functioning associated with psychiatric disorders.
+  Despite wide use of the Eriksen flanker task to probe individual differences in cognitive control, little research has assessed the psychometric properties of measures of behavioral performance on this task. In the task, participants judge the direction of a central target (< or > arrow) amidst flanking distractor stimuli (other arrows), which are either pointing in the same direction (<<<<<) or opposite direction (>><>>) leading to congruent and incongruent conditions. We examined the reliability and validity of three behavioral measures of the Eriksen flanker, specifically 1) raw accuracy, 2) a NIH Toolbox derived score that incorporates reaction time and accuracy, and 3) parameters of a hierarchical drift diffusion model (HDDM). Participants from two independent studies—one cross-sectional sample (N=392) and one longitudinal sample with three time points (N=79, 70, 68, respectively)—completed the Flanker task while electroencephalography data was collected. Results of HDDM modeling focused on two computationally derived parameters: drift rate to congruent/incongruent stimuli (which reflects efficiency to accumulate evidence to make decisions) and separation between decision boundaries (which reflects speed-accuracy tradeoff). In the two studies, drift rate, particularly for congruent stimuli, demonstrated better split-half and test-retest reliability than the NIH Toolbox score. Drift rate also demonstrated better convergent validity with brain measures (i.e., the error-related negativity event-related potential component) and neuropsychological measures of inhibition and executive function. Results showed that faster accumulation of evidence (drift rate) was related to 1) larger ERN amplitudes and 2) faster and more accurate inhibition and shifting over and above the NIH Toolbox and raw accuracy scores and covariates (IQ, motor speed). These models can be fit to many extant datasets; thus, findings suggest that these models may be powerful tools in identifying aberrations in cognitive functioning associated with psychiatric disorders.
+  
 keywords          : "psychometric, computational modeling, EEG, cognitive control, executive function"
 wordcount         : "X"
 bibliography      : "LDDM.bib"
@@ -131,7 +133,7 @@ make_CI <- function(lower, upper) {
 group.colors <- c(`Drift rate` = "salmon", `Drift rate (congruent)` = "darkviolet", `Drift rate (incongruent)` ="blue", `Boundary separation` = "green", `NIH Toolbox` = "orange", `Accuracy (incongruent)` = "red")
 ```
 
-Executive functioning, and cognitive control in particular, is a richly studied area of cognitive psychology and neuroscience. Broadly, executive functioning includes several related cognitive processes that contribute to effortfully guide behavior toward goals [@banichExecutiveFunctionSearch2009]. One such process is cognitive control. Understanding cognitive control, that is how humans are able to *"marshal...functions including working, semantic, and episodic memory; perceptual attention; and action selection and inhibition"* [@botvinickMotivationCognitiveControl2015], is key to understanding human behavior. Alterations in cognitive control have far reaching consequences, for instance impacting healthy aging [@braverTheoryCognitiveControl2002] and mental health [@mcteagueTransdiagnosticImpairmentCognitive2016; @smucnyCrossdiagnosticAnalysisCognitive2019]. Studies often rely on a few notable tasks (e.g., Stroop, Go/No-go, and Eriksen Flanker) to explore how cognitive control arises and what it can tell us about human cognition and behavior.
+Executive functioning, and cognitive control in particular, is a richly studied area of cognitive psychology and neuroscience [@banichExecutiveFunctionSearch2009]. Cognitive control reflects the ability to coordinate and use psychological functions such as memory, attention, and action selection and inhibition [@botvinickMotivationCognitiveControl2015]. Thus, it is key to understanding human behavior. Alterations in cognitive control have far reaching consequences, for instance impacting healthy aging [@braverTheoryCognitiveControl2002] and mental health [@mcteagueTransdiagnosticImpairmentCognitive2016; @smucnyCrossdiagnosticAnalysisCognitive2019].
 
 One commonly used task to assess cognitive control is the Eriksen flanker task [@eriksenEffectsNoiseLetters1974]. This task involves asking participants to identify the central symbol in a string of symbols which are either congruent (i.e., the same) or incongruent (i.e., different) with the central symbol (for further history and details see @ridderinkhofArrowTimeAdvancing2021). The task has been implemented with a variety of symbols, though arrows have been most widely used (e.g., congruent:  < < < < < ; incongruent: < < > < < ). Participants are often instructed to balance responding correctly with responding quickly. This leads to errors  in incongruent trials and response slowing due to response competition. Participants’ ability therefore to respond both quickly and correctly is thought to quantify meaningful information about their cognitive control abilities, lending itself to individual differences research. Its robustness along with its simplicity make it an ideal tool for researchers to adapt to answer specific research questions.
 
@@ -149,7 +151,7 @@ As a behavioral validator, we used neuropsychological measures of cognitive cont
 
 Finally, responses to the recent replication crisis in psychology have emphasized the importance of replicating results in independent samples [@opensciencecollaborationOpenLargeScaleCollaborative2012; @opensciencecollaborationEstimatingReproducibilityPsychological2015]. Moreover, there have also been concerns about the test-retest reliability of tasks with strong condition-level effects [@hedgeReliabilityParadoxWhy2018]. Thus, a final goal was to replicate the findings in an independent sample. The use of a large cross-sectional study and a longitudinal study meant that we could test within- and between-person replication, an unique strength of the current study.
 
-Thus in sum, we sought to examine the relative reliability and validity of four measures of behavioral performance on a well-studied behavioral task of cognitive control: the Eriksen flanker task [@eriksenEffectsNoiseLetters1974]. To do so, we compared the psychometric properties of two HDDM parameters, raw accuracy, and a NIH Toolbox derived score across two independent adult samples. One is longitudinal with three time points, allowing us to test-retest reliability. The other is a large cross-sectional study that also included neuropsychological measures and sibling pairs, allowing us to test convergent validity and familiality. Importantly, both studies assess split-half reliability and convergent validity with brain measures (i.e., the ERN).
+Thus in sum, we sought to examine the relative reliability and validity of four measures of behavioral performance on a well-studied behavioral task of cognitive control: the Eriksen flanker task [@eriksenEffectsNoiseLetters1974]. To do so, we compared the psychometric properties of two HDDM parameters, raw accuracy, and a NIH Toolbox derived score across two independent adult samples. One is a large cross-sectional study that also included neuropsychological measures and sibling pairs, allowing us to test convergent validity and familiality. The other is a longitudinal with three time points, allowing us to test-retest reliability and within-subjects replication of validity. Importantly, both studies assess split-half reliability and convergent validity with brain measures (i.e., the ERN).
 
 # Methods
 
@@ -157,31 +159,31 @@ Thus in sum, we sought to examine the relative reliability and validity of four 
 
 ### Study 1
 
-For Study 1, individuals were recruited from flyers posted around a university campus and screened over the phone to determine eligibility. Inclusion criteria were being 18--60-years-old and right-handed. Exclusion criteria were a history of major medical or neurological problems, or head trauma with loss of consciousness for greater than 15 minutes. Left-handed or ambidextrous individuals were also excluded. Participants were scheduled for 5 laboratory visits, ensuring that consecutive visits occurred 2--14 days apart (median=7).  A total of 86 participants provided informed consent and completed the study, with a majority completing all five sessions (n = 74, 86%) and six participants completing only one session (7%). Within-subject sessions were excluded from analyses for poor accuracy on the flanker task (i.e., < 50%) or poor EEG data quality (i.e., fewer than 10 artifact-free trials per condition) or missing data. One participant was excluded across all sessions due to below 50% accuracy on the flanker task. See Table 1 for full demographic information on the final sample.
+For Study 1, individuals were recruited from mental health clinics and the local community. Inclusion criteria were being 18--30-years-old, having a biological sibling within the same age range able to participate, and being right-handed. Exclusion criteria were being left-handed, being unable to read or write in English, having a history of a head trauma with loss of consciousness, or having a first-degree family member with a history of manic, hypomanic, or psychotic symptoms [for full method details, see @gorkaIntoleranceUncertaintyInsula2016; @weinbergBluntedNeuralResponse2015]. Participants were oversampled for severe internalizing psychopathology using the Depression, Anxiety, and Stress Scale [DASS; @lovibondStructureNegativeEmotional1995] during initial screening.
 
 ### Study 2
 
-For Study 2, individuals were recruited from mental health clinics and the local community. Inclusion criteria were being 18--30-years-old, having a biological sibling within the same age range able to participate, and being right-handed. Exclusion criteria were being left-handed, being unable to read or write in English, having a history of a head trauma with loss of consciousness, or having a first-degree family member with a history of manic, hypomanic, or psychotic symptoms [for full method details, see @gorkaIntoleranceUncertaintyInsula2016; @weinbergBluntedNeuralResponse2015]. Participants were oversampled for severe internalizing psychopathology using the Depression, Anxiety, and Stress Scale [DASS; @lovibondStructureNegativeEmotional1995] during initial screening.
+For Study 2, individuals were recruited from flyers posted around a university campus and screened over the phone to determine eligibility. Inclusion criteria were being 18--60-years-old and right-handed. Exclusion criteria were a history of major medical or neurological problems, or head trauma with loss of consciousness for greater than 15 minutes. Left-handed or ambidextrous individuals were also excluded. Participants were scheduled for 5 laboratory visits, ensuring that consecutive visits occurred 2--14 days apart (median=7).  A total of 86 participants provided informed consent and completed the study, with a majority completing all five sessions (n = 74, 86%) and six participants completing only one session (7%). Within-subject sessions were excluded from analyses for poor accuracy on the flanker task (i.e., < 50%) or poor EEG data quality (i.e., fewer than 10 artifact-free trials per condition) or missing data. One participant was excluded across all sessions due to below 50% accuracy on the flanker task. See Table 1 for full demographic information on the final sample.
 
 ## Procedure
 
 ### Flanker task
 
-Across Study 1 and 2, an arrowhead version of the flanker task was administered using Presentation software (Neurobehavioral Systems, Berkeley, CA). On each trial, participants were presented with a row of five arrowheads for 200 ms and were asked to indicate the direction of the central arrowhead with the left or right mouse button as quickly and accurately as possible. Half of the trials were congruent, and half were incongruent with trial order randomized. Participants completed 11 blocks of 30 trials (330 trials total), with short breaks and performance-based feedback given in between blocks. At the end of each block, participants received one of three types of performance feedback: if accuracy was 75% or lower, the message “Please try to be more accurate” was displayed; if accuracy was above 90%, the message “Please try to respond faster” was displayed; if accuracy was between 75% and 90%, the message “You’re doing a great job” was displayed.
+Across Studies 1 and 2, an arrowhead version of the flanker task was administered using Presentation software (Neurobehavioral Systems, Berkeley, CA). On each trial, participants were presented with a row of five arrowheads for 200 ms and were asked to indicate the direction of the central arrowhead with the left or right mouse button as quickly and accurately as possible. Half of the trials were congruent, and half were incongruent with trial order randomized. Participants completed 11 blocks of 30 trials (330 trials total), with short breaks and performance-based feedback given in between blocks. At the end of each block, participants received one of three types of performance feedback: if accuracy was 75% or lower, the message “Please try to be more accurate” was displayed; if accuracy was above 90%, the message “Please try to respond faster” was displayed; if accuracy was between 75% and 90%, the message “You’re doing a great job” was displayed.
 
 ### EEG Data Collection
 
 #### Study 1
-Continuous EEG was recorded with a Neuroscan Synamp2 system (Compumedics, Charlotte, NC, USA) using six midline electrodes (Fz, FCz, Cz, CPz, Pz, & Poz). The electrooculogram (EOG) generated from eye movements and blinks was recorded using facial electrodes placed approximately 1 cm above and below the left eye and 1 cm to the right and left of the eyes. All electrode impedances were below 5 k$\Omega$, and data were recorded with a sampling rate of 1,000 Hz. Pre and postprocessing were conducted offline in MATLAB using EEGLAB [@delormeEEGLABOpenSource2004] and ERPLAB [@lopez-calderonERPLABOpensourceToolbox2014]. EEG data was imported to EEGLAB, heart rate channel was removed, and data was resampled to 500Hz. A bandpass filter from 0.1 to 30Hz was applied and data was rereferenced to the average of the mastoids. Stimulus and response-locked epochs were segmented from -500 (before response) to 1000ms (after response) and baseline corrected from -500 to -300ms. Eyeblink and ocular artifacts were corrected [@grattonNewMethodOffline1983] and artifact detection and rejection was conducted on all scalp electrodes. Specifically, the criteria applied were a voltage step of more than 50 μV between sample points, a voltage difference of 175 μV within a trial, or a minimum voltage difference of less than 0.50 μV within 100ms intervals. These intervals were rejected from individual channels in each trial. ERPs were computed as mean amplitude 0 to 80ms following a response at a frontocentral electrode (i.e., FCz) per prior research [e.g., @meyerConsideringERPDifference2017; @meyerReliabilityERNMultiple2013; @moserRelationshipAnxietyError2013; @rieselERNERNERN2013]. ERPs were computed separately for correct and error responses and a residualized difference score was calculated to isolate activity to errors [@meyerConsideringERPDifference2017], yielding the error-related negativity (ERN) component. ERPs had to include at least 10 error and 10 correct artifact free trials per session; thus within-participant sessions were excluded if there were too few artifact free error or correct trials (N=11 sessions across 7 participants).
-
-#### Study 2
 All signal processing was conducted offline in MATLAB using customized scripts and EEGLAB. First, EEG data were referenced to the common average, downsampled to 500 Hz, and the DC offset was removed from each channel. A band-pass filter was then applied from 1 to 100 Hz. The 60 Hz line noise was removed using the cleanLineNoise function, which uses a sliding window to adaptively estimate and subtract the line noise component [@bigdely-shamloPREPPipelineStandardized2015]. Next, using the clean_rawdata function, artifactual channels were removed, defined as those (a) containing more than 5 s of flat signal, (b) correlating less than .8 with surrounding channels, (c) containing high frequency noise to signal ratio greater than 4 SD [@kotheBCILABPlatformBrain2013]. Artifact subspace reconstruction (ASR; Mullen et al., 2015) was then applied to correct for significant noise bursts, also implemented within clean_rawdata. ASR is a principal-component-analysis-based (PCA-based) technique in which data within a 500 ms sliding window (window step=250 ms) are PCA-decomposed. Noisy components, defined as those with variance greater than 20 SD above that of the clean portions of the data, were removed and the data were reconstructed from the remaining components. Further, time windows were removed if more than 25% of the channels contained high-power artifacts, defined as greater than 7 SD above the clean power estimates in the channel. All artifactual channels were replaced by whole head spline interpolation, and data were again re-referenced to the common average so that the sum across all channels was zero. 
 Lastly, independent component analysis (ICA) was implemented to retain brain-related components only. These components were defined as (a) having greater probability to be brain than artifacts according to an automatic IC classifier [ICLabel; @pion-tonachiniICLabelAutomatedElectroencephalographic2019], (b) having residual variance (i.e., the difference between IC’s scalp projection and the projection of fitted equivalent current dipole) less than 15%, and (c) having fitted dipole location within the brain.
 After preprocessing, response-locked epochs were segmented from -1500 to 1500 ms. All epochs were then low-pass filtered at 30 Hz and baseline corrected (-200 to 0 ms for stimulus-locked epochs and -500 to -300 ms for response-locked epochs). Response-locked ERN was defined as the average voltage from 0 to 80 ms at FCz.
 
-### Neuropsychological measures from Study 2
+#### Study 2
+Continuous EEG was recorded with a Neuroscan Synamp2 system (Compumedics, Charlotte, NC, USA) using six midline electrodes (Fz, FCz, Cz, CPz, Pz, & Poz). The electrooculogram (EOG) generated from eye movements and blinks was recorded using facial electrodes placed approximately 1 cm above and below the left eye and 1 cm to the right and left of the eyes. All electrode impedances were below 5 k$\Omega$, and data were recorded with a sampling rate of 1,000 Hz. Pre and postprocessing were conducted offline in MATLAB using EEGLAB [@delormeEEGLABOpenSource2004] and ERPLAB [@lopez-calderonERPLABOpensourceToolbox2014]. EEG data was imported to EEGLAB, heart rate channel was removed, and data was resampled to 500Hz. A bandpass filter from 0.1 to 30Hz was applied and data was rereferenced to the average of the mastoids. Stimulus and response-locked epochs were segmented from -500 (before response) to 1000ms (after response) and baseline corrected from -500 to -300ms. Eyeblink and ocular artifacts were corrected [@grattonNewMethodOffline1983] and artifact detection and rejection was conducted on all scalp electrodes. Specifically, the criteria applied were a voltage step of more than 50 μV between sample points, a voltage difference of 175 μV within a trial, or a minimum voltage difference of less than 0.50 μV within 100ms intervals. These intervals were rejected from individual channels in each trial. ERPs were computed as mean amplitude 0 to 80ms following a response at a frontocentral electrode (i.e., FCz) per prior research [e.g., @meyerConsideringERPDifference2017; @meyerReliabilityERNMultiple2013; @moserRelationshipAnxietyError2013; @rieselERNERNERN2013]. ERPs were computed separately for correct and error responses and a residualized difference score was calculated to isolate activity to errors [@meyerConsideringERPDifference2017], yielding the error-related negativity (ERN) component. ERPs had to include at least 10 error and 10 correct artifact free trials per session; thus within-participant sessions were excluded if there were too few artifact free error or correct trials (N=11 sessions across 7 participants).
 
-Performance on neuropsychological tasks was summarized into two scores used to assess convergent validity. First, cognitive control was estimated from participants' time to complete the inhibition condition from the D-KEFS color-word interference task [D-KEFS; @delisDelisKaplanExecutiveFunction2012a]. Of note, this was reverse scored to make it more comparable to the executive function composite. Second, executive function was estimated using a mean composite of four measures from the Delis-Kaplan Executive Function System Design Fluency, Verbal Fluency, Trail Making, and Color-Word Interference tasks. Specifically, measures used were 1) total number of successful designs made during the category switching condition on Design Fluency, and 2) on Verbal Fluency, 3) completion time for the number-letter sequencing condition multiplied by 1 for reverse-scoring on Trail Making, and 4) time to complete the inhibition/switching condition multiplied by 1 for reverse-scoring on Color-Word Inference. Higher scores indicate "better" (i.e., faster and more accurate) performance. The Wechsler Test of Adult Reading [WTAR; @wechsler2001wechsler] estimated participants' full-scale IQ (FSIQ) and was included as a covariate in Study 2 analyses. See @letkiewiczChildhoodMaltreatmentPredicts2021 for further details about how these scores are calculated. Of import, scores on the WTAR are highly correlated with FSIQ [r = 0.73; @straussCompendiumNeuropsychologicalTests2006]. Motor speed was assessed using the motor speed condition of the D-KEFS Trail Making Test and was also included as a covariate to account for the potential impact of slowed reaction time.
+### Neuropsychological measures from Study 1
+
+Performance on neuropsychological tasks was summarized into two scores used to assess convergent validity. First, cognitive control was estimated from participants' time to complete the inhibition condition from the D-KEFS color-word interference task [D-KEFS; @delisDelisKaplanExecutiveFunction2012a]. Of note, this was reverse scored to make it more comparable to the executive function composite. Second, executive function was estimated using a mean composite of four measures from the Delis-Kaplan Executive Function System Design Fluency, Verbal Fluency, Trail Making, and Color-Word Interference tasks. Specifically, measures used were 1) total number of successful designs made during the category switching condition on Design Fluency, and 2) on Verbal Fluency, 3) completion time for the number-letter sequencing condition multiplied by 1 for reverse-scoring on Trail Making, and 4) time to complete the inhibition/switching condition multiplied by 1 for reverse-scoring on Color-Word Inference. Higher scores indicate "better" (i.e., faster and more accurate) performance. The Wechsler Test of Adult Reading [WTAR; @wechsler2001wechsler] estimated participants' full-scale IQ (FSIQ) and was included as a covariate in Study 1 analyses. See @letkiewiczChildhoodMaltreatmentPredicts2021 for further details about how these scores are calculated. Of import, scores on the WTAR are highly correlated with FSIQ [r = 0.73; @straussCompendiumNeuropsychologicalTests2006]. Motor speed was assessed using the motor speed condition of the D-KEFS Trail Making Test and was also included as a covariate to account for the potential impact of slowed reaction time.
 
 ## Data analysis
 
@@ -206,11 +208,11 @@ Participant data was excluded if they had below 50% accuracy. Data was excluded 
 ### Reliability: test-retest and split-half
 
 Measure reliability was examined two ways: 1) split-half and 2) test-retest. First, split-half reliability was calculated by splitting the trials in half, calculating the spearman rho correlation between the two halves, and using the Spearman-Brown prediction formula ($Spearman \text{ } Brown = \frac{2r}{1+r}$) to calculate the reliability [@infantolinoRobustNotNecessarily2018; @lukingInternalConsistencyFunctional2017]. Split-half reliability was also examined at increments of 15 trials (e.g., first 15 trials vs second 15 trials, first 30 trials vs next 30 trials, etc.) to assess the point at which this measure reaches stability.
-Cutoffs from @hensonUnderstandingInternalConsistency2001 were used to identify split-half reliability at different levels (<0.70 = poor , 0.70--0.79 = acceptable, 0.80--0.89 = good, and >0.90 = excellent). Test-retest reliability was calculated as the intraclass correlation coefficient (ICC) between all three sessions from Study 1.
+Cutoffs from @hensonUnderstandingInternalConsistency2001 were used to identify split-half reliability at different levels (<0.70 = poor , 0.70--0.79 = acceptable, 0.80--0.89 = good, and >0.90 = excellent). Test-retest reliability was calculated as the intraclass correlation coefficient (ICC) between all three sessions from Study 2.
 
 ### Validity: Correlations, multiple regressions, and familiality
 
-Raw two-sided Spearman rho correlation coefficients were initially examined between the ERN magnitude or neuropsychological score and each measure of flanker behavioral performance. Multiple regression models were used to assess the relative variance accounted for by DDM parameters, NIH Toolbox score, and raw accuracy when estimated as simultaneous predictors of the ERN or neuropsychological scores. That is, each model included as predictors: one ddm parameter, the NIH Toolbox score, and raw accuracy. In Study 1, linear multiple regression models were used; in Study 2, linear mixed effect multiple regression models were used to account for within-family random intercept between sibling pairs. Familiality was estimated as the ICC between siblings from the same family in Study 2 [@constantinoInfantHeadGrowth2010; @weinbergerFamilialAspectsCT1981].
+Raw two-sided Spearman rho correlation coefficients were initially examined between the ERN magnitude or neuropsychological score and each measure of flanker behavioral performance. Multiple regression models were used to assess the relative variance accounted for by DDM parameters, NIH Toolbox score, and raw accuracy when estimated as simultaneous predictors of the ERN or neuropsychological scores. That is, each model included as predictors: one ddm parameter, the NIH Toolbox score, and raw accuracy. In Study 2, linear multiple regression models were used; in Study 1, linear mixed effect multiple regression models were used to account for within-family random intercept between sibling pairs. Familiality was estimated as the ICC between siblings from the same family in Study 1 [@constantinoInfantHeadGrowth2010; @weinbergerFamilialAspectsCT1981].
 
 # Results
 
@@ -222,7 +224,7 @@ Raw two-sided Spearman rho correlation coefficients were initially examined betw
 
 ### Split-half
 
-Drift rate and Boundary separation both demonstrated comparable split-half reliability to raw accuracy and the NIH Toolbox score across all three sessions in Study 1, as well as in Study 2 (see Table 2).
+Drift rate and Boundary separation both demonstrated comparable split-half reliability to raw accuracy and the NIH Toolbox score across all three sessions in Study 2, as well as in Study 1 (see Table 2).
 
 Of note, examining change in split half reliability at increments of 15 trials (e.g., first 15 trials vs second 15 trials, first 30 trials vs next 30 trials, etc.) showed that drift rate began to plateau at 105 trials.
 
@@ -259,16 +261,16 @@ spearman_brown_rdoc_ddm <- make_splithalf_datatable(splithalf_rdoc)
 # write.csv(splithalf, file=here("./tables/splithalf_full.csv"))
 
 # apa_table(splithalf,
-#           col.names=c("HDDM paramters","Session 1","Session 2","Session 3", "Study 2"),
+#           col.names=c("HDDM paramters","Session 1","Session 2","Session 3", "Study 1"),
 #           align = c("l", rep("c", 4)),
 #           digits=2,
 #           caption = "Table 2",
 #           note = "",
-#           col_spanners=list(`Study 1`=c(2,4)))
+#           col_spanners=list(`Study 2`=c(2,4)))
 
 spearman_brown_d1_plot <- spearman_brown_d1 %>%
   full_join(spearman_brown_d1_ddm, by = "trials") %>%
-  select(-c("rdriftcon","rdriftincon","rthreshold")) %>%
+  select(-c("rdriftcon","rdriftincon","rboundary_separation")) %>%
   pivot_longer(-c(trials), names_to="Measure") %>%
   separate(Measure, "_", into = c("Measure", "Stat")) %>%
   pivot_wider(names_from=Stat, values_from=value) %>%
@@ -277,12 +279,12 @@ spearman_brown_d1_plot <- spearman_brown_d1 %>%
 
 spearman_brown_d1_plot$Measure_long <- recode_factor(spearman_brown_d1_plot$Measure, rvcon = "Drift rate (congruent)", rvincon = "Drift rate (incongruent)",  ra = "Boundary separation", rnih = "NIH Toolbox", racc = "Accuracy (incongruent)")
                                                
-sh_d1 <- ggplot(spearman_brown_d1_plot, aes(x=trials, y=r, fill=Measure_long)) +
+sh_d1 <- ggplot(spearman_brown_d1_plot, aes(x=trials*2, y=r, fill=Measure_long)) +
   geom_line(aes(color=Measure_long)) +
   geom_point(aes(color=Measure_long)) +
   geom_ribbon(aes(ymin = cilower, ymax = ciupper, fill=Measure_long), alpha = 0.1) +
-  scale_x_continuous(breaks=spearman_brown_d1$trials) +
-  scale_y_continuous(limits = c(-0.252, 1), breaks=seq(-0.20,1,by=0.10)) +
+  scale_x_continuous(breaks=spearman_brown_d1$trials*2) +
+  scale_y_continuous(limits = c(-0.3, 1), breaks=seq(0,1,by=0.10)) +
   scale_color_manual(name="Measure", values=group.colors,
                     labels=c(str_wrap("Drift rate (congruent)", 10), str_wrap("Drift rate (incongruent)",10), str_wrap("Boundary separation",10),
                              str_wrap("NIH Toolbox",10), str_wrap("Accuracy (incongruent)",10))) +
@@ -292,7 +294,7 @@ sh_d1 <- ggplot(spearman_brown_d1_plot, aes(x=trials, y=r, fill=Measure_long)) +
 
 spearman_brown_d2_plot <- spearman_brown_d2 %>%
   full_join(spearman_brown_d2_ddm, by = "trials") %>%
-  select(-c("rdriftcon","rthreshold")) %>%
+  select(-c("rdriftcon","rboundary_separation")) %>%
   pivot_longer(-c(trials), names_to="Measure") %>%
   separate(Measure, "_", into = c("Measure", "Stat")) %>%
   pivot_wider(names_from=Stat, values_from=value) %>%
@@ -301,12 +303,12 @@ spearman_brown_d2_plot <- spearman_brown_d2 %>%
 
 spearman_brown_d2_plot$Measure_long <- recode_factor(spearman_brown_d2_plot$Measure, rvcon = "Drift rate (congruent)", rvincon = "Drift rate (incongruent)",  ra = "Boundary separation", rnih = "NIH Toolbox", racc = "Accuracy (incongruent)")
 
-sh_d2 <- ggplot(spearman_brown_d2_plot, aes(x=trials, y=r, fill=Measure_long)) +
+sh_d2 <- ggplot(spearman_brown_d2_plot, aes(x=trials*2, y=r, fill=Measure_long)) +
   geom_line(aes(color=Measure_long)) +
   geom_point(aes(color=Measure_long)) +
   geom_ribbon(aes(ymin = cilower, ymax = ciupper, fill=Measure_long), alpha = 0.1) +
-  scale_x_continuous(breaks=spearman_brown_d2$trials) +
-  scale_y_continuous(limits = c(-0.252, 1), breaks=seq(-0.20,1,by=0.10)) +
+  scale_x_continuous(breaks=spearman_brown_d2$trials*2) +
+  scale_y_continuous(limits = c(-0.3, 1), breaks=seq(0,1,by=0.10)) +
   scale_color_manual(name="Measure", values=group.colors,
                     labels=c(str_wrap("Drift rate (congruent)", 10), str_wrap("Drift rate (incongruent)",10), str_wrap("Boundary separation",10),
                              str_wrap("NIH Toolbox",10), str_wrap("Accuracy (incongruent)",10))) +
@@ -316,7 +318,7 @@ sh_d2 <- ggplot(spearman_brown_d2_plot, aes(x=trials, y=r, fill=Measure_long)) +
 
 spearman_brown_d3_plot <- spearman_brown_d3 %>%
   full_join(spearman_brown_d3_ddm, by = "trials") %>%
-  select(-c("rdriftcon","rthreshold")) %>%
+  select(-c("rdriftcon","rboundary_separation")) %>%
   pivot_longer(-c(trials), names_to="Measure") %>%
   separate(Measure, "_", into = c("Measure", "Stat")) %>%
   pivot_wider(names_from=Stat, values_from=value) %>%
@@ -325,12 +327,12 @@ spearman_brown_d3_plot <- spearman_brown_d3 %>%
 
 spearman_brown_d3_plot$Measure_long <- recode_factor(spearman_brown_d3_plot$Measure, rvcon = "Drift rate (congruent)", rvincon = "Drift rate (incongruent)",  ra = "Boundary separation", rnih = "NIH Toolbox", racc = "Accuracy (incongruent)")
 
-sh_d3 <- ggplot(spearman_brown_d3_plot, aes(x=trials, y=r, fill=Measure_long)) +
+sh_d3 <- ggplot(spearman_brown_d3_plot, aes(x=trials*2, y=r, fill=Measure_long)) +
   geom_line(aes(color=Measure_long)) +
   geom_point(aes(color=Measure_long)) +
   geom_ribbon(aes(ymin = cilower, ymax = ciupper, fill=Measure_long), alpha = 0.1) +
-  scale_x_continuous(breaks=spearman_brown_d3$trials) +
-  scale_y_continuous(limits = c(-0.252, 1), breaks=seq(-0.20,1,by=0.10)) +
+  scale_x_continuous(breaks=spearman_brown_d3$trials*2) +
+  scale_y_continuous(limits = c(-0.3, 1), breaks=seq(0,1,by=0.10)) +
   scale_color_manual(name="Measure", values=group.colors,
                     labels=c(str_wrap("Drift rate (congruent)", 10), str_wrap("Drift rate (incongruent)",10), str_wrap("Boundary separation",10),
                              str_wrap("NIH Toolbox",10), str_wrap("Accuracy (incongruent)",10))) +
@@ -340,7 +342,7 @@ sh_d3 <- ggplot(spearman_brown_d3_plot, aes(x=trials, y=r, fill=Measure_long)) +
 
 spearman_brown_rdoc_plot <- spearman_brown_rdoc %>%
   full_join(spearman_brown_rdoc_ddm, by = "trials") %>%
-  select(-c("rdriftcon","rdriftincon","rthreshold")) %>%
+  select(-c("rdriftcon","rdriftincon","rboundary_separation")) %>%
   pivot_longer(-c(trials), names_to="Measure") %>%
   separate(Measure, "_", into = c("Measure", "Stat")) %>%
   pivot_wider(names_from=Stat, values_from=value) %>%
@@ -349,33 +351,36 @@ spearman_brown_rdoc_plot <- spearman_brown_rdoc %>%
 
 spearman_brown_rdoc_plot$Measure_long <- recode_factor(spearman_brown_rdoc_plot$Measure, rvcon = "Drift rate (congruent)", rvincon = "Drift rate (incongruent)",  ra = "Boundary separation", rnih = "NIH Toolbox", racc = "Accuracy (incongruent)")
 
-sh_rdoc <- ggplot(spearman_brown_rdoc_plot, aes(x=trials, y=r)) +
+sh_rdoc <- ggplot(spearman_brown_rdoc_plot, aes(x=trials*2, y=r)) +
   geom_line(aes(color=Measure_long)) +
   geom_point(aes(color=Measure_long)) +
   geom_ribbon(aes(ymin = cilower, ymax = ciupper, fill=Measure_long), alpha = 0.1) +
-  scale_x_continuous(breaks=spearman_brown_rdoc$trials) +
-  scale_y_continuous(limits = c(-0.252, 1), breaks=seq(-0.20,1,by=0.10)) +
+  scale_x_continuous(breaks=spearman_brown_rdoc$trials*2) +
+  scale_y_continuous(limits = c(-0.3, 1), breaks=seq(0,1,by=0.10)) +
   scale_color_manual(name="Measure", values=group.colors,
                     labels=c(str_wrap("Drift rate (congruent)", 10), str_wrap("Drift rate (incongruent)",10), str_wrap("Boundary separation",10),
                              str_wrap("NIH Toolbox",10), str_wrap("Accuracy (incongruent)",10))) +
   scale_fill_manual(guide=NULL, values=group.colors) +
   theme_apa() +
   theme(legend.position="bottom")
-
-sh <- ggarrange(sh_d1 + rremove("xylab") + rremove("x.text") + rremove("legend"),
-          sh_d2 + rremove("xylab") + rremove("x.text") + rremove("legend"),
+```
+```{r}
+sh <- ggarrange(sh_rdoc + rremove("xylab") + rremove("x.text") + rremove("legend"),
+          sh_d1 + rremove("xylab") + rremove("x.text") + rremove("legend"),
+          sh_d2 + rremove("xylab") + rremove("legend"),
           sh_d3 + rremove("xylab") + rremove("legend"),
-          sh_rdoc + rremove("xylab") + rremove("legend"),
-          labels=c("Session 1","Session 2","Session 3","Study 2"),
-          label.x = 0.1,
-          label.y = 1,
+          labels=c("Study 1","Study 2: Session 1","Study 2: Session 2","Study 2: Session 3"),
+          # label.x = 0.5,
+          # label.y = 1,
+          hjust=c(-1, -0.5, -0.5, -0.5),
           common.legend = TRUE,
+          align="hv",
           legend="top",
           ncol=2, nrow=2,
           heights = c(1, 1, 1, 1))
 
 sh <- annotate_figure(sh, left = grid::textGrob("spearman-brown split-half [95% CI]", rot = 90, vjust = 1, gp = grid::gpar(cex = 1.3)),
-                bottom = grid::textGrob("Number of trials in each split-half", gp = grid::gpar(cex = 1.3)),
+                bottom = grid::textGrob("Number of total trials", gp = grid::gpar(cex = 1.3)),
                 fig.lab.size=12)
 sh
 ```
@@ -461,12 +466,11 @@ ggplot(sttr_icc_table[c(1:4,7:8),], aes(y=parameters, x=ICC, color=parameters)) 
   theme(legend.position="none")
 ```
 
-Across the three sessions of Study 1, drift rate and Boundary separation both showed comparable ICCs to the NIH Toolbox score, though lower than the raw accuracy (see Table 3).
+Across the three sessions of Study 2, drift rate and Boundary separation both showed comparable ICCs to the NIH Toolbox score, though lower than the raw accuracy (see Table 3).
 
 ## Convergent validity
 
 ### Brain-based measures
-
 ```{r Correlation tables}
 cor_ERN_table_d1 <- read.csv(file=here("./tables/sttr_d1_correlations.csv"), na.strings=c(""))
 cor_ERN_table_d2 <- read.csv(file=here("./tables/sttr_d2_correlations.csv"), na.strings=c(""))
@@ -476,12 +480,12 @@ cor_ERN_table_rdoc <- read.csv(file=here("./tables/rdoc_correlations.csv"), na.s
 
 cor_ERN_table_new <- cor_ERN_table %>%
   mutate("Parameters/Measures" = rep(c("ERN","NIH Toolbox","Raw accuracy","Accuracy (incongruent)", "Log accuracy (congruent)",
-                  "Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Threshold","Non-decision time","Starting bias"),3)) %>%
+                  "Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias"),3)) %>%
   select("Parameters/Measures", everything()) %>%
   select(-X)
 
 `Session 1` <- c("ERN","NIH Toolbox","Raw accuracy","Accuracy (incongruent)", "Log accuracy (congruent)",
-                  "Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Threshold","Non-decision time","Starting bias")
+                  "Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias")
 `Session 2` <- `Session 1`
 `Session 3` <- `Session 1`
 table_list <- list(`Session 1`, `Session 2`, `Session 3`)
@@ -491,103 +495,23 @@ apa_table(cor_ERN_table_new,
           stub_indents=table_list,
           row.names=FALSE,
           col.names=c("Parameters/Measures", rep(c("ERN","NIH Toolbox","Raw accuracy","Accuracy (incongruent)", "Log accuracy (congruent)",
-                  "Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Threshold","Non-decision time","Starting bias"),3)),
+                  "Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias"),3)),
           align=c("l",rep("c",27)),
           digits=2,
           caption = "Table 4",
-          note = "Correlations among Study 1 variables",
+          note = "Correlations among Study 2 variables",
           format="latex"
 )
 ```
 
-```{r Multiple regression ERN tables}
-mr_ERN_table_d1 <- read.csv(file=here("./tables/mr_ERN_table_d1.csv"))
-mr_ERN_table_d2 <- read.csv(file=here("./tables/mr_ERN_table_d2.csv"))
-mr_ERN_table_d3 <- read.csv(file=here("./tables/mr_ERN_table_d3.csv"))
+```{r Multiple regression RDoC table}
 mr_ERN_table_rdoc <- read.csv(file=here("./tables/mr_ERN_table_rdoc.csv"))
 
 mr_table_names <- c("X","parameters", "ddm_est", "ddm_lci", "ddm_uci",
                                                  "nih_est", "nih_lci", "nih_uci",
                                                  "acc_est", "acc_lci", "acc_uci")
 
-# Session 1
-mr_ERN_table_d1_raw <- read.csv(file=here("./tables/mr_ERN_table_d1_raw.csv"))
-colnames(mr_ERN_table_d1_raw) <- mr_table_names
-mr_ERN_table_d1_raw_new <- mr_ERN_table_d1_raw %>%
-  pivot_longer(cols=ddm_est:acc_uci, names_to=c("measure","stat"), names_sep="_") %>%
-  pivot_wider(names_from=stat, values_from=value)
-
-mr_ERN_table_d1_raw_new <- mr_ERN_table_d1_raw_new %>%
-  mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy", NA)))) %>%
-  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy", "Drift rate","Threshold")))
-
-ern_d1 <- ggplot(mr_ERN_table_d1_raw_new[c(1:3, 10:12),], aes(x=est, label=parameters, y=measure_new, color=measure)) +
-  geom_point(position=position_dodge(width = 1), stat = "identity") +
-  geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
-  geom_vline(xintercept = 0) +
-  labs(y="HDDM model parameter", x="beta [95% CI]") +
-  # scale_y_discrete(name="Measure", labels=c("Accuracy", "NIH Toolbox")) +
-  facet_grid(parameters~., scales = "free", space = "fixed") + #facet by group
-  theme_apa() +
-  theme(strip.background = element_blank(), #remove background for facet labels
-        strip.text.y = element_blank(),
-        panel.border = element_rect(colour = "black", fill = NA), #add black border
-        panel.spacing = unit(0, "lines"), #remove space between facets)
-        legend.position = "none") #hide legend
-
-# Session 2
-mr_ERN_table_d2_raw <- read.csv(file=here("./tables/mr_ERN_table_d2_raw.csv"))
-colnames(mr_ERN_table_d2_raw) <- mr_table_names
-mr_ERN_table_d2_raw_new <- mr_ERN_table_d2_raw %>%
-  select(-X) %>%
-  pivot_longer(cols=ddm_est:acc_uci, names_to=c("measure","stat"), names_sep="_") %>%
-  pivot_wider(names_from=stat, values_from=value)
-
-mr_ERN_table_d2_raw_new <- mr_ERN_table_d2_raw_new %>%
-  mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy", NA)))) %>%
-  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy", "Drift rate","Threshold")))
-
-ern_d2 <- ggplot(mr_ERN_table_d2_raw_new[c(1:3, 10:12),], aes(x=est, label=parameters, y=measure_new, color=measure)) +
-  geom_point(position=position_dodge(width = 1), stat = "identity") +
-  geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
-  geom_vline(xintercept = 0) +
-  labs(y="HDDM model parameter", x="beta [95% CI]") +
-  # scale_y_discrete(name="Measure", labels=c("Accuracy", "NIH Toolbox")) +
-  facet_grid(parameters~., scales = "free", space = "fixed") + #facet by group
-  theme_apa() +
-  theme(strip.background = element_blank(), #remove background for facet labels
-        strip.text.y = element_blank(),
-        panel.border = element_rect(colour = "black", fill = NA), #add black border
-        panel.spacing = unit(0, "lines"), #remove space between facets)
-        legend.position = "none") #hide legend
-
-# Session 3
-mr_ERN_table_d3_raw <- read.csv(file=here("./tables/mr_ERN_table_d3_raw.csv"))
-colnames(mr_ERN_table_d3_raw) <- mr_table_names
-mr_ERN_table_d3_raw_new <- mr_ERN_table_d3_raw %>%
-  select(-X) %>%
-  pivot_longer(cols=ddm_est:acc_uci, names_to=c("measure","stat"), names_sep="_") %>%
-  pivot_wider(names_from=stat, values_from=value)
-
-mr_ERN_table_d3_raw_new <- mr_ERN_table_d3_raw_new %>%
-  mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy", NA)))) %>%
-  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy", "Drift rate","Threshold")))
-
-ern_d3 <- ggplot(mr_ERN_table_d3_raw_new[c(1:3, 10:12),], aes(x=est, label=parameters, y=measure_new, color=measure)) +
-  geom_point(position=position_dodge(width = 1), stat = "identity") +
-  geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
-  geom_vline(xintercept = 0) +
-  labs(y="HDDM model parameter", x="beta [95% CI]") +
-  # scale_y_discrete(name="Measure", labels=c("Accuracy", "NIH Toolbox")) +
-  facet_grid(parameters~., scales = "free", space = "fixed") + #facet by group
-  theme_apa() +
-  theme(strip.background = element_blank(), #remove background for facet labels
-        strip.text.y = element_blank(),
-        panel.border = element_rect(colour = "black", fill = NA), #add black border
-        panel.spacing = unit(0, "lines"), #remove space between facets)
-        legend.position = "none") #hide legend
-
-# RDoC
+# RDoC Study
 mr_ERN_table_rdoc_raw <- read.csv(file=here("./tables/mr_ERN_table_rdoc_raw.csv"))
 colnames(mr_ERN_table_rdoc_raw) <- mr_table_names
 mr_ERN_table_rdoc_raw_new <- mr_ERN_table_rdoc_raw %>%
@@ -596,23 +520,28 @@ mr_ERN_table_rdoc_raw_new <- mr_ERN_table_rdoc_raw %>%
   pivot_wider(names_from=stat, values_from=value)
 
 fit_rdoc <- lmer(FCz_ERN_080 ~ B11_avtz_DO_v_v + flanker_score_rdoc_z + accuracy_incongruent_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers)
-ggplot(LDDM_do3_rdoc_no_outliers, aes(x = B11_avtz_DO_v_v, y = FCz_ERN_080)) +
-  labs(x="ERN mean ampitude (µV)",y="Drift rate")+
-  geom_point(shape = 16, size=1.8) +
-  geom_abline(aes(intercept=`(Intercept)`, slope=B11_avtz_DO_v_v), as.data.frame(t(fixef(fit_rdoc)))) +
-  theme_apa()
+# ggplot(LDDM_do3_rdoc_no_outliers, aes(x = B11_avtz_DO_v_v, y = FCz_ERN_080)) +
+#   labs(x="ERN mean ampitude (µV)",y="Drift rate")+
+#   geom_point(shape = 16, size=1.8) +
+#   geom_abline(aes(intercept=`(Intercept)`, slope=B11_avtz_DO_v_v), as.data.frame(t(fixef(fit_rdoc)))) +
+#   theme_apa()
 
 mr_ERN_table_rdoc_raw_new <- mr_ERN_table_rdoc_raw_new %>%
   mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy", NA)))) %>%
-  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy", "Drift rate","Threshold")))
+  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy", "Drift rate","Boundary separation")))
+
+# New facet label names for supp variable
+param.labs <- c("Model 1", "Model 2")
+names(param.labs) <- c("Drift rate", "Boundary separation")
 
 ern_rdoc <- ggplot(mr_ERN_table_rdoc_raw_new[c(1:3, 10:12),], aes(x=est, label=parameters, y=measure_new, color=measure)) +
   geom_point(position=position_dodge(width = 1), stat = "identity") +
   geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
   geom_vline(xintercept = 0) +
-  labs(y="HDDM model parameter", x="beta [95% CI]") +
-  # scale_y_discrete(name="Measure", labels=c("Accuracy", "NIH Toolbox")) +
-  facet_grid(parameters~., scales = "free", space = "fixed") + #facet by group
+  labs(y="HDDM model parameter", x="beta [95% CI]", title="ERN") +
+  facet_grid(parameters~., scales = "free", space = "fixed", labeller = as_labeller(
+    c(`Boundary separation` = "Model 2", 
+      `Drift rate` = "Model 1"))) +
   theme_apa() +
   theme(strip.background = element_blank(), #remove background for facet labels
         strip.text.y = element_blank(),
@@ -620,28 +549,14 @@ ern_rdoc <- ggplot(mr_ERN_table_rdoc_raw_new[c(1:3, 10:12),], aes(x=est, label=p
         panel.spacing = unit(0, "lines"), #remove space between facets)
         legend.position = "none") #hide legend
 ```
+For bivariate correlations and their statistical significance, see Table 2. Drift rate, accuracy to incongruent stimuli, and the NIH Toolbox derived score were entered into multiple regression models as simultaneous predictors of the ERN, one model for each DDM parameter of interest (i.e., drift rate, boundary separation). Drift rate was significantly associated with ERN amplitude in Study 2 over-and-above its association with accuracy and the NIH Toolbox scores (see Figure \# and Table \#). This relationship indicates that faster or higher quality accumulation of evidence (i.e., drift rate; [@whiteDiffusionModelsFlanker2011]) is associated with a larger (i.e., more negative) ERN amplitude. Accuracy and NIH Toolbox scores were not significantly associated with ERN for either Study 2 nor Study 1 when drift rate is included in the model. Results were similar when examining drift rate to congruent and incongruent stimuli separately (see Supplement). Drift rate shows similar associations across sessions of Study 1, though becoming non-significant at session 3l; see Supplement).
 
-```{r}
-ern <- ggarrange(ern_d1 + rremove("xylab"), 
-          ern_d2 + rremove("xylab") + rremove("y.text") + rremove("y.ticks"),
-          ern_d3 + rremove("xylab") + rremove("y.text") + rremove("y.ticks"),
-          ern_rdoc + rremove("xylab") + rremove("y.text") + rremove("y.ticks"),
-          ncol=4, nrow=1,
-          widths = c(1.51, 1, 1, 1))
+Boundary separation is significantly associated with ERN in Study 2 (see Figure \# and Table \#). This relationship indicates that a greater valuing of correct responses, at the cost of slower responses (thus larger separation between the decision boundaries), is associated with a smaller (less negative) ERN amplitude. However this finding was not replicated in Study 1 (see Supplement). Accuracy and NIH Toolbox scores are not significantly associated with ERN for either Study 2 nor Study 1 when boundary separation is included in the model.
 
-annotate_figure(ern, left = grid::textGrob("HDDM model parameter", rot = 90, vjust = 1, gp = grid::gpar(cex = 1.3)),
-                bottom = grid::textGrob("beta [95% CI]", gp = grid::gpar(cex = 1.3)),
-                fig.lab.size=12)
-```
-
-For bivariate correlations and their statistical significance, see Table 2. Drift rate, accuracy to incongruent stimuli, and the NIH Toolbox derived score were entered into a multiple regression model as simultaneous predictors of the ERN. Across the three sessions from Study 1 and one session from Study 2, drift rate shows very similar associations (in terms of effect size, though becoming non-significant at Study 1 session 3) with ERN over-and-above its association with accuracy and the NIH Toolbox scores (see Figure \# and Table \#). This relationship indicates that faster or higher quality accumulation of evidence (i.e., drift rate; [@whiteDiffusionModelsFlanker2011]) is associated with a larger (i.e., more negative) ERN amplitude. Accuracy and NIH Toolbox scores were not significantly associated with ERN for either Study 1 nor Study 2 when drift rate is included in the model. Results were similar when examining drift rate to congruent and incongruent stimuli separately (see Supplement).
-
-Identical models that included boundary separation instead of drift rate were also fitted. Boundary separation is significantly associated with ERN in Study 2 but not in any of the three sessions from Study 1 (see Figure \# and Table \#). This relationship indicates that a greater valuing of correct responses, at the cost of slower responses (thus larger separation between the decision boundaries), is associated with a smaller (less negative) ERN amplitude. Accuracy and NIH Toolbox scores are not significantly associated with ERN for either Study 1 nor Study 2 when boundary separation is included in the model.
 
 ### Neuropsychological measures
-
 ```{r Multiple regression EF tables}
-mr_Inhib_table_rdoc_nocov <- read.csv(file=here("./tables/mr_INHIB_table_rdoc_nocov.csv"))
+# mr_Inhib_table_rdoc_nocov <- read.csv(file=here("./tables/mr_INHIB_table_rdoc_nocov.csv"))
 mr_Inhib_table_rdoc_cov <- read.csv(file=here("./tables/mr_INHIB_table_rdoc_cov.csv"))
 
 mr_Inhib_table_rdoc_cov_raw <- read.csv(file=here("./tables/mr_INHIB_table_rdoc_cov_raw.csv"))
@@ -653,15 +568,16 @@ mr_Inhib_table_rdoc_cov_raw_new <- mr_Inhib_table_rdoc_cov_raw %>%
 
 mr_Inhib_table_rdoc_cov_raw_new <- mr_Inhib_table_rdoc_cov_raw_new %>%
   mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy", NA)))) %>%
-  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy", "Drift rate","Threshold")))
+  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy", "Drift rate","Boundary separation")))
 
 inh <- ggplot(mr_Inhib_table_rdoc_cov_raw_new[c(1:3, 10:12),], aes(x=est, label=parameters, y=measure_new, color=measure)) +
   geom_point(position=position_dodge(width = 1), stat = "identity") +
   geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
   geom_vline(xintercept = 0) +
-  labs(y="HDDM model parameter", x="beta [95% CI]") +
-  # scale_y_discrete(name="Measure", labels=c("Accuracy", "NIH Toolbox")) +
-  facet_grid(parameters~., scales = "free", space = "fixed") + #facet by group
+  labs(y="HDDM model parameter", x="beta [95% CI]", title="Inhibition") +
+  facet_grid(parameters~., scales = "free", space = "fixed", labeller = as_labeller(
+    c(`Boundary separation` = "Model 2", 
+      `Drift rate` = "Model 1"))) +
   theme_apa() +
   theme(strip.background = element_blank(), #remove background for facet labels
         strip.text.y = element_blank(),
@@ -669,14 +585,7 @@ inh <- ggplot(mr_Inhib_table_rdoc_cov_raw_new[c(1:3, 10:12),], aes(x=est, label=
         panel.spacing = unit(0, "lines"), #remove space between facets)
         legend.position = "none") #hide legend
 
-# ggplot(mr_Inhib_table_rdoc_cov_raw_new, aes(x=parameters, y=est, fill=measure)) +
-#   geom_bar(position=position_dodge(width = 1), stat = "identity") +
-#   geom_errorbar(aes(ymin=lci, ymax=uci), colour="black", width=.1, position=position_dodge(width = 1), stat="identity") +
-#   theme(axis.text.x = element_text(color = "#993333", 
-#                            size = 8, angle = 45))+
-#   ggtitle("Inhibition")
-
-mr_Exec_table_rdoc_nocov <- read.csv(file=here("./tables/mr_Exec_table_rdoc_nocov.csv"))
+# mr_Exec_table_rdoc_nocov <- read.csv(file=here("./tables/mr_Exec_table_rdoc_nocov.csv"))
 mr_Exec_table_rdoc_cov <- read.csv(file=here("./tables/mr_Exec_table_rdoc_cov.csv"))
 
 mr_Exec_table_rdoc_cov_raw <- read.csv(file=here("./tables/mr_Exec_table_rdoc_cov_raw.csv"))
@@ -686,42 +595,40 @@ mr_Exec_table_rdoc_cov_raw_new <- mr_Exec_table_rdoc_cov_raw %>%
   pivot_longer(cols=ddm_est:acc_uci, names_to=c("measure","stat"), names_sep="_") %>%
   pivot_wider(names_from=stat, values_from=value)
 
-# ggplot(mr_Exec_table_rdoc_cov_raw_new, aes(x=parameters, y=est, fill=measure)) +
-#   geom_bar(position=position_dodge(width = 1), stat = "identity") +
-#   geom_errorbar(aes(ymin=lci, ymax=uci), colour="black", width=.1, position=position_dodge(width = 1), stat="identity") +
-#   theme(axis.text.x = element_text(color = "#993333", 
-#                            size = 8, angle = 45))+
-#   ggtitle("Executive functioning")
-
-
 mr_Exec_table_rdoc_cov_raw_new <- mr_Exec_table_rdoc_cov_raw_new %>%
   mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy", NA)))) %>%
-  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy", "Drift rate","Threshold")))
+  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy", "Drift rate","Boundary separation")))
+
+model_names <- list(
+  'Boundary separation'="Model 2",
+  'Drift rate'="Model 1"
+)
 
 ef <- ggplot(mr_Exec_table_rdoc_cov_raw_new[c(1:3, 10:12),], aes(x=est, label=parameters, y=measure_new, color=measure)) +
   geom_point(position=position_dodge(width = 1), stat = "identity") +
   geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
   geom_vline(xintercept = 0) +
-  labs(y="HDDM model parameter", x="beta [95% CI]") +
-  # scale_y_discrete(name="Measure", labels=c("Accuracy", "NIH Toolbox")) +
-  facet_grid(parameters~., scales = "free", space = "fixed") + #facet by group
+  labs(y="HDDM model parameter", x="beta [95% CI]", title="Executive function") +
+  facet_grid(parameters~., scales = "free", space = "fixed", labeller = as_labeller(
+    c(`Boundary separation` = "Model 2", 
+      `Drift rate` = "Model 1"))) +
   theme_apa() +
   theme(strip.background = element_blank(), #remove background for facet labels
-        strip.text.y = element_blank(),
         panel.border = element_rect(colour = "black", fill = NA), #add black border
         panel.spacing = unit(0, "lines"), #remove space between facets)
         legend.position = "none") #hide legend
 ```
-
 ```{r}
-val_rdoc <- ggarrange(inh + rremove("xylab"),
+val_rdoc <- ggarrange(ern_rdoc + rremove("xylab"),
+                      inh + rremove("xylab") + rremove("y.text") + rremove("y.ticks"),
           ef + rremove("xylab") + rremove("y.text") + rremove("y.ticks"),
-          ncol=2, nrow=1,
-          widths = c(1.45, 1))
+          ncol=3, nrow=1,
+          widths = c(1.5, 1, 1))
 
-annotate_figure(val_rdoc, left = grid::textGrob("HDDM model parameter", rot = 90, vjust = 1, gp = grid::gpar(cex = 1.3)),
+val_rdoc <- annotate_figure(val_rdoc, left = grid::textGrob("HDDM model parameter", rot = 90, vjust = 1, gp = grid::gpar(cex = 1.3)),
                 bottom = grid::textGrob("beta [95% CI]", gp = grid::gpar(cex = 1.3)),
                 fig.lab.size=12)
+val_rdoc
 ```
 
 ```{r}
@@ -731,7 +638,7 @@ exec_acc_cor <- corr.test(LDDM_do3_rdoc_no_outliers$exec_composite_z, LDDM_do3_r
 
 For bivariate correlations and their statistical significance, see Table 2. Drift rate, accuracy to incongruent stimuli, and the NIH Toolbox derived score were entered into a multiple regression model as simultaneous predictors of cogntive control and executive function derived from performance on tasks from the D-KEFS [@delisDelisKaplanExecutiveFunction2012]. Drift rate was significantly associated with both cognitive control and exective function, over-and-above its association with accuracy and the NIH Toolbox scores (see Figure \# and Table \#). These relationships indicates that faster or higher quality accumulation of evidence (drift rate) is associated with better performance (i.e., faster) on a cognitive control task and executive function overall. Results were similar when examining drift rate to congruent and incongruent stimuli separately (see Supplement). Accuracy to incongruent stimuli was also associated with congitive control and executive function when entered into a model with drift rate and the NIH Toolbox score. This relationship indicates, somewhat surprisingly, that lower accuracy is associated with better performance on a cognitive control task and executive function overall. However, since the bivariate correlation is non-significant (cognitive control: $r$(`r inh_acc_cor$n-1`) = `r round(inh_acc_cor$r,2)`, $p$ = `r round(inh_acc_cor$p,2)`; executive function:$r$(`r exec_acc_cor$n-1`) = `r round(exec_acc_cor$r,2)`, $p$ = `r round(exec_acc_cor$p,2)`), this potentially indicates a suppression effect.
 
-Identical models that included boundary separation instead of drift rate were also fitted. Boundary separation was significantly associated with ERN in Study 2 but not in any of the three sessions from Study 1 (see Figure \# and Table \#). This relationship indicates that a greater valuing of correct responses, at the cost of slower responses (thus larger separation between the decision boundaries), is associated with a smaller (less negative) ERN amplitude. Accuracy and NIH Toolbox scores are not significantly associated with ERN for either Study 1 nor Study 2 when boundary separation is included in the model.
+Identical models that included boundary separation instead of drift rate were also fitted. Boundary separation was significantly associated with ERN in Study 1 but not in any of the three sessions from Study 2 (see Figure \# and Table \#). This relationship indicates that a greater valuing of correct responses, at the cost of slower responses (thus larger separation between the decision boundaries), is associated with a smaller (less negative) ERN amplitude. Accuracy and NIH Toolbox scores are not significantly associated with ERN for either Study 2 nor Study 1 when boundary separation is included in the model.
 
 ### Familiality
 
@@ -797,7 +704,7 @@ There were also specific exceptions and limitations to the conclusions described
 First, although the HDDM model outperformed raw accuracy and the NIH Toolbox score, it should be noted that these latter scores require fewer trials to generate a score.
 However, it is possible that HDMM models may be fitted with fewer than 330 trials (i.e., 30 trials in 11 blocks) to achieve convergence and stable parameter estimates.
 Indeed, we found that at around block 7 (210 trials), estimates of drift rate began to reach an asymptote.
-Second, while the relationship between drift rate and the ERN in session 3 of Study 1 was non-significant, the effect size is consistent with session 1 of Study 1 and Study 2, suggesting that the sample from session 3 may have been underpowered to detect this effect.
+Second, while the relationship between drift rate and the ERN in session 3 of Study 2 was non-significant, the effect size is consistent with session 1 of Study 2 and Study 1, suggesting that the sample from session 3 may have been underpowered to detect this effect.
 It is also possible that this was due to practice effects.
 Future research with large, longitudinal samples would be able to address this.
 Third, we indicated both statistically significant and trending effects, as well as their 95% confidence interval.
@@ -819,6 +726,9 @@ We hope that this supports researchers in designing studies of cognitive control
 In doing so, such findings have the potential to inform low-cost, behavioral targets for clinical intervention.
 
 \newpage
+
+# Acknowledgements
+The authors would like to thank all the participants from both studies. They would also like to thank Dr. James Glazer for insight on ERP analyses. This work was supported by NIH Grants R01 MH11874 (SAS), R01 MH098093 (SAS), TL1 TR001423 (AML), and T32 MH126368 (BIR).
 
 # References
 
