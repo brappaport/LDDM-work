@@ -1,8 +1,8 @@
 ---
-title             : "Psychometrics of hierarchical drift diffusion modeling for Eriksen flanker task: Reliability and validity in two samples"
+title             : "Psychometrics of parameters from hierarchical drift diffusion modeling of the Eriksen flanker task: Reliability and validity in two samples"
 shorttitle        : "Psychometrics of HDDM"
 author: 
-  - name          : "Brent I. Rappaport"
+  - name          : "Brent Ian Rappaport"
     affiliation   : "1"
     corresponding : yes    # Define only one corresponding author
     address       : "680 N. Lakeshore Drive, Suite 1520, Chicago, IL 60611"
@@ -21,7 +21,7 @@ author:
       - "Methodology"
       - "Writing - Original Draft Preparation"
       - "Writing - Review & Editing"
-    - name          : "Savannah Buchanan"
+  - name          : "Savannah N. Buchanan"
     affiliation   : "1"
     role:
       - "Writing - Review & Editing"
@@ -52,10 +52,9 @@ affiliation:
     
 abstract: |
   
-  Despite wide use of the Eriksen flanker task to probe individual differences in cognitive control, little research has assessed the psychometric properties of measures of behavioral performance on this task. In the task, participants judge the direction of a central target (< or > arrow) amidst flanking distractor stimuli (other arrows), which are either pointing in the same direction (<<<<<) or opposite direction (>><>>) leading to congruent and incongruent conditions. We examined the reliability and validity of three behavioral measures of the Eriksen flanker, specifically 1) raw accuracy, 2) a NIH Toolbox derived score that incorporates reaction time and accuracy, and 3) parameters of a hierarchical drift diffusion model (HDDM). Participants from two independent studies—one cross-sectional sample (N=392) and one longitudinal sample with three time points (N=79, 70, 68, respectively)—completed the Flanker task while electroencephalography data was collected. Results of HDDM modeling focused on two computationally derived parameters: drift rate to congruent/incongruent stimuli (which reflects efficiency to accumulate evidence to make decisions) and separation between decision boundaries (which reflects speed-accuracy tradeoff). In the two studies, drift rate, particularly for congruent stimuli, demonstrated better split-half and test-retest reliability than the NIH Toolbox score. Drift rate also demonstrated better convergent validity with brain measures (i.e., the error-related negativity event-related potential component) and neuropsychological measures of inhibition and executive function. Results showed that faster accumulation of evidence (drift rate) was related to 1) larger ERN amplitudes and 2) faster and more accurate inhibition and shifting over and above the NIH Toolbox and raw accuracy scores and covariates (IQ, motor speed). These models can be fit to many extant datasets; thus, findings suggest that these models may be powerful tools in identifying aberrations in cognitive functioning associated with psychiatric disorders.
+  The Eriksen flanker task, which requires judging the direction of a central target (< or > arrow) amidst flanking distractor stimuli that either point in the same direction (<<<<<; i.e., congruent) or opposite direction (>><>>; i.e., incongruent) of the target, is a widely used probe of individual differences in cognitive control. Despite decades of research on the task, little research has assessed the psychometric properties of its measures of behavioral performance. We therefore examined the reliability and validity of three behavioral measures of the Eriksen flanker, specifically 1) raw accuracy, 2) a NIH Toolbox derived score that incorporates reaction time and accuracy, and 3) parameters of a hierarchical drift diffusion model (HDDM). Participants from two independent studies—one cross-sectional sample (N=392) and one longitudinal sample with three time points (N=79, 70, 68, respectively)—completed the Flanker task while electroencephalography data was collected. Results of HDDM modeling focused on two computationally derived parameters: drift rate to congruent/incongruent stimuli (which reflects efficiency to accumulate evidence to make decisions) and separation between decision boundaries (which reflects speed-accuracy tradeoff). In the two studies, drift rate demonstrated comparable split-half and test-retest reliability to the NIH Toolbox score and accuracy to incongruent stimuli. However, drift rate demonstrated better convergent validity with brain measures (i.e., the error-related negativity event-related potential) and neuropsychological measures of inhibition and executive function. Results showed that faster accumulation of evidence (drift rate) was related to 1) larger ERN amplitudes and 2) faster and more accurate inhibition and shifting over and above the NIH Toolbox and raw accuracy scores and covariates (IQ, motor speed). These models parse behavioral performance into more meaningful measures of cognitive control; thus, findings suggest that these models may be powerful tools in identifying aberrations in cognitive functioning associated with psychiatric disorders.
   
-keywords          : "psychometric, computational modeling, EEG, cognitive control, executive function"
-wordcount         : "X"
+keywords          : "cognitive control, Flanker task, psychometric, computational modeling, EEG, executive function"
 bibliography      : "LDDM.bib"
 floatsintext      : no
 linenumbers       : yes
@@ -73,7 +72,7 @@ editor_options:
     wrap: sentence
 ---
 
-```{r echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+```{r echo=FALSE, results='hide', message=FALSE, warning=FALSE, error=FALSE}
     options(width=80, Ncpus = 6, mc.cores=6) #Set width
     rm(list=ls())     #Remove everything from environment
     cat("\014")       #Clear Console
@@ -97,6 +96,8 @@ editor_options:
   library(ggpubr)
   library(scales)
   library(forcats)
+  library(scipub)
+  library(datawizard)
   library(workflowr)  #helps with workflow
 
 r_refs("LDDM.bib")
@@ -133,105 +134,95 @@ make_CI <- function(lower, upper) {
 group.colors <- c(`Drift rate` = "salmon", `Drift rate (congruent)` = "darkviolet", `Drift rate (incongruent)` ="blue", `Boundary separation` = "green", `NIH Toolbox` = "orange", `Accuracy (incongruent)` = "red")
 ```
 
-Executive functioning, and cognitive control in particular, is a richly studied area of cognitive psychology and neuroscience [@banichExecutiveFunctionSearch2009]. Cognitive control reflects the ability to coordinate and use psychological functions such as memory, attention, and action selection and inhibition [@botvinickMotivationCognitiveControl2015]. Thus, it is key to understanding human behavior. Alterations in cognitive control have far reaching consequences, for instance impacting healthy aging [@braverTheoryCognitiveControl2002] and mental health [@mcteagueTransdiagnosticImpairmentCognitive2016; @smucnyCrossdiagnosticAnalysisCognitive2019].
+Executive functioning, and cognitive control in particular, is a richly studied area of cognitive psychology and neuroscience [@banichExecutiveFunctionSearch2009].Cognitive control is a specific aspect of executive functioning that reflects the ability to coordinate and use psychological functions such as memory, attention, and action selection and inhibition  [@botvinickMotivationCognitiveControl2015]. Alterations in cognitive control have far reaching consequences, for instance impacting healthy aging [@braverTheoryCognitiveControl2002] and mental health [@mcteagueTransdiagnosticImpairmentCognitive2016; @smucnyCrossdiagnosticAnalysisCognitive2019].
 
-One commonly used task to assess cognitive control is the Eriksen flanker task [@eriksenEffectsNoiseLetters1974]. This task involves asking participants to identify the central symbol in a string of symbols which are either congruent (i.e., the same) or incongruent (i.e., different) with the central symbol (for further history and details see @ridderinkhofArrowTimeAdvancing2021). The task has been implemented with a variety of symbols, though arrows have been most widely used (e.g., with arrows, congruent = < < < < <  and incongruent = < < > < <,  for further history and details see @ridderinkhofArrowTimeAdvancing2021). Participants are often instructed to balance responding correctly with responding quickly. This leads to errors (particularly in the more difficult incongruent condition) and response slowing due to response competition. Participants’ ability therefore to respond both quickly and correctly is thought to quantify meaningful information about their cognitive control abilities. The flanker task’s robustness along with its simplicity has led to over 4000 citations of the original study due to over nearly 50 years on use to study cognitive control abilities [@ridderinkhofArrowTimeAdvancing2021].
+One commonly used task to assess cognitive control is the Eriksen flanker task [@eriksenEffectsNoiseLetters1974]. This task involves asking participants to identify the central symbol in a string of symbols which are either congruent (i.e., the same) or incongruent (i.e., different) with the central symbol. The task has been implemented with a variety of symbols, though arrows have been most widely used (e.g., congruent: < < < < < and incongruent: < < > < <, for further history and details see  @ridderinkhofArrowTimeAdvancing2021). Participants are typically instructed to balance responding correctly with responding quickly. This leads to errors (particularly in the more difficult incongruent condition) and response slowing due to response competition. Participants’ ability therefore to respond both quickly and correctly is thought to quantify meaningful information about their cognitive control abilities. The flanker task’s robustness at probing cognitive control abilities along with its simplicity has led to over 4000 citations of the original study over the course of nearly 50 years [@ridderinkhofArrowTimeAdvancing2021].
 
-Historically, researchers have used accuracy and reaction time as their primary behavioral measures of interest from the Flanker [e.g., @hsiehElderlyAdultsCompensatory2012; @huyserDevelopmentalAspectsError2011; @imburgioEstablishingNormsErrorrelated2020; @luksAtrophyTwoAttention2010; @mcdermottVariationsFlankerParadigm2007; @moorePersistentInfluencePediatric2015; @scudderAerobicCapacityCognitive2014; @wylieEffectSpeedaccuracyStrategy2009], despite research showing poor psychometrics. For example, two studies found poor test-retest reliability for these measures, with ICCs ranging from 0.25 for accuracy to congruent trials to 0.41 for accuracy to incongruent trials (and 0.37 for accuracy over all trials) in one study [@sandersPsychometricPropertiesFlanker2018] and a correlation coefficient of 0.25 between two time points in another study [@meyerPsychometricPropertiesErrorrelated2014]. Reaction time showed slightly better ICCs of 0.52 for congruent trials and 0.65 for incongruent trials (and 0.66 over all trials) in one study [@sandersPsychometricPropertiesFlanker2018] and a correlation coefficient of 0.58 for correct trials and 0.40 for incorrect trials between two time points in another study [@meyerPsychometricPropertiesErrorrelated2014]. That said, two other psychometric studies showed high test-retest reliability for reaction time. Specifically finding ICCs of 0.39-0.86 for different statistics of reaction time on congruent trials and 0.60-0.88 on incongruent trials and 0.65 for accuracy on incongruent minus congruent trials [@paapRoleTestretestReliability2016a; @wostmannReliabilityPlasticityResponse2013]. Accuracy also shows poor internal consistency, in one case ranging from Cronbach's alphas over two time points ranging from -0.17 and -0.18 on congruent trials to 0.28 and 0.45 on incongruent trials [@wostmannReliabilityPlasticityResponse2013]. Reaction time, however, shows better split-half reliability, with Spearman-Brown prophecy statistics of 0.94 and 0.96 (and 0.83 in another study) for congruent trials and 0.95 and 0.98 (and 0.80 in another study) for incongruent trials, in two repeated measures; however this study only used 32 trials per condition [@paapRoleTestretestReliability2016a; @stinsRESPONSEINTERFERENCEWORKING2005]. In terms of validity, accuracy and reaction time show variable convergent validity. Two studies found both accuracy and RT to be significantly correlated with one other measure of congitive control (e.g., Stroop: accuracy: *r* = 0.54; RT: *r* = 0.67 and 0.40) [@keyeIndividualDifferencesConflictmonitoring2009; @stinsRESPONSEINTERFERENCEWORKING2005]. While one study found overall accuracy and RT (i.e., across both congruent and incongruent conditions) to also be significantly correlated with RT on the Simon task [accuracy: *r* = 0.56; RT: *r* = 0.56; @stinsRESPONSEINTERFERENCEWORKING2005], another did not [reaction time: *r* = -0.01; @paapThereNoCoherent2013]. Moreover, examining accuracy and reaction time separately limits researcher’s ability examine participants’ ability to maintain high accuracy while increasing their reaction time.
+Historically, researchers have used accuracy and reaction time as their primary behavioral measures of interest from the Flanker [e.g., @huyserDevelopmentalAspectsError2011; @imburgioEstablishingNormsErrorrelated2020; @moorePersistentInfluencePediatric2015; @wylieEffectSpeedaccuracyStrategy2009], despite research showing mixed psychometrics. For example, some studies have found poor test-retest reliability. Specifically, finding ICCs ranging from 0.25-0.41 for accuracy to congruent and incongruent trials [@sandersPsychometricPropertiesFlanker2018] and a 0.25 correlation between two time points [@meyerPsychometricPropertiesErrorrelated2014]. Reaction time showed slightly better ICCs of 0.52 and 0.65 for congruent and incongruent trials, respectively [@sandersPsychometricPropertiesFlanker2018] and correlations of 0.58 and 0.40 for correct and incorrect trials, respectively, between two time points [@meyerPsychometricPropertiesErrorrelated2014]. That said, other psychometric studies found high test-retest reliability for reaction time; specifically ICCs of 0.39-0.88 and 0.65 for accuracy on incongruent minus congruent trials [@paapRoleTestretestReliability2016a; @wostmannReliabilityPlasticityResponse2013]. For internal consistency, accuracy yielded Cronbach's alphas over two time points ranging from -0.17 and -0.18 on congruent trials to 0.28 and 0.45 on incongruent trials [@wostmannReliabilityPlasticityResponse2013]. Reaction time, however, shows better split-half reliability, with Spearman-Brown prophecy statistics of 0.83-0.94 and 0.80-0.98 for congruent and incongruent trials, respectively [@paapRoleTestretestReliability2016a; @stinsRESPONSEINTERFERENCEWORKING2005]. Finally, in testing of validity, accuracy and reaction time show variable convergent validity. Studies show both accuracy and RT to be significantly correlated with performance on the Stroop task (accuracy: *r* = 0.54; RT: *r* = 0.67 and 0.40) [@keyeIndividualDifferencesConflictmonitoring2009; @stinsRESPONSEINTERFERENCEWORKING2005], and Simon task [accuracy: *r* = 0.56; RT: *r* = 0.56; @stinsRESPONSEINTERFERENCEWORKING2005]. However another study did not [reaction time: *r* = -0.01; @paapThereNoCoherent2013]. Besides mixed psychometrics, a more significant problem in examining accuracy and reaction time separately is that it limits researcher’s abilityto examine participants’ ability to maintain high accuracy while increasing their reaction time.
 
-In response to these concerns, researchers developed a score that can be extracted from behavioral responses during the Flanker task that combines reaction time and accuracy [@zelazoNIHToolboxCognition2014], a measure that is included in the National Institute of Health Toolbox (hereafter referred to as the NIH Toolbox score). This score ought to improve psychometrically upon accuracy, by including reaction time in its calculation  [@meyerPsychometricPropertiesErrorrelated2014]. While the NIH Toolbox measure has exhibited good test-retest reliability in two samples (ICC = 0.83 and 0.92) and convergent validity (i.e., significant correlations) with Wechsler Preschool and Primary Scale of Intelligence-III (WPPSI-III) Block Design in 3-6 year olds (*r* = 0.60) and Delis-Kalpan Executive Function System (D-KEFS) Inhibition raw scores in 8-15 year olds (*r* = 0.34) and adults (*r* = 0.52), as well as with the NIH Toolbox Dimensional Change Card Sort Test (*r*  = 0.71) [@zelazoNihToolboxCognition2013; @zelazoNIHToolboxCognition2014], it still has a number of inherent limitations. First, it only includes reaction time on incongruent trials, thus excluding information about participants differential reaction time to incongruent relative to congruent stimuli. Second, like accuracy, it conflates many underlying psychological processes. For example, participants may slow down in responding due to a greater emphasis on accuracy, greater difficulty accumulating evidence in order to make a response, or simply distraction. Measures that rely only on accuracy and/or reaction time conflate these causes. Third, by calculating a summary statistic (e.g., mean), information about the trial-to-trial variability---crucial for improving reliability [@chenTrialErrorHierarchical2021] and convergence with brain measures [@ratcliffQualityEvidencePerceptual2009; @wieckiHDDMHierarchicalBayesian2013]---is lost.
+In response to these concerns, researchers developed a score that can be extracted from behavioral responses during the Flanker task that combines reaction time and accuracy [@zelazoNIHToolboxCognition2014], a measure that is included in the National Institute of Health Toolbox (hereafter referred to as the NIH Toolbox score). This score ought to improve psychometrically upon accuracy, by including reaction time in its calculation  [@meyerPsychometricPropertiesErrorrelated2014]. While the NIH Toolbox measure has exhibited good test-retest reliability in two samples (ICC = 0.83 and 0.92) and convergent validity with other measures of executive functioning more broadly (*r* = 0.60-0.71) and inhibition more specifically (*r* = 0.34; and *r* = 0.52) in adults and youth, as well as with the NIH Toolbox Dimensional Change Card Sort Test () [@zelazoNihToolboxCognition2013; @zelazoNIHToolboxCognition2014], it still has a number of inherent limitations. First, the NIH Toolbox measure only includes reaction time on incongruent trials, thus excluding information about participants differential reaction time to incongruent relative to congruent stimuli. Second, like accuracy, it conflates many underlying psychological processes. For example, participants may slow down in responding due to a greater emphasis on accuracy, greater difficulty accumulating evidence in order to make a response, or simply distraction. Third, by calculating a summary statistic (e.g., mean), information about the trial-to-trial variability---crucial for improving reliability [@chenTrialErrorHierarchical2021] and convergence with brain measures [@ratcliffQualityEvidencePerceptual2009; @wieckiHDDMHierarchicalBayesian2013]---is lost.
 
-In responses to these limitations, a novel way to assess cognition in this task is drift diffusion modeling [DDM; @ratcliffDiffusionDecisionModel2016; @ratcliffComparisonSequentialSampling2004; @ratcliffDiffusionDecisionModel2008], or hierarchical DDM (HDDM; a variety that uses hierarchical Bayesian parameter estimation) [@gutchessCulturalDifferencesPerformance2021; @ulrichsenDissectingCognitivePhenotype2020; @wieckiHDDMHierarchicalBayesian2013]. DDM offers a clear advantage--the modeling of multiple different cognitive processes. This is done by using trial-by-trial accuracy and reaction times to differing stimuli (i.e., congruent and incongruent) to estimate parameters associated with and affected by specific changes in cognition, separate from changes in performance. This results in one value per parameter per participant. Importantly, each parameter controls for the effects of the other parameters included in the model [@whiteUsingDiffusionModels2010; @whiteAnxietyEnhancesThreat2010]. Thus, where other measures conflate the many cognitive processes that give rise to cognitive control, DDM differentiates them. This is important, for example, in clinical studies looking to identify specific, subtle processes aberrant in psychiatric disorders that may not lead to broad cognitive impairments [e.g., @moserRelationshipAnxietyError2013]. Indeed, DDM parameters tend to be more sensitive to differences in task performance [@peDiffusionModelAccount2013; @whiteAnxietyEnhancesThreat2010] as well as complimentary to accuracy and reaction time [@hallDisentanglingCognitiveProcesses2021a]. In one case, DDM has already been used to improve the psychometric properties the dot-probe task [@priceComputationalModelingApplied2019].
+In responses to these limitations, a novel way to assess cognitive control in the Flanker task is drift diffusion modeling [DDM; @ratcliffDiffusionDecisionModel2016; @ratcliffComparisonSequentialSampling2004; @ratcliffDiffusionDecisionModel2008], or hierarchical DDM (HDDM; a variety that uses hierarchical Bayesian parameter estimation) [@gutchessCulturalDifferencesPerformance2021; @ulrichsenDissectingCognitivePhenotype2020; @wieckiHDDMHierarchicalBayesian2013]. DDM offers a clear advantage over prior behavioral measures--the modeling of multiple different cognitive processes. This is done by using trial-by-trial accuracy and reaction times to differing stimuli (i.e., congruent and incongruent) to estimate parameters associated with and affected by specific changes in cognition. This results in one value per parameter per participant. Importantly, each parameter controls for the effects of the other parameters included in the model [@whiteUsingDiffusionModels2010; @whiteAnxietyEnhancesThreat2010]. Thus, where other measures conflate the many cognitive processes that give rise to cognitive control, DDM differentiates them. This is important, for example, in clinical studies looking to identify specific, subtle processes aberrant in psychiatric disorders [e.g., @moserRelationshipAnxietyError2013]. Indeed, DDM parameters tend to be more sensitive to differences in task performance [@peDiffusionModelAccount2013; @whiteAnxietyEnhancesThreat2010] as well as complimentary to accuracy and reaction time [@hallDisentanglingCognitiveProcesses2021a].
 
-DDM models yield a number of key parameters that operationalize meaningful psychological processes [see @ratcliffDiffusionDecisionModel2016 for full discussion of DDM parameters]. Two DDM parameters that can be extracted from the flanker task that are particularly relevant for cognitive control are (a) drift rate and (b) boundary separation [@bogaczNeuralBasisSpeed2010]. Technically, drift rate is the average rate to approach a boundary (see Figure 1).  Psychologically, it represents the quality or strength of evidence gleaned from the stimulus. A faster drift rate represents a better ability to encode evidene from the stimulus [@ratcliffDiffusionDecisionModel2016], resulting in fast and accurate responses. Technicality, boundary separation is the distance between the two decision thresholds (for correct and incorrect responses). Psychologically, it represents the participant's speed-accuracy trade off or response caution, or their willingness to be wrong for the sake of being fast (or be slow for the sake of being correct). A larger boundary separation represents that the participant is favoring being correct than being fast, leading to more accurate albeit slower responses. A smaller boundary separation repreents that the participant is favoring being fast than being correct, leading to faster albeit less accurate responses. These parameters have meaningful relationships with cognitive functions [e.g., effortful control @ossolaEffortfulControlAssociated2021a] and psychopathology [@dillonComputationalAnalysisFlanker2015; @hallDisentanglingCognitiveProcesses2021a; @hallerComputationalModelingAttentional2021].
+DDM models yield a number of parameters that operationalize meaningful psychological processes [see @ratcliffDiffusionDecisionModel2016 for full discussion of DDM parameters]. Two DDM parameters that are particularly relevant for cognitive control are (a) drift rate and (b) boundary separation [@bogaczNeuralBasisSpeed2010]. Computationally, drift rate is the average rate to approach and cross a response boundary (see Figure 1). Psychologically, drift rate represents the rate of accumulating evidence, individual's ability to extract evidence from the stimulus (e.g., determine the direction of the central arrow). A larger drift rate represents better evidence accumulation, leading to fast and more accurate answers. Computationally, boundary separation is the distance between the upper and lower boundaries. Psychologically, boundary separation represents participants’ speed-accuracy trade off or “response caution”, which is their willingness to be wrong for the sake of being fast (or be slow for the sake of being correct). Greater distance between the response boundaries (i.e., a larger boundary separation) represents whether the participant favors being correct over being fast, leading to more accurate, albeit slower, responses (and vice versa for a smaller boundary separation). These parameters have been shown to have meaningful relationships with cognitive functions [e.g., effortful control @ossolaEffortfulControlAssociated2021a] and psychopathology [@dillonComputationalAnalysisFlanker2015; @hallDisentanglingCognitiveProcesses2021a; @hallerComputationalModelingAttentional2021].
 
-Despite the promise of DDM, the psychometric properties of parameters from DDM from Flanker data (and many other tasks for that matter) have not been evaluated and compared to more traditional measures like accuracy or the NIH Toolbox score. This is important because reliability and validity are necessary to identify measures of stable and meaningful individual differences. Measures with low reliability may be spuriously correlated with a particular measure of interest, that does not replicate in other samples. Likewise, measures with low validity may be correlated with one measure of interest, but not generalize to other similar measures of interest. Therefore, the goal of the current study is to compare the reliability and validity of these measures. This paper focuses on multiple aspects of reliability (split-half and test-retest reliability), as well as convergent validity with brain and behavioral validators of cognitive control. As a brain validator, we used the error-related negativity (ERN), an event-related potential (ERP) in the EEG signal that occurs in response to the commission of errors [@falkensteinEffectsCrossmodalDivided1991; @gehringNeuralSystemError1993] and has been used in numerous studies as an indicator of performance monitoring [@holroydNeuralBasisHuman2002] and of cognitive control [@meyerReviewExaminingRelationship2019; @meyerPsychometricPropertiesErrorrelated2014]. Importantly, the flanker task elicits an ERN that, though correlated with the ERN from similar tasks [@rieselERNERNERN2013], is more robust when participants complete few errors and has better internal consistency than ERNs from other cognitive control tasks such as Go/No-go, Stoop, and picture/word tasks [@fotiPsychometricConsiderationsUsing2013; @meyerReliabilityERNMultiple2013; @meyerPsychometricPropertiesErrorrelated2014]. Clinical meta-analyses have purported the ERN as a potential transdiagnostic indicator, spanning certain aspects of anxiety [@cavanaghErrorSpecificCognitiveControl2017; @moserRelationshipAnxietyError2013; @rieselErringBrainErrorrelated2019] externalizing [@hallDisentanglingCognitiveProcesses2021a; ]@meyerReviewExaminingRelationship2019], and psychotic disorder dimensions [@fotiPsychometricConsiderationsUsing2013]. As a behavioral validator, we used neuropsychological measures of cognitive control specifically and executive function broadly based on performance from the D-KEFS. These neuropsychological measures are widely used in clinical and research contexts and lauded for their robust reliability and validity  [@delisReliabilityValidityDelisKaplan2004; @strongCriterionValidityDelisKaplan2011], making them ideal standards against which to test these measures.
+Despite the promise of DDM, the psychometric properties of parameters from DDM from Flanker data (and many other tasks for that matter, although see @priceComputationalModelingApplied2019 for how DDM improves the psychometrics of the dot-probe task) have not been evaluated and compared to more traditional measures like accuracy or the NIH Toolbox score. This is important because reliability and validity are necessary to identify whether measures have stable and meaningful individual differences [@cronbachConstructValidityPsychological1955]. Measures with low reliability may be spuriously correlated with a particular measure of interest, and thus lead to failures to replicate in other samples. Likewise, measures with low validity may be correlated with one measure of interest, but not generalize to other similar measures of interest. Therefore, the goal of the current study is to compare the reliability and validity of these behavioral measures from the Flanker task. This paper focuses on multiple aspects of reliability (split-half and test-retest reliability), as well as convergent validity with brain and behavioral validators of cognitive control. As a brain validator, we used the error-related negativity (ERN), an event-related potential (ERP) in the EEG signal that occurs in response to the commission of errors [@falkensteinEffectsCrossmodalDivided1991; @gehringNeuralSystemError1993], a neurophysiological measure that has been used in numerous studies as an indicator of performance monitoring [@holroydNeuralBasisHuman2002] and of cognitive control [@meyerReviewExaminingRelationship2019; @meyerPsychometricPropertiesErrorrelated2014]. Importantly, the flanker task elicits an ERN that, though correlated with the ERN from similar tasks [@rieselERNERNERN2013], is more robust when participants complete few errors and has better internal consistency than ERNs from other cognitive control tasks such as Go/No-go, Stoop, and picture/word tasks [@fotiPsychometricConsiderationsUsing2013; @meyerReliabilityERNMultiple2013; @meyerPsychometricPropertiesErrorrelated2014]. Clinical meta-analyses have posited the ERN as a potential transdiagnostic indicator, spanning certain aspects of anxiety [@cavanaghErrorSpecificCognitiveControl2017; @moserRelationshipAnxietyError2013; @rieselErringBrainErrorrelated2019] externalizing [@hallDisentanglingCognitiveProcesses2021a; ]@meyerReviewExaminingRelationship2019], and psychotic disorder dimensions [@fotiPsychometricConsiderationsUsing2013]. As a behavioral validator, we used neuropsychological measures of cognitive control specifically and executive function broadly based on performance from the D-KEFS color-word interference task [D-KEFS; @delisDelisKaplanExecutiveFunction2012]. These neuropsychological measures are widely used in clinical and research contexts and lauded for their robust reliability and validity  [@delisReliabilityValidityDelisKaplan2004; @strongCriterionValidityDelisKaplan2011], making them ideal standards against which to test the validity of the behavioral measures for the flanker.
 
-We further supplemented these analyses; specifically, for reliability, we aimed to identify the number of trials needed to achieve a stable parameter estimate. This is necessary as DDM analyses typically require a large number of trials (CITE) which may be difficult to collect in clinical, youth, and older adult samples. In fact, the NIH Toolbox is limited to 20 trials for this reason (CITE). Identifying the minimum number of trials can further research in two meaningful ways: 1) it broadens the populations that can be administered versions of the Flanker task that use DDM, and 2) it helps researchers determine whether DDM modeling of extant data will yield meaningful results.
+We further supplemented these analyses; specifically, for reliability, we aimed to identify the number of trials needed to achieve a stable parameter estimate. This is necessary as DDM analyses typically require a large number of trials [at least 200; @lercheHowManyTrials2017] which may be difficult to collect in clinical, youth, and older adult samples. In fact, the NIH Toolbox is limited to only 20 trials. Identifying the minimum number of trials can further research in two meaningful ways: 1) it broadens the populations that can be administered versions of the Flanker task that use DDM, and 2) it helps researchers determine whether DDM modeling of extant data will yield meaningful results.
 
-Finally, for validity, we leveraged sibling pairs in one study to compare the familiality of DDM parameters, accuracy, and the NIH Toolbox score. **SEE STEW'S OTHER PAPERS FOR THIS PART**
+For validity, we leveraged sibling pairs in one study to compare the familiality (i.e., whether the measures "run in families") of DDM parameters, accuracy, and the NIH Toolbox score. Performance on neurocognitive tasks has been repeatedly shown to be significantly heritable [@bigdeliEvidenceSharedFamilial2020; @calkinsSexDifferencesFamiliality2013; @friedmanLongitudinalRelationsDepressive2018; @wattersCharacterizingNeurocognitiveMarkers2019]. Demonstrating shared variance within families would further support each behavioral measure's ability to detect meaningful neuropsychological functioning [@shankmanPsychopathologyResearchRDoC2015]. High test-retest reliability but low familiality (i.e. covariance between sibling probands) could indicate a task-specific effect. That is, that a measure is highly reliable at detecting performance on Flanker, but that this measure does not represent a higher-order construct that ought to be shared within families.
 
-Finally, responses to the recent replication crisis in psychology have emphasized the importance of replicating results in independent samples [@opensciencecollaborationOpenLargeScaleCollaborative2012; @opensciencecollaborationEstimatingReproducibilityPsychological2015]. Moreover, there have also been concerns that tasks with strong condition-level effects lead to reduced between-person variability and thus unstable individual differences [@hedgeReliabilityParadoxWhy2018]. Thus, a final goal was to replicate some of the findings in an independent sample. We compared findings across two studies. One is a large cross-sectional study that also included neuropsychological measures and sibling pairs, allowing us to test convergent validity and familiality. The other is a longitudinal study with three time points, allowing us to test-retest reliability and within-subjects replication of validity. This meant that we could test both within-person (across time) and between-person (across study) replication, an unique strength of the current study. 
+Finally, responses to the recent replication crisis in psychology have emphasized the importance of replicating results in independent samples [@opensciencecollaborationOpenLargeScaleCollaborative2012; @opensciencecollaborationEstimatingReproducibilityPsychological2015]. Moreover, there have also been concerns that tasks with strong condition-level effects (in this case, differences between congruent and incongruent) lead to reduced between-person variability and thus unstable individual differences [@hedgeReliabilityParadoxWhy2018]. Thus, a final goal was to replicate some of the findings in an independent sample. We compared findings across two studies. One is a large cross-sectional study that also included neuropsychological measures and sibling pairs, allowing us to test familiality and convergent validity with (a) the ERN and (b) D-KEFS measures of executive functioning. The other is a longitudinal study with three time points, allowing us to test-retest reliability and within-subjects replication of validity with the ERN. This meant that we could test both within-person (across time) and between-person (across study) replication, a unique strength of the current study.
 
 Thus in sum, we sought to examine the reliability and validity of three measures of behavioral performance on a well-studied behavioral task of cognitive control: the Eriksen flanker task [@eriksenEffectsNoiseLetters1974]. We compared the psychometric properties of two HDDM parameters, raw accuracy, and a NIH Toolbox derived score across two independent adult samples. Both studies assess split-half reliability and convergent validity with brain measures (i.e., the ERN).
 
 # Methods
-**UPDATE METHODS WITH STEW'S COMMENTS**
 
 ## Participants
 
 ### Study 1
-
-For Study 1, individuals were recruited from mental health clinics and the local community. Inclusion criteria were being 18--30-years-old, having a biological sibling within the same age range able to participate, and being right-handed. Exclusion criteria were being left-handed, being unable to read or write in English, having a history of a head trauma with loss of consciousness, or having a first-degree family member with a history of manic, hypomanic, or psychotic symptoms [for full method details, see @gorkaIntoleranceUncertaintyInsula2016; @weinbergBluntedNeuralResponse2015]. Participants were oversampled for severe internalizing psychopathology using the Depression, Anxiety, and Stress Scale [DASS; @lovibondStructureNegativeEmotional1995] during initial screening.
+For Study 1, individuals were recruited from mental health clinics and the local community [see @correaRoleIntoleranceUncertainty2019; @weinbergBluntedNeuralResponse2015 for full study details]. Inclusion criteria were being 18–30-years-old, having a biological sibling within the same age range able to participate, and being right-handed. Exclusion criteria were an inability to read or write in English, having a history of a head trauma with loss of consciousness, or having a first-degree family member with a history of manic, hypomanic, or psychotic symptoms (for full method details, see). Participants were oversampled for severe internalizing psychopathology using the Depression, Anxiety, and Stress Scale [DASS; @lovibondStructureNegativeEmotional1995] during initial screening. Subjects were excluded from analyses for poor accuracy on the flanker task (i.e., < 50%; N=0), poor EEG data quality (i.e., fewer than 10 artifact-free trials per condition, data collection issues, or too little artifact free data; N=57) or missing data (N=43).
 
 ### Study 2
-
-For Study 2, individuals were recruited from flyers posted around a university campus and screened over the phone to determine eligibility. Inclusion criteria were being 18--60-years-old and right-handed. Exclusion criteria were a history of major medical or neurological problems, or head trauma with loss of consciousness for greater than 15 minutes. Left-handed or ambidextrous individuals were also excluded. Participants were scheduled for 5 laboratory visits, ensuring that consecutive visits occurred 2--14 days apart (median=7).  A total of 86 participants provided informed consent and completed the study, with a majority completing all five sessions (n = 74, 86%) and six participants completing only one session (7%). Within-subject sessions were excluded from analyses for poor accuracy on the flanker task (i.e., < 50%) or poor EEG data quality (i.e., fewer than 10 artifact-free trials per condition) or missing data. One participant was excluded across all sessions due to below 50% accuracy on the flanker task. See Table 1 for full demographic information on the final sample.
+For Study 2, individuals were recruited from flyers posted around a university campus and screened over the phone to determine eligibility. Inclusion criteria were being 18–60-years-old and right-handed. Exclusion criteria were a history of major medical or neurological problems, or head trauma with loss of consciousness for greater than 15 minutes. Left-handed or ambidextrous individuals were also excluded due to concerns of laterality in EEG measures. Data was used from the first three sessions of a longitudinal study [@weinbergEmotionElicitedLate2021] in which participants completed the flanker task multiple times. Sessions were excluded from within-subject analyses for poor accuracy on the flanker task (i.e., < 50%) or poor EEG data quality (i.e., fewer than 10 artifact-free trials per condition) or missing data. One participant was excluded across all sessions due to below 50% accuracy on the flanker task. See Table 1 for full demographic information on the final sample.
 
 ## Procedure
 
 ### Flanker task
 
-Across Studies 1 and 2, an arrowhead version of the flanker task was administered using Presentation software (Neurobehavioral Systems, Berkeley, CA). On each trial, participants were presented with a row of five arrowheads for 200 ms and were asked to indicate the direction of the central arrowhead with the left or right mouse button as quickly and accurately as possible. Half of the trials were congruent, and half were incongruent with trial order randomized. Participants completed 11 blocks of 30 trials (330 trials total), with short breaks and performance-based feedback given in between blocks. At the end of each block, participants received one of three types of performance feedback: if accuracy was 75% or lower, the message “Please try to be more accurate” was displayed; if accuracy was above 90%, the message “Please try to respond faster” was displayed; if accuracy was between 75% and 90%, the message “You’re doing a great job” was displayed.
+Across Study 1 and 2, the same arrowhead version of the flanker task was administered using Presentation software (Neurobehavioral Systems, Berkeley, CA). On each trial, participants were presented with a row of five arrowheads for 200 ms and were asked to indicate the direction of the central arrowhead with the left or right mouse button as quickly and accurately as possible. Half of the trials were congruent, and half were incongruent with trial order randomized. Participants completed 11 blocks of 30 trials (330 trials total), with short breaks and performance-based feedback given in between blocks. At the end of each block, participants received one of three types of performance feedback: if accuracy was 75% or lower, the message “Please try to be more accurate” was displayed; if accuracy was above 90%, the message “Please try to respond faster” was displayed; if accuracy was between 75% and 90%, the message “You’re doing a great job” was displayed. Participant data was excluded if they had poor accuracy on the flanker task (i.e., < 50%). Outliers were windsorized, such that values greater than 3 standard deviations from the mean were replaced the maximum/minimum allowed value (the mean ± 3 standard deviations).
 
 ### EEG Data Collection
+During the flanker task, continuous EEG activity was recorded at a sampling rate of 1024 Hz using the ActiveTwo BioSemi system (BioSemi, Amsterdam, Netherlands) in Study 1 and a Neuroscan Synamp2 system (Compumedics, Charlotte, NC, USA) in Study 2. In Study 1, recordings were taken from 64 Ag/AgCl electrodes placed according to the 10/20 system and from six midline electrodes (Fz, FCz, Cz, CPz, Pz, & Poz) in Study 2. The electrooculogram (EOG) generated from eye movements and blinks was recorded using facial electrodes placed approximately 1 cm above and below the left eye and 1 cm to the right and left of the eyes. All electrode impedances were below 5 k$\Omega$, and data were recorded with a sampling rate of 1,024 Hz in Study 1 and 1,000 Hz in Study 2. Pre and postprocessing were conducted offline in MATLAB using EEGLAB [@delormeEEGLABOpenSource2004] and ERPLAB [@lopez-calderonERPLABOpensourceToolbox2014]. Across both studies, data was resampled to 500 Hz and rereferenced to the average of the two mastoids. In Study 1, a band-pass filter was then applied from 1 to 100 Hz (an ideal range for ICA decomposition), in Study 2 the filter was applied from 0.1 to 30 Hz (given that there were too few channels to apply ICA). 
 
-#### Study 1
-All signal processing was conducted offline in MATLAB using customized scripts and EEGLAB. First, EEG data were referenced to the common average, downsampled to 500 Hz, and the DC offset was removed from each channel. A band-pass filter was then applied from 1 to 100 Hz. The 60 Hz line noise was removed using the cleanLineNoise function, which uses a sliding window to adaptively estimate and subtract the line noise component [@bigdely-shamloPREPPipelineStandardized2015]. Next, using the clean_rawdata function, artifactual channels were removed, defined as those (a) containing more than 5 s of flat signal, (b) correlating less than .8 with surrounding channels, (c) containing high frequency noise to signal ratio greater than 4 SD [@kotheBCILABPlatformBrain2013]. Artifact subspace reconstruction (ASR; Mullen et al., 2015) was then applied to correct for significant noise bursts, also implemented within clean_rawdata. ASR is a principal-component-analysis-based (PCA-based) technique in which data within a 500 ms sliding window (window step=250 ms) are PCA-decomposed. Noisy components, defined as those with variance greater than 20 SD above that of the clean portions of the data, were removed and the data were reconstructed from the remaining components. Further, time windows were removed if more than 25% of the channels contained high-power artifacts, defined as greater than 7 SD above the clean power estimates in the channel. All artifactual channels were replaced by whole head spline interpolation, and data were again re-referenced to the common average so that the sum across all channels was zero. 
-Lastly, independent component analysis (ICA) was implemented to retain brain-related components only. These components were defined as (a) having greater probability to be brain than artifacts according to an automatic IC classifier [ICLabel; @pion-tonachiniICLabelAutomatedElectroencephalographic2019], (b) having residual variance (i.e., the difference between IC’s scalp projection and the projection of fitted equivalent current dipole) less than 15%, and (c) having fitted dipole location within the brain.
-After preprocessing, response-locked epochs were segmented from -1500 to 1500 ms. All epochs were then low-pass filtered at 30 Hz and baseline corrected (-200 to 0 ms for stimulus-locked epochs and -500 to -300 ms for response-locked epochs). Response-locked ERN was defined as the average voltage from 0 to 80 ms at FCz.
+Artifact rejection differed between Study 1 and Study 2, given the different number of electrodes used to collect data. In Study 1, the 60 Hz line noise was removed using the cleanLineNoise function, which uses a sliding window to adaptively estimate and subtract the line noise component [@bigdely-shamloPREPPipelineStandardized2015]. Next, using the clean_rawdata function, artifactual channels were removed, defined as those (a) containing more than 5s of flat signal, (b) correlating less than .8 with surrounding channels, (c) containing high frequency noise to signal ratio greater than 4 SD [@kotheBCILABPlatformBrain2013]. Artifact subspace reconstruction (ASR; Mullen et al., 2015) was then applied to correct for significant noise bursts, also implemented within clean_rawdata. ASR is a principal-component-analysis-based (PCA-based) technique in which data within a 500ms sliding window (window step=250 ms) are PCA-decomposed. Noisy components, defined as those with variance greater than 20 SD above that of the clean portions of the data, were removed and the data were reconstructed from the remaining components. Further, time windows were removed if more than 25% of the channels contained high-power artifacts, defined as greater than 7 SD above the clean power estimates in the channel. All artifactual channels were replaced by whole head spline interpolation, and data were again re-referenced to the common average so that the sum across all channels was zero. Lastly, independent component analysis (ICA) was implemented to retain brain-related components only. These components were defined as (a) having greater probability to be brain than artifacts according to an automatic IC classifier [ICLabel; @pion-tonachiniICLabelAutomatedElectroencephalographic2019], (b) having residual variance (i.e., the difference between IC’s scalp projection and the projection of fitted equivalent current dipole) less than 15%, and (c) having fitted dipole location within the brain.
 
-#### Study 2
-Continuous EEG was recorded with a Neuroscan Synamp2 system (Compumedics, Charlotte, NC, USA) using six midline electrodes (Fz, FCz, Cz, CPz, Pz, & Poz). The electrooculogram (EOG) generated from eye movements and blinks was recorded using facial electrodes placed approximately 1 cm above and below the left eye and 1 cm to the right and left of the eyes. All electrode impedances were below 5 k$\Omega$, and data were recorded with a sampling rate of 1,000 Hz. Pre and postprocessing were conducted offline in MATLAB using EEGLAB [@delormeEEGLABOpenSource2004] and ERPLAB [@lopez-calderonERPLABOpensourceToolbox2014]. EEG data was imported to EEGLAB, heart rate channel was removed, and data was resampled to 500Hz. A bandpass filter from 0.1 to 30Hz was applied and data was rereferenced to the average of the mastoids. Stimulus and response-locked epochs were segmented from -500 (before response) to 1000ms (after response) and baseline corrected from -500 to -300ms. Eyeblink and ocular artifacts were corrected [@grattonNewMethodOffline1983] and artifact detection and rejection was conducted on all scalp electrodes. Specifically, the criteria applied were a voltage step of more than 50 μV between sample points, a voltage difference of 175 μV within a trial, or a minimum voltage difference of less than 0.50 μV within 100ms intervals. These intervals were rejected from individual channels in each trial. ERPs were computed as mean amplitude 0 to 80ms following a response at a frontocentral electrode (i.e., FCz) per prior research [e.g., @meyerConsideringERPDifference2017; @meyerReliabilityERNMultiple2013; @moserRelationshipAnxietyError2013; @rieselERNERNERN2013]. ERPs were computed separately for correct and error responses and a residualized difference score was calculated to isolate activity to errors [@meyerConsideringERPDifference2017], yielding the error-related negativity (ERN) component. ERPs had to include at least 10 error and 10 correct artifact free trials per session; thus within-participant sessions were excluded if there were too few artifact free error or correct trials (N=11 sessions across 7 participants).
+In Study 2, Response-locked epochs were segmented from -500 (before response) to 1000ms (after response) and baseline corrected from -500 to -300ms. Eyeblink and ocular artifacts were corrected [@grattonNewMethodOffline1983] and artifact detection and rejection was conducted on all scalp electrodes. Specifically, the criteria applied were a voltage step of more than 50 μV between sample points, a voltage difference of 175 μV within a trial, or a minimum voltage difference of less than 0.50 μV within 100ms intervals. These intervals were rejected from individual channels in each trial.
+
+In Study 1, response-locked epochs were segmented from -1500 to 1500 ms. All epochs were then low-pass filtered at 30 Hz and baseline corrected with the same interval as Study 2. In both studies, response-locked ERN was defined as the mean voltage amplitude from 0 to 80 ms at FCz  per prior research [e.g., @gorkaErrorrelatedBrainActivity2018; @letkiewiczChildhoodTraumaPredicts2023; @moserRelationshipAnxietyError2013]. ERPs were computed separately for correct and error responses and a residualized score (ERP to error responses regressed on ERP correct responses) was calculated to isolate activity to errors [@meyerConsideringERPDifference2017], yielding the error-related negativity (ERN) component. ERPs had to include at least 10 error and 10 correct artifact free trials per session as prior studies have indicated that ERN becomes relatively stable after 10 error trials [@meyerReliabilityERNMultiple2013], reaching internal reliability between 0.7 and 0.9 [@boudewynHowManyTrials2018] (Study 1: N=26 excluded, Study 2: N=11 sessions excluded across 7 participants). ERN outliers were windsorized, such that values greater than 3 standard deviations from the mean were replaced the maximum/minimum allowed value (the mean ± 3 standard deviations). In both studies the ERN was multiplied by -1 to aid in interpretation, making it such that a larger values indicates a larger ERN amplitude.
 
 ### Neuropsychological measures from Study 1
 
-Performance on neuropsychological tasks was summarized into two scores used to assess convergent validity. First, cognitive control was estimated from participants' time to complete the inhibition condition from the D-KEFS color-word interference task [D-KEFS; @delisDelisKaplanExecutiveFunction2012a]. Of note, this was reverse scored to make it more comparable to the executive function composite. Second, executive function was estimated using a mean composite of four measures from the Delis-Kaplan Executive Function System Design Fluency, Verbal Fluency, Trail Making, and Color-Word Interference tasks. Specifically, measures used were 1) total number of successful designs made during the category switching condition on Design Fluency, and 2) on Verbal Fluency, 3) completion time for the number-letter sequencing condition multiplied by 1 for reverse-scoring on Trail Making, and 4) time to complete the inhibition/switching condition multiplied by 1 for reverse-scoring on Color-Word Inference. Higher scores indicate "better" (i.e., faster and more accurate) performance. The Wechsler Test of Adult Reading [WTAR; @wechsler2001wechsler] estimated participants' full-scale IQ (FSIQ) and was included as a covariate in Study 1 analyses. See @letkiewiczChildhoodMaltreatmentPredicts2021 for further details about how these scores are calculated. Of import, scores on the WTAR are highly correlated with FSIQ [r = 0.73; @straussCompendiumNeuropsychologicalTests2006]. Motor speed was assessed using the motor speed condition of the D-KEFS Trail Making Test and was also included as a covariate to account for the potential impact of slowed reaction time.
+Performance on neuropsychological tasks was summarized into two scores used to assess convergent validity. First, cognitive control was estimated from participants' time to complete the inhibition condition from the D-KEFS color-word interference task [D-KEFS; @delisDelisKaplanExecutiveFunction2012a]. This task consists of four conditions, the third and fourth of which measure inhibition and inhibition/switching, respectively. During the inhibition condition, participants name the ink color of 50 consecutive words that are printed in an ink color that is incongruent with the word (e.g., the word “blue” is printed in red ink). Participants are instructed to say the ink color aloud as quickly as they can “without making mistakes,” which requires overriding (i.e., inhibiting) the prepotent word reading response. During the inhibition/switching condition, participants alternate between naming the ink color of the word and reading the word when cued. Participants must override the more automatic word-reading response during the color-naming trials, and, when prompted, inhibit an old rule and shift to a new rule (e.g., changing from word reading to color naming). The dependent measures were (1) time to complete the inhibition condition and (2) time to complete the inhibition/switching condition. These measures were multiplied by -1 for reverse-scoring, with more negative scores representing poorer executive functioning.
+
+Second, executive function was estimated using a mean composite of four measures from the Delis-Kaplan Executive Function System Design Fluency, Verbal Fluency, Trail Making, and Color-Word Interference tasks. Specifically, measures used were 1) total number of successful designs made during the category switching condition on Design Fluency, and 2) total number of successful switches made during the category switching condition on Verbal Fluency, 3) completion time for the number-letter sequencing condition multiplied by 1 for reverse-scoring on Trail Making, and 4) time to complete the inhibition/switching condition multiplied by 1 for reverse-scoring on Color-Word Inference. During the category switching condition in Design Fluency, participants switch between connecting empty and filled dots with four straight lines as quickly as they can within 60s. Participants are instructed not to repeat any designs. In verbal fluency, participants switch between naming types of fruit and types of furniture as quickly as they can within 60s. Participants are instructed not to repeat any items and to change to the other response category after each response. In the switching condition of trail making, participants must switch between connecting numbers and letters in order (instructed to draw lines between the numbers [1 through 16] and letters [A through P] as quickly as they can starting at 1 and ending at P). Reverse scoring was applied so that higher scores indicate "better" (i.e., faster and more accurate) performance. 
+
+### Covariates in Study 1
+The Wechsler Test of Adult Reading [WTAR; @wechsler2001wechsler] estimated participants' full-scale IQ [FSIQ, e.g., it correlates with FSIQ at *r* = 0.73; @straussCompendiumNeuropsychologicalTests2006] and was included as a covariate in Study 1 analyses to control for general IQ. See @letkiewiczChildhoodMaltreatmentPredicts2021 for further details about how this was calculated. Motor speed was assessed using the motor speed condition of the D-KEFS Trail Making Test and was also included as a covariate to account for the potential impact of slowed reaction time.
 
 ## Data analysis
 
 ### Hierarchical drift diffusion modeling
+A drift-diffusion model was applied to participants’ Flanker task behavioral data. Model parameters were estimated using the publicly available Hierarchical Drift-Diffusion Model Toolbox [HDDM; version 0.8.0, http://github.com/hddm-devs/hddm; @wieckiHDDMHierarchicalBayesian2013]. HDDM uses a Bayesian approach to estimation, which yield consistent estimates with fewer trials than ML-based approaches [@lercheHowManyTrials2017]. HDDM utilizes participants’ reaction time and choice information from each trial to estimate decision-making processes [@hallDisentanglingCognitiveProcesses2021a; @hallerComputationalModelingAttentional2021; @karalunasIntegratingImpairmentsReaction2013; @ratcliffDiffusionDecisionModel2008].
+During the Flanker task, participants must identify the direction that the middle arrow is pointing during congruent and incongruent trials. During a trial, evidence will “drift” toward/away from the response boundaries as evidence accumulate in favor of one response over the other. Once enough evidence has accumulated in favor of a particular response, that boundary is crossed, resulting in the execution of that response. Given prior work with these models [e.g., @aylwardTranslatingRodentMeasure2020; @ossolaEffortfulControlAssociated2021; @zieglerModellingADHDReview2016], the present study focused on two parameters that are estimated by the HDDM model--drift-rate and boundary separation. In addition to these, non-decision time and bias were also modeled. Drift-rate and boundary separation are described above. The non-decision time parameter captures the duration of “non-decision” processes, including time needed for visual processing, motor preparation, and response execution, with larger values reflecting greater non-decision processing time. Finally, the (response) bias parameter captures the tendency for an individual to make one response over the other. Several models were fit to participants’ behavior to identify a best-fitting model with all models coded such that accurate and inaccurate responses represented the upper and lower boundaries (or, thresholds), respectively (see the Supplement for results of model selection). 
 
-**ALLIE'S PORTION GOES HERE**
-Because prior work using these models has focused on drift rate and boundary separation [e.g., @aylwardTranslatingRodentMeasure2020; @ossolaEffortfulControlAssociated2021; @zieglerModellingADHDReview2016], we present findings for only these parameters. 
+To assess the reliability of the model estimates on the basis of total trials, models were fit to “split” halves that incrementally increased by bins of 15 trials. Specifically, the models were fit to the first 15 trials and second 15 trials (i.e., trials 1:15 and 15:30), followed by the first 30 and second 30 trials (i.e., trials 1:30 and 31:60), up to a complete split-half comparison (i.e., trials 1:165 and 166:330). The parameters for each model for each split (11 splits per model) were correlated using the Spearman-Brown formula.
 
 ### NIH Toolbox
-NIH Toolbox scores were calculated according to instructions laid out in the manual [@nationalinstitutesofhealthandnorthwesternuniversityNIHToolboxScoring2021] and in prior research [@weintraubCognitionAssessmentUsing2013; @zelazoNIHToolboxCognition2014]. The accuracy score was calculated as $0.01515152*Number\text{ }of\text{ }correct\text{ }responses$, where 0.01515152 is 5 points divided by 330 trials. Reaction time (RT) was calculated as $$Reaction\text{ }Time = 5-(5*\frac{log(RT~median~)-log(250)}{(log(1000)-log(250)})$$ where 250ms was the slowest RT and 1000 was the fastest across participants. The NIH Toolbox manual specifies that trials outside of 500ms-3000ms should be truncated (i.e., reaction times below 500ms set equal to 500ms). We opted not to truncate data due to concerns that we would lose meaningful variability in responses between 250-500ms. These equations produce 2-vectors: one accuracy vector and one reaction time vector, each of which is scored from 0-5. The scores are added together resulting in a score that range from 0-10, with higher scores indicating “better” (i.e., faster and more accurate responses). Of note, for participants with less than or equal to 80% accuracy, only the accuracy vector is used.
+NIH Toolbox scores were calculated according to NIH Toolbox instructions [@nationalinstitutesofhealthandnorthwesternuniversityNIHToolboxScoring2021] and in prior research [@weintraubCognitionAssessmentUsing2013; @zelazoNIHToolboxCognition2014]. The NIH Toolbox accuracy score was calculated as $0.0\overline{15}*Number\text{ }of\text{ }correct\text{ }responses$, where $0.0\overline{15}$ is 5 points divided by 330 trials. Reaction time (RT) was calculated as $$Reaction\text{ }Time = 5-(5*\frac{log(RT~median~)-log(250)}{(log(1000)-log(250)})$$ where 250ms was the slowest RT and 1000 was the fastest across participants. The NIH Toolbox manual specifies that trials outside of 500ms-3000ms should be truncated (i.e., reaction times below 500ms set equal to 500ms). We opted not to truncate data due to concerns that we would lose meaningful variability in responses between 250-500ms. The NIH Toolbox accuracy and reaction time equations result in values each ranging from 0-5, which are then added together resulting in a score that ranges from 0-10, with higher scores indicating “better” (i.e., faster and more accurate responses). Per the manual, for participants with less than or equal to 80% accuracy, reaction time was omitted from the calculation of their score [@zelazoNihToolboxCognition2013; @zelazoNIHToolboxCognition2014].
 
 ### Raw accuracy
+Raw accuracy was calculated as the proportion of total responses that are correct. Accuracy on congruent trials showed a large amount of leftward skew (Mean=`r round(mean(LDDM_do3_rdoc_no_outliers$accuracy_congruent, na.rm=TRUE),4)*100`%, SD=`r round(sd(LDDM_do3_rdoc_no_outliers$accuracy_congruent, na.rm=TRUE),4)*100`%, Skewness=`r round(skewness(LDDM_do3_rdoc_no_outliers$accuracy_congruent, na.rm=TRUE)[1,1],4)`; normal distribution has skewness of 0, half-normal distribution has skewness just below 1) given participants’ high rates of correct responses. Accuracy on incongruent trials showed a more normal distribution (Mean=`r round(mean(LDDM_do3_rdoc_no_outliers$accuracy_incongruent, na.rm=TRUE),4)*100`%, SD=`r round(sd(LDDM_do3_rdoc_no_outliers$accuracy_incongruent, na.rm=TRUE),4)*100`%, Skewness=`r round(skewness(LDDM_do3_rdoc_no_outliers$accuracy_incongruent, na.rm=TRUE)[1,1],4)`); therefore, we used accuracy on only incongruent trials, which is similar to prior studies [@dillonComputationalAnalysisFlanker2015; @gutchessCulturalDifferencesPerformance2021a].
 
-Raw accuracy was calculated as the proportion of correct responses to total responses. Accuracy on congruent trials showed a large amount of skew given participants' high rates of correct responses. Accuracy on incongruent trials showed a more normal distribution; therefore, we used accuracy on only incongruent trials.
-
-Individual-level parameters were imported into `r version$version.string` where remaining analyses were conducted, primarily using the following packages: tidyverse , ggplot2, DescTools, lme4, lmerTest, broom, broom.mixed, psych, here, confintr, irr, MASS, knitr, and papaja. 
-
-### Outliers and missing data
-
-Participant data was excluded if they had below 50% accuracy. Data was excluded on a session-by-session basis (N=3 sessions of 1 participant). Outliers on ERN, inhibition, and executive functioning were windsorized, such that values greater than 3 standard deviations from the mean were replaced the maximum/minimum allowed value (the mean ± 3 standard deviations). Correlations, multiple regressions, and ICCs use listwise deletion of participants if they are missing any measure/time point. 
-
+## Statistical analyses
+Individual-level parameters (i.e., drift rate, boundary separation, raw accuracy, NIH Toolbox score) were imported into `r version$version.string` where remaining analyses were conducted. Correlations, multiple regressions, and ICCs use listwise deletion of participants if they are missing any measure/time point. Outliers were windsorized, such that values greater than 3 standard deviations from the mean were replaced the maximum/minimum allowed value (the mean ± 3 standard deviations).
+ 
 ### Reliability: test-retest and split-half
 
-Measure reliability was examined two ways: 1) split-half and 2) test-retest. First, split-half reliability was calculated by splitting the trials in half, calculating the spearman rho correlation between the two halves, and using the Spearman-Brown prediction formula ($Spearman \text{ } Brown = \frac{2r}{1+r}$) to calculate the reliability [@infantolinoRobustNotNecessarily2018; @lukingInternalConsistencyFunctional2017]. Split-half reliability was also examined at increments of 15 trials (e.g., first 15 trials vs second 15 trials, first 30 trials vs next 30 trials, etc.) to assess the point at which this measure reaches stability.
-Cutoffs from @hensonUnderstandingInternalConsistency2001 were used to identify split-half reliability at different levels (<0.70 = poor , 0.70--0.79 = acceptable, 0.80--0.89 = good, and >0.90 = excellent). Test-retest reliability was calculated as the intraclass correlation coefficient (ICC) between all three sessions from Study 2.
+Reliability was examined two ways: 1) split-half and 2) test-retest. First, split-half reliability was operationalized as from the spearman rho correlation between the first and second half of the data, using the Spearman-Brown prediction formula ($Spearman \text{ } Brown = \frac{2r}{1+r}$) to calculate the reliability [@infantolinoRobustNotNecessarily2018; @lukingInternalConsistencyFunctional2017]. Split-half reliability was also examined at increments of 15 trials (e.g., first 15 trials vs second 15 trials, first 30 trials vs next 30 trials, etc., see above) to assess the point at which the Spearman rho reached stability. Cutoffs from @hensonUnderstandingInternalConsistency2001 were used to identify split-half reliability at different levels (<0.70 = poor , 0.70–0.79 = acceptable, 0.80–0.89 = good, and >0.90 = excellent). Test-retest reliability was calculated as the intraclass correlation coefficient (ICC) across all three sessions from Study 1.
 
 ### Validity: Correlations, multiple regressions, and familiality
-
-Raw two-sided Spearman rho correlation coefficients were initially examined between the ERN magnitude or neuropsychological score and each measure of flanker behavioral performance. Multiple regression models were used to assess the relative variance accounted for by DDM parameters, NIH Toolbox score, and raw accuracy when estimated as simultaneous predictors of the ERN or neuropsychological scores. That is, each model included as predictors: one ddm parameter, the NIH Toolbox score, and raw accuracy. In Study 2, linear multiple regression models were used; in Study 1, linear mixed effect multiple regression models were used to account for within-family random intercept between sibling pairs. Familiality was estimated as the ICC between siblings from the same family in Study 1 [@constantinoInfantHeadGrowth2010; @weinbergerFamilialAspectsCT1981].
+Spearman rho correlation coefficients were used to examine the association between each measure of flanker behavioral performance and the ERN and neuropsychological scores. Multiple regression models were then used to assess the relative and unique variance accounted for by DDM parameters, NIH Toolbox score, and raw accuracy in the validators of the ERN or neuropsychological scores. In Study 1, linear multiple regression models were used; in Study 2, linear mixed effect multiple regression models were used to account for within-family random intercept between sibling pairs. Familiality was estimated as the ICC between siblings from the same family in Study 2 [@constantinoInfantHeadGrowth2010; @katzFamilyStudyDSM52018].
 
 # Results
 
 ## HDDM
-
-**ALLIE: INFO HERE ABOUT MODEL FIT**
+Our primary model of interest was specified based on prior work and theoretical considerations to include: drift rate to congruent stimuli, drift rate to incongruent stimuli, boundary separation, non-decision time, and starting bias (see Figure 1). See suplement for further details on model selection.
 
 ## Reliability
 
 ### Split-half
-
-Drift rate and Boundary separation both demonstrated comparable split-half reliability to raw accuracy and the NIH Toolbox score across all three sessions in Study 2, as well as in Study 1 (see Table 2).
-
-Of note, examining change in split half reliability at increments of 15 trials (e.g., first 15 trials vs second 15 trials, first 30 trials vs next 30 trials, etc.) showed that drift rate began to plateau at 105 trials.
-
-```{r Split-half}
+```{r Split-half, warning=FALSE}
 splithalf <- read.csv(here("./tables/splithalf.csv"))
 splithalf_d1 <- read.csv(here("../Split_Half/StTr_S1_splithalf_all_mean_ci.csv"))
 splithalf_d2 <- read.csv(here("../Split_Half/StTr_S2_splithalf_all_mean_ci.csv"))
@@ -255,21 +246,6 @@ spearman_brown_d1_ddm <- make_splithalf_datatable(splithalf_d1)
 spearman_brown_d2_ddm <- make_splithalf_datatable(splithalf_d2)
 spearman_brown_d3_ddm <- make_splithalf_datatable(splithalf_d3)
 spearman_brown_rdoc_ddm <- make_splithalf_datatable(splithalf_rdoc)
-
-# splithalf[6,] <- c("NIH Toolbox score", spearman_brown_d1[11,2], spearman_brown_d2[11,2], spearman_brown_d3[11,2], spearman_brown_rdoc[11,2])
-# splithalf[7,] <- c("Raw accuracy", spearman_brown_d1[11,5], spearman_brown_d2[11,5], spearman_brown_d3[11,5], spearman_brown_rdoc[11,5])
-# splithalf[,1] <- c("Drift rate to congruent stimuli", "Drift rate to incongruent stimuli", "Boundary separation", "Non-decision time", "Starting bias", "NIH Toolbox score", "Raw accuracy")
-# # splithalf <- round(splithalf[6:7,2:5], 2)
-# 
-# write.csv(splithalf, file=here("./tables/splithalf_full.csv"))
-
-# apa_table(splithalf,
-#           col.names=c("HDDM paramters","Session 1","Session 2","Session 3", "Study 1"),
-#           align = c("l", rep("c", 4)),
-#           digits=2,
-#           caption = "Table 2",
-#           note = "",
-#           col_spanners=list(`Study 2`=c(2,4)))
 
 spearman_brown_d1_plot <- spearman_brown_d1 %>%
   full_join(spearman_brown_d1_ddm, by = "trials") %>%
@@ -353,309 +329,48 @@ spearman_brown_rdoc_plot <- spearman_brown_rdoc %>%
   select(-c(`NA`))
 
 spearman_brown_rdoc_plot$Measure_long <- recode_factor(spearman_brown_rdoc_plot$Measure, rvcon = "Drift rate (congruent)", rvincon = "Drift rate (incongruent)",  ra = "Boundary separation", rnih = "NIH Toolbox", racc = "Accuracy (incongruent)")
-
-sh_rdoc <- ggplot(spearman_brown_rdoc_plot, aes(x=trials*2, y=r)) +
-  geom_line(aes(color=Measure_long)) +
-  geom_point(aes(color=Measure_long)) +
-  geom_ribbon(aes(ymin = cilower, ymax = ciupper, fill=Measure_long), alpha = 0.1) +
-  scale_x_continuous(breaks=spearman_brown_rdoc$trials*2) +
-  scale_y_continuous(limits = c(-0.3, 1), breaks=seq(0,1,by=0.10)) +
-  scale_color_manual(name="Measure", values=group.colors,
-                    labels=c(str_wrap("Drift rate (congruent)", 10), str_wrap("Drift rate (incongruent)",10), str_wrap("Boundary separation",10),
-                             str_wrap("NIH Toolbox",10), str_wrap("Accuracy (incongruent)",10))) +
-  scale_fill_manual(guide=NULL, values=group.colors) +
-  theme_apa() +
-  theme(legend.position="bottom")
 ```
-```{r}
-sh <- ggarrange(sh_rdoc + rremove("xylab") + rremove("x.text") + rremove("legend"),
-          sh_d1 + rremove("xylab") + rremove("x.text") + rremove("legend"),
-          sh_d2 + rremove("xylab") + rremove("legend"),
-          sh_d3 + rremove("xylab") + rremove("legend"),
-          labels=c("Study 1","Study 2: Session 1","Study 2: Session 2","Study 2: Session 3"),
-          # label.x = 0.5,
-          # label.y = 1,
-          hjust=c(-1, -0.5, -0.5, -0.5),
-          common.legend = TRUE,
-          align="hv",
-          legend="top",
-          ncol=2, nrow=2,
-          heights = c(1, 1, 1, 1))
 
-sh <- annotate_figure(sh, left = grid::textGrob("spearman-brown split-half [95% CI]", rot = 90, vjust = 1, gp = grid::gpar(cex = 1.3)),
-                bottom = grid::textGrob("Number of total trials", gp = grid::gpar(cex = 1.3)),
-                fig.lab.size=12)
-sh
-```
+Drift rate and boundary separation both demonstrated comparable split-half reliability to raw accuracy and the NIH Toolbox score in Study 1 and across all three sessions of Study 2 when all 330 trials were used (see Figure 2).
+
+Next, change in split half reliability at increments of 15 trials (e.g., first 15 trials vs second 15 trials, first 30 trials vs next 30 trials, etc.) was examined. Results were similar across studies and sessions (see Figure 2). Boundary separation had excellent reliability with as little as 30 trials and remained excellent at any number of trials (> `r round(min(filter(spearman_brown_rdoc_plot, Measure_long=="Boundary separation")$r),2)`). The reliability of drift-rate to congruent stimuli increased until 210 trials, at which point it plateaued to 330 trials (Spearman Brown at 330 trials: Study 1 `r splithalf[1,5]`, Study 2, Session 1 `r splithalf[1,2]`, Study 2, Session 2 `r splithalf[1,3]`, Study 2, Session 3 `r splithalf[1,4]`). Drift rate to incongruent stimuli increased until 240 trials, at which point it plateaued to 330 trials (Spearman Brown at 330 trials: Study 1 `r splithalf[2,5]`, Study 2, Session 1 `r splithalf[2,2]`, Study 2, Session 2 `r splithalf[2,3]`, Study 2, Session 3 `r splithalf[2,4]`). 
+
+NIH Toolbox score increased until 150 trials, at which point it plateaued (Spearman Brown at 330 trials: Study 1 `r spearman_brown_rdoc_plot[51,]$r`, Study 2, Session 1 `r spearman_brown_d1_plot[51,]$r`, Study 2, Session 2 `r spearman_brown_d2_plot[51,]$r`, Study 2, Session 3 `r spearman_brown_d3_plot[51,]$r`). Raw accuracy to incongruent stimuli increased until 210 trials, at which point it plateaued (Spearman Brown at 330 trials: Study 1 `r spearman_brown_rdoc_plot[52,]$r`, Study 2, Session 1 `r spearman_brown_d1_plot[52,]$r`, Study 2, Session 2 `r spearman_brown_d2_plot[52,]$r`, Study 2, Session 3 `r spearman_brown_d3_plot[52,]$r`). Thus, of the measures, boundary separation showed the most robust split-half reliability to varying numbers of trials, and the earliest plateau in necessary number of trials.
 
 ### Test-retest
-
-```{r Test-retest}
-sttr_hddm_variables <- c("v_S1_B11","v_S2_B11","v_S3_B11",
-                         "v_congruent_S1_B11.x","v_congruent_S2_B11.x","v_congruent_S3_B11.x",
-                         "v_incongruent_S1_B11.x","v_incongruent_S2_B11.x","v_incongruent_S3_B11.x",
-                         "a_S1_B11.x","a_S2_B11.x","a_S3_B11.x",
-                         "t_S1_B11.x","t_S2_B11.x","t_S3_B11.x",
-                         "z_S1_B11.x","z_S2_B11.x","z_S3_B11.x",
-                         "flanker_score_d1_z","flanker_score_d2_z","flanker_score_d3_z",
-                         "accuracy_d1_z","accuracy_d2_z","accuracy_d3_z",
-                         "accuracy_incongruent_d1_z","accuracy_incongruent_d2_z","accuracy_incongruent_d3_z")
-
-sttr_icc_table <- data.frame(
-                           parameters= c("Drift rate", "Drift rate (congruent)", "Drift rate (incongruent)", "Boundary separation", "Non-decision time", "Starting bias", "NIH Toolbox", "Accuracy (incongruent)"),
-                                 
-                           ICC=c(icc(LDDM_do2_irr[sttr_hddm_variables[1:3]])$value,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[4:6]])$value,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[7:9]])$value,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[10:12]])$value,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$value,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$value,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$value,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[25:27]])$value),
-                           
-                           CI=c(make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[1:3]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[1:3]])$ubound),
-                           make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[4:6]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[4:6]])$ubound),
-                           make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[7:9]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[7:9]])$ubound),
-                           make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[10:12]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[10:12]])$ubound),
-                           make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$ubound),
-                           make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$ubound),
-                           make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$ubound),
-                           make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[25:27]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[25:27]])$ubound)),
-                           
-                           lower_ci=c(icc(LDDM_do2_irr[sttr_hddm_variables[1:3]])$lbound,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[4:6]])$lbound,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[7:9]])$lbound,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[10:12]])$lbound,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$lbound,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$lbound,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$lbound,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[25:27]])$lbound),
-
-                           upper_ci=c(icc(LDDM_do2_irr[sttr_hddm_variables[1:3]])$ubound,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[4:6]])$ubound,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[7:9]])$ubound,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[10:12]])$ubound,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$ubound,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$ubound,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$ubound,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[25:27]])$ubound)
-                           )
-
-sttr_icc_table$ICC <- round(sttr_icc_table$ICC, 2)
-write.csv(sttr_icc_table, here("./tables/sttr_icc_table.csv"))
-
-apa_table(sttr_icc_table[,1:3],
-          col.names=c("HDDM Parameters/Other measures", "ICC", "95% CI"),
-          align=c("l",rep("c",2)),
-          digits=2,
-          caption = "Table 3",
-          note = "ICC values computed across three within-subject sessions",
-)
-```
-
-```{r Test-retest plot}
-sttr_icc_table$parameters <- fct_rev(factor(sttr_icc_table$parameters, levels = sttr_icc_table$parameters))
-
-ggplot(sttr_icc_table[c(1:4,7:8),], aes(y=parameters, x=ICC, color=parameters)) +
-  geom_point() +
-  geom_text(aes(label=ICC),vjust=-0.75)+
-  geom_errorbar(aes(xmin=lower_ci, xmax=upper_ci), colour="black", width=.1) +
-  scale_x_continuous(limits = c(0, 1), breaks=seq(0,1,0.1)) +
-  scale_y_discrete(labels = label_wrap(10)) +
-  labs(y="HDDM parameters/Measures", x="ICC (95% CI)") +
-  scale_color_manual(values=group.colors) +
-  # scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
-  theme_apa() +
-  theme(legend.position="none")
-```
-
-Across the three sessions of Study 2, drift rate and Boundary separation both showed comparable ICCs to the NIH Toolbox score, though lower than the raw accuracy (see Table 3).
+Across the three sessions of Study 2, all measures showed overlapping 95% confidence intervals indicating non-significant differences between them. In terms of ICC effect size, overall drift rate, drift rate to incongruent stimuli, and NIH Toolbox all showed similar ICCs. Drift rate to congruent stimuli, boundary separation, and raw accuracy to incongruent stimuli all showed similar and slightly higher ICCs (see Figure 3).
 
 ## Convergent validity
-
-### Brain-based measures
-```{r Correlation tables}
-cor_ERN_table_d1 <- read.csv(file=here("./tables/sttr_d1_correlations.csv"), na.strings=c(""))
-cor_ERN_table_d2 <- read.csv(file=here("./tables/sttr_d2_correlations.csv"), na.strings=c(""))
-cor_ERN_table_d3 <- read.csv(file=here("./tables/sttr_d3_correlations.csv"), na.strings=c(""))
-cor_ERN_table <- read.csv(file=here("./tables/sttr_correlations.csv"), na.strings=c(""))
-cor_ERN_table_rdoc <- read.csv(file=here("./tables/rdoc_correlations.csv"), na.strings=c(""))
-
-cor_ERN_table_new <- cor_ERN_table %>%
-  mutate("Parameters/Measures" = rep(c("ERN","NIH Toolbox","Raw accuracy","Accuracy (incongruent)", "Log accuracy (congruent)",
-                  "Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias"),3)) %>%
-  select("Parameters/Measures", everything()) %>%
-  select(-X)
-
-`Session 1` <- c("ERN","NIH Toolbox","Raw accuracy","Accuracy (incongruent)", "Log accuracy (congruent)",
-                  "Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias")
-`Session 2` <- `Session 1`
-`Session 3` <- `Session 1`
-table_list <- list(`Session 1`, `Session 2`, `Session 3`)
-
-apa_table(cor_ERN_table_new,
-          # added_stub_head=c("Session 1", "Session 2", "Session 3"),
-          stub_indents=table_list,
-          row.names=FALSE,
-          col.names=c("Parameters/Measures", rep(c("ERN","NIH Toolbox","Raw accuracy","Accuracy (incongruent)", "Log accuracy (congruent)",
-                  "Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias"),3)),
-          align=c("l",rep("c",27)),
-          digits=2,
-          caption = "Table 4",
-          note = "Correlations among Study 2 variables",
-          format="latex"
-)
-```
-
-```{r Multiple regression RDoC table}
-mr_ERN_table_rdoc <- read.csv(file=here("./tables/mr_ERN_table_rdoc.csv"))
-
-mr_table_names <- c("X","parameters", "ddm_est", "ddm_lci", "ddm_uci",
-                                                 "nih_est", "nih_lci", "nih_uci",
-                                                 "acc_est", "acc_lci", "acc_uci")
-
-# RDoC Study
-mr_ERN_table_rdoc_raw <- read.csv(file=here("./tables/mr_ERN_table_rdoc_raw.csv"))
-colnames(mr_ERN_table_rdoc_raw) <- mr_table_names
-mr_ERN_table_rdoc_raw_new <- mr_ERN_table_rdoc_raw %>%
-  select(-X) %>%
-  pivot_longer(cols=ddm_est:acc_uci, names_to=c("measure","stat"), names_sep="_") %>%
-  pivot_wider(names_from=stat, values_from=value)
-
-fit_rdoc <- lmer(FCz_ERN_080 ~ B11_avtz_DO_v_v + flanker_score_rdoc_z + accuracy_incongruent_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers)
-# ggplot(LDDM_do3_rdoc_no_outliers, aes(x = B11_avtz_DO_v_v, y = FCz_ERN_080)) +
-#   labs(x="ERN mean ampitude (µV)",y="Drift rate")+
-#   geom_point(shape = 16, size=1.8) +
-#   geom_abline(aes(intercept=`(Intercept)`, slope=B11_avtz_DO_v_v), as.data.frame(t(fixef(fit_rdoc)))) +
-#   theme_apa()
-
-mr_ERN_table_rdoc_raw_new <- mr_ERN_table_rdoc_raw_new %>%
-  mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy", NA)))) %>%
-  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy", "Drift rate","Boundary separation")))
-
-# New facet label names for supp variable
-param.labs <- c("Model 1", "Model 2")
-names(param.labs) <- c("Drift rate", "Boundary separation")
-
-ern_rdoc <- ggplot(mr_ERN_table_rdoc_raw_new[c(1:3, 10:12),], aes(x=est, label=parameters, y=measure_new, color=measure)) +
-  geom_point(position=position_dodge(width = 1), stat = "identity") +
-  geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
-  geom_vline(xintercept = 0) +
-  labs(y="HDDM model parameter", x="beta [95% CI]", title="ERN") +
-  facet_grid(parameters~., scales = "free", space = "fixed", labeller = as_labeller(
-    c(`Boundary separation` = "Model 2", 
-      `Drift rate` = "Model 1"))) +
-  theme_apa() +
-  theme(strip.background = element_blank(), #remove background for facet labels
-        strip.text.y = element_blank(),
-        panel.border = element_rect(colour = "black", fill = NA), #add black border
-        panel.spacing = unit(0, "lines"), #remove space between facets)
-        legend.position = "none") #hide legend
-```
-For bivariate correlations and their statistical significance, see Table 2. Drift rate, accuracy to incongruent stimuli, and the NIH Toolbox derived score were entered into multiple regression models as simultaneous predictors of the ERN, one model for each DDM parameter of interest (i.e., drift rate, boundary separation). Drift rate was significantly associated with ERN amplitude in Study 2 over-and-above its association with accuracy and the NIH Toolbox scores (see Figure \# and Table \#). This relationship indicates that faster or higher quality accumulation of evidence (i.e., drift rate; [@whiteDiffusionModelsFlanker2011]) is associated with a larger (i.e., more negative) ERN amplitude. Accuracy and NIH Toolbox scores were not significantly associated with ERN for either Study 2 nor Study 1 when drift rate is included in the model. Results were similar when examining drift rate to congruent and incongruent stimuli separately (see Supplement). Drift rate shows similar associations across sessions of Study 1, though becoming non-significant at session 3l; see Supplement).
-
-Boundary separation is significantly associated with ERN in Study 2 (see Figure \# and Table \#). This relationship indicates that a greater valuing of correct responses, at the cost of slower responses (thus larger separation between the decision boundaries), is associated with a smaller (less negative) ERN amplitude. However this finding was not replicated in Study 1 (see Supplement). Accuracy and NIH Toolbox scores are not significantly associated with ERN for either Study 2 nor Study 1 when boundary separation is included in the model.
-
-
-### Neuropsychological measures
-```{r Multiple regression EF tables}
-# mr_Inhib_table_rdoc_nocov <- read.csv(file=here("./tables/mr_INHIB_table_rdoc_nocov.csv"))
-mr_Inhib_table_rdoc_cov <- read.csv(file=here("./tables/mr_INHIB_table_rdoc_cov.csv"))
-
-mr_Inhib_table_rdoc_cov_raw <- read.csv(file=here("./tables/mr_INHIB_table_rdoc_cov_raw.csv"))
-colnames(mr_Inhib_table_rdoc_cov_raw) <- mr_table_names
-mr_Inhib_table_rdoc_cov_raw_new <- mr_Inhib_table_rdoc_cov_raw %>%
-  select(-X) %>%
-  pivot_longer(cols=ddm_est:acc_uci, names_to=c("measure","stat"), names_sep="_") %>%
-  pivot_wider(names_from=stat, values_from=value)
-
-mr_Inhib_table_rdoc_cov_raw_new <- mr_Inhib_table_rdoc_cov_raw_new %>%
-  mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy", NA)))) %>%
-  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy", "Drift rate","Boundary separation")))
-
-inh <- ggplot(mr_Inhib_table_rdoc_cov_raw_new[c(1:3, 10:12),], aes(x=est, label=parameters, y=measure_new, color=measure)) +
-  geom_point(position=position_dodge(width = 1), stat = "identity") +
-  geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
-  geom_vline(xintercept = 0) +
-  labs(y="HDDM model parameter", x="beta [95% CI]", title="Inhibition") +
-  facet_grid(parameters~., scales = "free", space = "fixed", labeller = as_labeller(
-    c(`Boundary separation` = "Model 2", 
-      `Drift rate` = "Model 1"))) +
-  theme_apa() +
-  theme(strip.background = element_blank(), #remove background for facet labels
-        strip.text.y = element_blank(),
-        panel.border = element_rect(colour = "black", fill = NA), #add black border
-        panel.spacing = unit(0, "lines"), #remove space between facets)
-        legend.position = "none") #hide legend
-
-# mr_Exec_table_rdoc_nocov <- read.csv(file=here("./tables/mr_Exec_table_rdoc_nocov.csv"))
-mr_Exec_table_rdoc_cov <- read.csv(file=here("./tables/mr_Exec_table_rdoc_cov.csv"))
-
-mr_Exec_table_rdoc_cov_raw <- read.csv(file=here("./tables/mr_Exec_table_rdoc_cov_raw.csv"))
-colnames(mr_Exec_table_rdoc_cov_raw) <- mr_table_names
-mr_Exec_table_rdoc_cov_raw_new <- mr_Exec_table_rdoc_cov_raw %>%
-  select(-X) %>%
-  pivot_longer(cols=ddm_est:acc_uci, names_to=c("measure","stat"), names_sep="_") %>%
-  pivot_wider(names_from=stat, values_from=value)
-
-mr_Exec_table_rdoc_cov_raw_new <- mr_Exec_table_rdoc_cov_raw_new %>%
-  mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy", NA)))) %>%
-  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy", "Drift rate","Boundary separation")))
-
-model_names <- list(
-  'Boundary separation'="Model 2",
-  'Drift rate'="Model 1"
-)
-
-ef <- ggplot(mr_Exec_table_rdoc_cov_raw_new[c(1:3, 10:12),], aes(x=est, label=parameters, y=measure_new, color=measure)) +
-  geom_point(position=position_dodge(width = 1), stat = "identity") +
-  geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
-  geom_vline(xintercept = 0) +
-  labs(y="HDDM model parameter", x="beta [95% CI]", title="Executive function") +
-  facet_grid(parameters~., scales = "free", space = "fixed", labeller = as_labeller(
-    c(`Boundary separation` = "Model 2", 
-      `Drift rate` = "Model 1"))) +
-  theme_apa() +
-  theme(strip.background = element_blank(), #remove background for facet labels
-        panel.border = element_rect(colour = "black", fill = NA), #add black border
-        panel.spacing = unit(0, "lines"), #remove space between facets)
-        legend.position = "none") #hide legend
-```
-```{r}
-val_rdoc <- ggarrange(ern_rdoc + rremove("xylab"),
-                      inh + rremove("xylab") + rremove("y.text") + rremove("y.ticks"),
-          ef + rremove("xylab") + rremove("y.text") + rremove("y.ticks"),
-          ncol=3, nrow=1,
-          widths = c(1.5, 1, 1))
-
-val_rdoc <- annotate_figure(val_rdoc, left = grid::textGrob("HDDM model parameter", rot = 90, vjust = 1, gp = grid::gpar(cex = 1.3)),
-                bottom = grid::textGrob("beta [95% CI]", gp = grid::gpar(cex = 1.3)),
-                fig.lab.size=12)
-val_rdoc
-```
-
 ```{r}
 inh_acc_cor <- corr.test(LDDM_do3_rdoc_no_outliers$Inhib_time_rev_z, LDDM_do3_rdoc_no_outliers$accuracy_incongruent_z, method="spearman")
 exec_acc_cor <- corr.test(LDDM_do3_rdoc_no_outliers$exec_composite_z, LDDM_do3_rdoc_no_outliers$accuracy_incongruent_z, method="spearman")
 ```
 
-For bivariate correlations and their statistical significance, see Table 2. Drift rate, accuracy to incongruent stimuli, and the NIH Toolbox derived score were entered into a multiple regression model as simultaneous predictors of cogntive control and executive function derived from performance on tasks from the D-KEFS [@delisDelisKaplanExecutiveFunction2012]. Drift rate was significantly associated with both cognitive control and exective function, over-and-above its association with accuracy and the NIH Toolbox scores (see Figure \# and Table \#). These relationships indicates that faster or higher quality accumulation of evidence (drift rate) is associated with better performance (i.e., faster) on a cognitive control task and executive function overall. Results were similar when examining drift rate to congruent and incongruent stimuli separately (see Supplement). Accuracy to incongruent stimuli was also associated with congitive control and executive function when entered into a model with drift rate and the NIH Toolbox score. This relationship indicates, somewhat surprisingly, that lower accuracy is associated with better performance on a cognitive control task and executive function overall. However, since the bivariate correlation is non-significant (cognitive control: $r$(`r inh_acc_cor$n-1`) = `r round(inh_acc_cor$r,2)`, $p$ = `r round(inh_acc_cor$p,2)`; executive function:$r$(`r exec_acc_cor$n-1`) = `r round(exec_acc_cor$r,2)`, $p$ = `r round(exec_acc_cor$p,2)`), this potentially indicates a suppression effect.
+### Brain-based measures
+For bivariate correlations and their statistical significance, see Table 2. Drift rate, raw accuracy to incongruent stimuli, and the NIH Toolbox derived score were entered into multiple regression models as simultaneous predictors of the ERN, one model for each DDM parameter of interest (i.e., drift rate, boundary separation). Drift rate was significantly associated with ERN amplitude in Study 1 over-and-above ERN's association with raw accuracy and the NIH Toolbox scores (see Figure 4). This relationship indicates that faster or higher quality accumulation of evidence (i.e., drift rate; [@whiteDiffusionModelsFlanker2011]) is associated with a larger ERN amplitude. Raw accuracy and NIH Toolbox scores were not significantly associated with ERN when drift rate was included in the model. Results were similar for all sessions of Study 2--though becoming non-significant at session 3; see Supplement)--and when examining drift rate to congruent and incongruent stimuli separately (see Supplement).
 
-Identical models that included boundary separation instead of drift rate were also fitted. Boundary separation was significantly associated with ERN in Study 1 but not in any of the three sessions from Study 2 (see Figure \# and Table \#). This relationship indicates that a greater valuing of correct responses, at the cost of slower responses (thus larger separation between the decision boundaries), is associated with a smaller (less negative) ERN amplitude. Accuracy and NIH Toolbox scores are not significantly associated with ERN for either Study 2 nor Study 1 when boundary separation is included in the model.
+Boundary separation was significantly associated with ERN amplitude in Study 1 over-and-above ERN's association with raw accuracy and the NIH Toolbox scores (see Figure 4). This relationship indicates that a greater emphasis on being correct (and reduced emphasis on responding quickly) is associated with a smaller ERN amplitude. Raw accuracy was significantly associated with ERN when boundary separation was included in the model, though NIH Toolbox score was not. This relationship indicates that higher raw accuracy is associated with a larger ERN. Results of Study 2 diverged with those of study 1 for boundary separation. Across all three sessions of Study 2, neither boundary separation nor raw accuracy were significantly related to ERN, though NIH Toolbox score was significantly related to ERN across all sessions for bivariate correlations, but only significantly associated with ERN over-and-above boundary separation and raw accuracy on session 2 (see Supplement). This suggests that slower RT and worse raw accuracy are related to a smaller ERN.
+
+### Neuropsychological measures
+For bivariate correlations and their statistical significance, see Table 2. Drift rate, raw accuracy to incongruent stimuli, and the NIH Toolbox derived score were entered into a multiple regression model as simultaneous predictors of inhibition and executive function derived from performance on tasks from the D-KEFS [@delisDelisKaplanExecutiveFunction2012]. Drift rate was significantly associated with both inhibition and executive function, over-and-above their associations with accuracy and the NIH Toolbox scores (see Figure 4). These relationships indicate that faster or higher quality accumulation of evidence (drift rate) on the Flanker is associated with better performance (i.e., faster) on a separate cognitive control task and executive function overall. 
+
+Raw accuracy to incongruent stimuli was also associated with executive function when entered into a model with drift rate and the NIH Toolbox score. This relationship indicates, somewhat surprisingly, that lower accuracy is associated with better performance on a cognitive control task. Results were similar when examining drift rate to congruent and incongruent stimuli separately (see Supplement). The association between raw accuracy and inhibition yielded a suppression effect^[The bivariate associations between raw accuracy and cognitive control and executive function were non-significant ($r$(`r inh_acc_cor$n-1`) = `r round(inh_acc_cor$r,2)`, $p$ = `r round(inh_acc_cor$p,2)`), yet yielded a negative association with cognitive control and executive functioning when entered in a multiple regression with drift-rate and the NIH Toolbox score.]. 
 
 ### Familiality
-
-```{r Familiarity}
-rdoc_familiality_table <- read.csv(here("./tables/rdoc_heritability_table.csv"))
-```
-
-Analyses of familiality show that drift rate to congruent and incongruent stimuli were significantly familial (i.e., similar between siblings), but boundary separation and NIH Toolbox score were not. Average drift rate and accuracy to incongruent stimuli were both familial at trend levels (see Table \#).
+Analyses of familiality show that drift rate to congruent and incongruent stimuli were significantly familial (i.e., similar between siblings), but boundary separation and NIH Toolbox score were not. Average drift rate and raw accuracy to incongruent stimuli were both familial at trend levels (see Table 3).
 
 # Discussion
 
-The current study sought to compare the psychometrics of three measures of behavioral performance on the Eriksen flanker task.
-In doing so, we found that hierarchical drift diffusion modeling (HDDM) produced parameters (particularly drift rate) with greater split-half reliability and stronger convergent validity with brain (ERN) and behavioral (neuropsychological inhibition and shifting) indicators of cognitive control and executive function, as well as comparable test-retest reliability to traditional scores such as raw accuracy and a combination of reaction time and accuracy as used in the NIH Toolbox (CITE).
-A number of these findings were replicated in an independent sample and robust to changes in the HDDM modeling parameters.
+	○ Short paragraph about these may reflect more trait-like processes (familiality) and perhaps endophenotypes
+	○ Paragraph on the optimal/minimal length
+Treatment implications
+
+
+The current study sought to compare the psychometrics of three measures of behavioral performance on the Eriksen flanker task. In doing so, we found that hierarchical drift diffusion modeling (HDDM) produced parameters with comparable reliability (both internal consistency and test-retest reliability) to traditional scores such as raw accuracy and the NIH Toolbox metric but better convergent validity with brain (ERN) and behavioral (neuropsychological inhibition and shifting) indicators of inhibition and executive function, as well as better familiality. Many of these findings replicated in an independent sample.
+
+One straightforward explanation for the relatively better validity of HDDM parameters is that it probes qualitatively different psychological processes. Drift rate and boundary separation, for example, represent discrete cognitive processes of evidence accumulation and speed-accuracy tradeoff, respectively, making them purer indices of specific cognitive processes. This means that changes in behavior unrelated to the process of interest do not conflate that process. For example, it can determine whether a participant speeding up is due to 1) a greater emphasis on responding quickly at the cost of being accurate, 2) improved evidence accumulating (i.e., responding quicker and more accurately), or 3) an altered starting bias towards one particular answer. This is one explanation for the significant relationships between HDDM parameters and brain and neurocognitive convergent measures. 
+
+ First, the NIH Toolbox measure only includes reaction time on incongruent trials, thus excluding information about participants differential reaction time to incongruent relative to congruent stimuli. Second, like accuracy, it conflates many underlying psychological processes. For example, participants may slow down in responding due to a greater emphasis on accuracy, greater difficulty accumulating evidence in order to make a response, or simply distraction.
 
 ## HDDM
 
@@ -723,6 +438,8 @@ Such findings could identify behavioral targets for intervention to improve cogn
 Finally, we did not compare the psychometric properties of raw reaction time (or raw differential reaction time).
 Prior psychometric studies of the flanker task have often focused on this measure [@evansPsychometricComparisonAnxietyrelevant2018; @wostmannReliabilityPlasticityResponse2013].
 Reaction time is also highly correlated with DDM parameters (**ADD DDM TO RT CORRELATIONS HERE)**, leading to concerns that including them as predictors in multiple regression models were lead to uninterpretable results.
+Those findings that were not replicated will require replication in an independent sample--specifically, the relationship between HDDM parameters, primarily drift rate, and neurocognitive measures of inhibiton and exeuctive function, as well as the familiality of these measures.
+
 
 This study sought to compare the realibility and validity of novel HDDM parameters to other conventional scores to measure behavior in the Flanker task.
 We hope that this supports researchers in designing studies of cognitive control or reanalyzing existing data to more powerfully capture and disentangle these cognitive processes.
