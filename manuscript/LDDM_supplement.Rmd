@@ -1,0 +1,412 @@
+---
+title             : "Psychometrics of hierarchical drift diffusion modeling for Eriksen flanker task: Reliability and validity in two samples"
+shorttitle        : "Psychometrics of HDDM"
+author: 
+  - name          : "Brent I. Rappaport"
+    affiliation   : "1"
+    corresponding : yes    # Define only one corresponding author
+    address       : "680 N. Lakeshore Drive, Suite 1520, Chicago, IL 60611"
+    email         : "brent.rappaport@northwestern.edu"
+    role:         # Contributorship roles (e.g., CRediT, https://credit.niso.org)
+      - "Conceptualization"
+      - "Formal Analysis"
+      - "Methodology"
+      - "Writing - Original Draft Preparation"
+      - "Writing - Review & Editing"
+  - name          : "Allison Letkiewicz"
+    affiliation   : "1"
+    role:
+      - "Conceptualization"
+      - "Formal Analysis"
+      - "Methodology"
+      - "Writing - Original Draft Preparation"
+      - "Writing - Review & Editing"
+  - name          : "Anna Weinberg"
+    affiliation   : "2"
+    role:
+      - "Data Curation"
+      - "Investigation"
+      - "Project Administration"
+      - "Writing - Review & Editing"
+  - name          : "Savannah Buchanan"
+    affiliation   : "1"
+    role:
+      - "Writing - Original Draft Preparation"
+      - "Writing - Review & Editing"
+  - name          : "Stewart Shankman"
+    affiliation   : "1"
+    role:
+      - "Conceptualization"
+      - "Funding Acquisition"
+      - "Methodology"
+      - "Project Administration"
+      - "Resources"
+      - "Supervision"
+      - "Writing - Original Draft Preparation"
+      - "Writing - Review & Editing"
+affiliation:
+  - id            : "1"
+    institution   : "Department of Psychiatry, Feinberg School of Medicine, Northwestern University"
+  - id            : "2"
+    institution   : "Department of Psychology, McGill University"
+
+bibliography      : "LDDM.bib"
+floatsintext      : yes
+linenumbers       : yes
+draft             : no
+mask              : no
+figurelist        : yes
+tablelist         : yes
+footnotelist      : no
+documentclass     : "apa7"
+classoption       : "man"
+output            : papaja::apa6_pdf
+geometry          : "left=3cm,right=3cm,top=2cm,bottom=2cm"
+header-includes:
+   - \usepackage{booktabs}
+---
+
+```{r echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+    options(width=80, Ncpus = 6, mc.cores=6) #Set width
+    rm(list=ls())     #Remove everything from environment
+    cat("\014")       #Clear Console
+
+  library(knitr)      #allows rmarkdown files
+  library(haven)      #helps import stata
+  library(MASS)       #calculate residualized scores
+  library(tidyverse)  #plotting/cleaning, etc.
+  library(broom)      #nice statistical output
+  library(here)       #nice file paths
+  library(expss)      #labeling variables/values
+  library(psych)      #used for statistical analyses
+  library(labelled)   #get labelled values when importing from SPSS
+  library(confintr)   #get confidence intervals from models
+  library(papaja)     #APA formatting
+  library(DescTools)  #descriptive statistics
+  library(irr)        #ICC
+  library(lmerTest)   #p value from mixed effects models
+  library(broom.mixed) #tidying output of mixed effects models
+  library(ggplot2)    #plotting graphs
+  library(ggpubr)
+  library(scales)
+  library(forcats)
+  library(workflowr)  #helps with workflow
+
+r_refs("LDDM.bib")
+```
+
+```{r analysis-preferences, set.seed(312), echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+# Seed for random number generation
+set.seed(312)
+knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
+```
+
+```{r Load data}
+load(file=here("../data/LDDM_do2_d1_not_outliers.RData"))
+load(file=here("../data/LDDM_do2_d2_not_outliers.RData"))
+load(file=here("../data/LDDM_do2_d3_not_outliers.RData"))
+
+load(file=here("../data/LDDM_cleaning04_calc3_1to3.RData"))
+load(file=here("../data/LDDM_do2_irr.RData"))
+load(file=here("../data/LDDM_do2.RData"))
+load(file=here("../data/spearman_brown_d1.RData"))
+load(file=here("../data/spearman_brown_d2.RData"))
+load(file=here("../data/spearman_brown_d3.RData"))
+
+load(file=here("../data/LDDM_do3_rdoc.RData"))
+load(file=here("../data/LDDM_do3_rdoc_no_outliers.RData"))
+load(file=here("../data/spearman_brown_rdoc.RData"))
+```
+
+```{r}
+make_CI <- function(lower, upper) {
+  paste0("[", round(lower,2), ", ", round(upper,2), "]")
+}
+
+group.colors <- c(`Drift rate` = "salmon", `Drift rate (congruent)` = "darkviolet", `Drift rate (incongruent)` ="blue", `Boundary separation` = "green", `NIH Toolbox` = "orange", `Accuracy (incongruent)` = "red")
+```
+
+```{r}
+correlation_matrix <- function(df, 
+                               type = "spearman",
+                               digits = 3, 
+                               decimal.mark = ".",
+                               use = "all", 
+                               show_significance = TRUE, 
+                               replace_diagonal = FALSE, 
+                               replacement = ""){
+  
+  # check arguments
+  stopifnot({
+    is.numeric(digits)
+    digits >= 0
+    use %in% c("all", "upper", "lower")
+    is.logical(replace_diagonal)
+    is.logical(show_significance)
+    is.character(replacement)
+  })
+  # we need the Hmisc package for this
+  require(Hmisc)
+  
+  # retain only numeric and boolean columns
+  isNumericOrBoolean = vapply(df, function(x) is.numeric(x) | is.logical(x), logical(1))
+  if (sum(!isNumericOrBoolean) > 0) {
+    cat('Dropping non-numeric/-boolean column(s):', paste(names(isNumericOrBoolean)[!isNumericOrBoolean], collapse = ', '), '\n\n')
+  }
+  df = df[isNumericOrBoolean]
+  
+  # transform input data frame to matrix
+  x <- as.matrix(df)
+  
+  # run correlation analysis using Hmisc package
+  correlation_matrix <- Hmisc::rcorr(x, type = )
+  R <- correlation_matrix$r # Matrix of correlation coeficients
+  p <- correlation_matrix$P # Matrix of p-value 
+  
+  # transform correlations to specific character format
+  Rformatted = formatC(R, format = 'f', digits = digits, decimal.mark = decimal.mark)
+  
+  # if there are any negative numbers, we want to put a space before the positives to align all
+  if (sum(R < 0) > 0) {
+    Rformatted = ifelse(R > 0, paste0(' ', Rformatted), Rformatted)
+  }
+  
+  # add significance levels if desired
+  if (show_significance) {
+    # define notions for significance levels; spacing is important.
+    stars <- ifelse(is.na(p), "   ", ifelse(p < .001, "***", ifelse(p < .01, "** ", ifelse(p < .05, "*  ", "   "))))
+    Rformatted = paste0(Rformatted, stars)
+  }
+  # build a new matrix that includes the formatted correlations and their significance stars
+  Rnew <- matrix(Rformatted, ncol = ncol(x))
+  rownames(Rnew) <- colnames(x)
+  colnames(Rnew) <- paste(colnames(x), "", sep =" ")
+  
+  # replace undesired values
+  if (use == 'upper') {
+    Rnew[lower.tri(Rnew, diag = replace_diagonal)] <- replacement
+  } else if (use == 'lower') {
+    Rnew[upper.tri(Rnew, diag = replace_diagonal)] <- replacement
+  } else if (replace_diagonal) {
+    diag(Rnew) <- replacement
+  }
+  
+  return(Rnew)
+}
+
+save_correlation_matrix = function(df, filename, ...) {
+  write.csv2(correlation_matrix(df, ...), file = filename)
+}
+```
+
+# Methods
+## HDDM Model fitting
+Model 1a included a boundary separation, drift-rate, and non-decision time parameter. Model 1b included a boundary separation, drift-rate, non-decision time, and bias parameter. The drift-rate parameter for Models 1a and 1b collapsed across trial type, such that correct congruent and correct incongruent trials were included in this estimate. Model 2a included a boundary separation and non-decision time parameter, and two drift-rate parameters: one for congruent and one for incongruent trials. Model 2b included a boundary separation, non-decision time and bias parameter, and two drift-rate parameters: one for congruent and one for incongruent trials. 
+
+# Results
+## HDDM
+Multiple alternative models were fit to assure similar that findings were not dependent on parameters modeled. Deviance information criterion (DIC) can be used to compare relative model fit, where a lower DIC indicates better model fit. Posterior checks indicated there were no issues with model convergence. Model selection was based on most used models in prior literature rather than model fit so as to assure that 1) overfitting did not affect psychometric results, and 2) that findings from the current study could provide the most useful information to others fitting their data with HDDM models. Several alternative models were also fit to identify whether model parameterization affected the overall pattern of results. Results were comparable across models.
+
+```{r}
+hddm_model_fits <- data.frame(Model=c(1,2,3,4),
+                              "Parameters modeled" = c("Drift rate, boundary separation, non-decision time", 
+                                                       "Drift rate, boundary separation, non-decision time, bias",
+                                                       "Drift rate (congruent), Drift rate (incongruent), boundary separation, non-decision time",
+                                                       "Drift rate (congruent), Drift rate (incongruent), boundary separation, non-decision time, bias"),
+                              DIC=c(154031.57,173689.83,178167.01,210360.42,
+                                    28062.80,32888.84,32305.20,39259.40,
+                                    30653.61,34087.93,34616.37,39905.23,
+                                    NA,NA,NA,NA))
+
+apa_table(hddm_model_fits)
+```
+\newpage
+## Correlations
+```{r Correlation tables}
+all_measures_d1 <- c("FCZ_ERN_080_d1_z","flanker_score_d1_z","accuracy_incongruent_d1_z",
+                  "v_S1_B11_d1_z","v_congruent_S1_B11_d1_z","v_incongruent_S1_B11_d1_z","a_S1_B11_d1_z")
+all_measures_d2 <- c("FCZ_ERN_080_d2_z","flanker_score_d2_z","accuracy_incongruent_d2_z",
+                  "v_S2_B11_d2_z","v_congruent_S2_B11_d2_z","v_incongruent_S2_B11_d2_z","a_S2_B11_d2_z")
+all_measures_d3 <- c("FCZ_ERN_080_d3_z","flanker_score_d3_z","accuracy_incongruent_d3_z",
+                  "v_S3_B11_d3_z","v_congruent_S3_B11_d3_z","v_incongruent_S3_B11_d3_z","a_S3_B11_d3_z")
+all_measures_rdoc <- c("FCz_ERN_080_z","flanker_score_rdoc_z","accuracy_incongruent_z",
+                  "B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon_z","B11_avtz_DO_v_a_z","Inhib_time_rev_z","exec_composite_z")
+
+sttr_d1_correlations <- correlation_matrix(LDDM_do2_d1_not_outliers[c(all_measures_d1)], type = c("spearman"), use = 'lower', replace_diagonal=TRUE, replacement="")
+sttr_d2_correlations <- correlation_matrix(LDDM_do2_d2_not_outliers[c(all_measures_d2)], type = c("spearman"), use = 'lower', replace_diagonal=TRUE, replacement="")
+sttr_d3_correlations <- correlation_matrix(LDDM_do2_d3_not_outliers[c(all_measures_d3)], type = c("spearman"), use = 'lower', replace_diagonal=TRUE, replacement="")
+rdoc_correlations <- correlation_matrix(LDDM_do3_rdoc_no_outliers[c(all_measures_rdoc)], type = c("spearman"), use = 'lower', replace_diagonal=TRUE, replacement="")
+
+LDDM_do2_not_outliers <- full_join(LDDM_do2_d1_not_outliers, LDDM_do2_d2_not_outliers, by="ID") %>%
+  full_join(LDDM_do2_d3_not_outliers, by="ID")
+
+sttr_correlations <- as.data.frame(correlation_matrix(LDDM_do2_not_outliers[c(all_measures_d1,all_measures_d2,all_measures_d3)], type = c("spearman"), use = 'lower', replace_diagonal=TRUE, replacement=""))
+
+sttr_correlations_edited <- sttr_correlations %>%
+  mutate("Parameters/Measures" = rep(c("ERN","NIH Toolbox","Raw accuracy (incongruent)", "Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation"),3)) %>%
+  select("Parameters/Measures", everything())
+
+row.names(sttr_correlations_edited) <- NULL
+
+`Session 1` <- c("ERN","NIH Toolbox","Raw accuracy (incongruent)",
+                  "Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation")
+`Session 2` <- `Session 1`
+`Session 3` <- `Session 1`
+table_list <- list(`Session 1`, `Session 2`, `Session 3`)
+
+sttr_correlations_edited[is.na(sttr_correlations_edited)] <- ""
+colnames(sttr_correlations_edited)=c("Parameters/Measures", rep(c("ERN","NIH Toolbox","Raw accuracy (incongruent)",
+                  "Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation"),3))
+
+#RDoC study
+rdoc_correlations_edited <- as.data.frame(rdoc_correlations) %>%
+  mutate("Parameters/Measures" = c("ERN","NIH Toolbox","Raw accuracy (incongruent)", "Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Inhibition","Executive function")) %>%
+  select("Parameters/Measures", everything())
+
+rdoc_correlations_edited[is.na(rdoc_correlations_edited)] <- ""
+colnames(rdoc_correlations_edited)=c("Parameters/Measures", c("ERN","NIH Toolbox","Raw accuracy (incongruent)", "Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Inhibition","Executive function"))
+
+apa_table(rdoc_correlations_edited,
+          row.names=FALSE,
+          align=c("l",rep("c",9)),
+          digits=2,
+          caption = "Correlations among Study 1 variables",
+          note = "*** p < .001, ** p < .01, * p < .05",
+          landscape=TRUE
+)
+
+library(kableExtra)
+kbl(sttr_correlations_edited, 
+    row.names = NA, 
+    caption = "Correlations among Study 2 variables",
+    align=c("l",rep("c",23)),
+          digits=2) %>%
+  kable_paper() %>%
+  add_header_above(c(" "=1, "Session 1"=7, "Session 2"=7, "Session 3"=7)) %>%
+          pack_rows("Session 1", 1,7) %>%
+          pack_rows("Session 2", 8,14) %>%
+          pack_rows("Session 3", 15,21)
+```
+
+
+## Study 2 Validity: Multiple regressions with ERN
+**ADD DRIFT RATE SEPARATED BY CONDITION**
+```{r}
+mr_ERN_table_d1 <- read.csv(file=here("../tables/mr_ERN_table_d1.csv"))
+mr_ERN_table_d2 <- read.csv(file=here("../tables/mr_ERN_table_d2.csv"))
+mr_ERN_table_d3 <- read.csv(file=here("../tables/mr_ERN_table_d3.csv"))
+
+mr_table_names <- c("X","parameters", "ddm_est", "ddm_lci", "ddm_uci",
+                                                 "nih_est", "nih_lci", "nih_uci",
+                                                 "acc_est", "acc_lci", "acc_uci")
+
+# STTR Study
+# Session 1
+mr_ERN_table_d1_raw <- read.csv(file=here("../tables/mr_ERN_table_d1_raw.csv"))
+colnames(mr_ERN_table_d1_raw) <- mr_table_names
+mr_ERN_table_d1_raw_new <- mr_ERN_table_d1_raw %>%
+  pivot_longer(cols=ddm_est:acc_uci, names_to=c("measure","stat"), names_sep="_") %>%
+  pivot_wider(names_from=stat, values_from=value)
+
+mr_ERN_table_d1_raw_new <- mr_ERN_table_d1_raw_new %>%
+  mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy", NA)))) %>%
+  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy", "Drift rate","Boundary separation")))
+
+ern_d1 <- ggplot(mr_ERN_table_d1_raw_new[c(1:3, 10:12),], aes(x=est, label=parameters, y=measure_new, color=measure)) +
+  geom_point(position=position_dodge(width = 1), stat = "identity") +
+  geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
+  geom_vline(xintercept = 0) +
+  labs(y="HDDM model parameter", x="beta [95% CI]") +
+  # scale_y_discrete(name="Measure", labels=c("Accuracy", "NIH Toolbox")) +
+  facet_grid(parameters~., scales = "free", space = "fixed") + #facet by group
+  theme_apa() +
+  theme(strip.background = element_blank(), #remove background for facet labels
+        strip.text.y = element_blank(),
+        panel.border = element_rect(colour = "black", fill = NA), #add black border
+        panel.spacing = unit(0, "lines"), #remove space between facets)
+        legend.position = "none") #hide legend
+
+# Session 2
+mr_ERN_table_d2_raw <- read.csv(file=here("../tables/mr_ERN_table_d2_raw.csv"))
+colnames(mr_ERN_table_d2_raw) <- mr_table_names
+mr_ERN_table_d2_raw_new <- mr_ERN_table_d2_raw %>%
+  select(-X) %>%
+  pivot_longer(cols=ddm_est:acc_uci, names_to=c("measure","stat"), names_sep="_") %>%
+  pivot_wider(names_from=stat, values_from=value)
+
+mr_ERN_table_d2_raw_new <- mr_ERN_table_d2_raw_new %>%
+  mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy", NA)))) %>%
+  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy", "Drift rate","Boundary separation")))
+
+ern_d2 <- ggplot(mr_ERN_table_d2_raw_new[c(1:3, 10:12),], aes(x=est, label=parameters, y=measure_new, color=measure)) +
+  geom_point(position=position_dodge(width = 1), stat = "identity") +
+  geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
+  geom_vline(xintercept = 0) +
+  labs(y="HDDM model parameter", x="beta [95% CI]") +
+  # scale_y_discrete(name="Measure", labels=c("Accuracy", "NIH Toolbox")) +
+  facet_grid(parameters~., scales = "free", space = "fixed") + #facet by group
+  theme_apa() +
+  theme(strip.background = element_blank(), #remove background for facet labels
+        strip.text.y = element_blank(),
+        panel.border = element_rect(colour = "black", fill = NA), #add black border
+        panel.spacing = unit(0, "lines"), #remove space between facets)
+        legend.position = "none") #hide legend
+
+# Session 3
+mr_ERN_table_d3_raw <- read.csv(file=here("../tables/mr_ERN_table_d3_raw.csv"))
+colnames(mr_ERN_table_d3_raw) <- mr_table_names
+mr_ERN_table_d3_raw_new <- mr_ERN_table_d3_raw %>%
+  select(-X) %>%
+  pivot_longer(cols=ddm_est:acc_uci, names_to=c("measure","stat"), names_sep="_") %>%
+  pivot_wider(names_from=stat, values_from=value)
+
+mr_ERN_table_d3_raw_new <- mr_ERN_table_d3_raw_new %>%
+  mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy", NA)))) %>%
+  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy", "Drift rate","Boundary separation")))
+
+ern_d3 <- ggplot(mr_ERN_table_d3_raw_new[c(1:3, 10:12),], aes(x=est, label=parameters, y=measure_new, color=measure)) +
+  geom_point(position=position_dodge(width = 1), stat = "identity") +
+  geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
+  geom_vline(xintercept = 0) +
+  labs(y="HDDM model parameter", x="beta [95% CI]") +
+  # scale_y_discrete(name="Measure", labels=c("Accuracy", "NIH Toolbox")) +
+  facet_grid(parameters~., scales = "free", space = "fixed") + #facet by group
+  theme_apa() +
+  theme(strip.background = element_blank(), #remove background for facet labels
+        strip.text.y = element_blank(),
+        panel.border = element_rect(colour = "black", fill = NA), #add black border
+        panel.spacing = unit(0, "lines"), #remove space between facets)
+        legend.position = "none") #hide legend
+
+ern <- ggarrange(ern_d1 + rremove("xylab"), 
+          ern_d2 + rremove("xylab") + rremove("y.text") + rremove("y.ticks"),
+          ern_d3 + rremove("xylab") + rremove("y.text") + rremove("y.ticks"),
+          ncol=3, nrow=1,
+          widths = c(1.51, 1, 1))
+
+ern <- annotate_figure(ern, left = grid::textGrob("HDDM model parameter", rot = 90, vjust = 1, gp = grid::gpar(cex = 1.3)),
+                bottom = grid::textGrob("beta [95% CI]", gp = grid::gpar(cex = 1.3)),
+                fig.lab.size=12)
+ern
+```
+
+### Neuropsychological measures
+#### Drift rate examined separately for congruent and incongruent stimuli
+```{r}
+
+```
+
+
+## Replication of primary findings with different HDDM model parameters
+```{r}
+
+```
+
+
+
+\newpage
+
+# References
+
+::: {#refs custom-style="Bibliography"}
+:::
