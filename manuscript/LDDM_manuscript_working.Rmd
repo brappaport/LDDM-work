@@ -110,20 +110,20 @@ knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
 ```
 
 ```{r Load data}
-load(file=here("./data/LDDM_do2_d1_not_outliers.RData"))
-load(file=here("./data/LDDM_do2_d2_not_outliers.RData"))
-load(file=here("./data/LDDM_do2_d3_not_outliers.RData"))
+load(file=here("../data/LDDM_do2_d1_not_outliers.RData"))
+load(file=here("../data/LDDM_do2_d2_not_outliers.RData"))
+load(file=here("../data/LDDM_do2_d3_not_outliers.RData"))
 
-load(file=here("./data/LDDM_cleaning04_calc3_1to3.RData"))
-load(file=here("./data/LDDM_do2_irr.RData"))
-load(file=here("./data/LDDM_do2.RData"))
-load(file=here("./data/spearman_brown_d1.RData"))
-load(file=here("./data/spearman_brown_d2.RData"))
-load(file=here("./data/spearman_brown_d3.RData"))
+load(file=here("../data/LDDM_cleaning04_calc3_1to3.RData"))
+load(file=here("../data/LDDM_do2_irr.RData"))
+load(file=here("../data/LDDM_do2.RData"))
+load(file=here("../data/spearman_brown_d1.RData"))
+load(file=here("../data/spearman_brown_d2.RData"))
+load(file=here("../data/spearman_brown_d3.RData"))
 
-load(file=here("./data/LDDM_do3_rdoc.RData"))
-load(file=here("./data/LDDM_do3_rdoc_no_outliers.RData"))
-load(file=here("./data/spearman_brown_rdoc.RData"))
+load(file=here("../data/LDDM_do3_rdoc.RData"))
+load(file=here("../data/LDDM_do3_rdoc_no_outliers.RData"))
+load(file=here("../data/spearman_brown_rdoc.RData"))
 ```
 
 ```{r}
@@ -223,11 +223,11 @@ Our primary model of interest was specified based on prior work and theoretical 
 
 ### Split-half
 ```{r Split-half, warning=FALSE}
-splithalf <- read.csv(here("./tables/splithalf.csv"))
-splithalf_d1 <- read.csv(here("../Split_Half/StTr_S1_splithalf_all_mean_ci.csv"))
-splithalf_d2 <- read.csv(here("../Split_Half/StTr_S2_splithalf_all_mean_ci.csv"))
-splithalf_d3 <- read.csv(here("../Split_Half/StTr_S3_splithalf_all_mean_ci.csv"))
-splithalf_rdoc <- read.csv(here("../Split_Half/RDoC_splithalf_all_rev_mean_ci.csv"))
+splithalf <- read.csv(here("../tables/splithalf.csv"))
+splithalf_d1 <- read.csv(here("../../Split_Half/StTr_S1_splithalf_all_mean_ci.csv"))
+splithalf_d2 <- read.csv(here("../../Split_Half/StTr_S2_splithalf_all_mean_ci.csv"))
+splithalf_d3 <- read.csv(here("../../Split_Half/StTr_S3_splithalf_all_mean_ci.csv"))
+splithalf_rdoc <- read.csv(here("../../Split_Half/RDoC_splithalf_all_rev_mean_ci.csv"))
 
 make_splithalf_datatable <- function (df) {
   data.frame(trials=seq(15,165,15),
@@ -360,95 +360,62 @@ Raw accuracy to incongruent stimuli was also associated with executive function 
 Analyses of familiality show that drift rate to congruent and incongruent stimuli were significantly familial (i.e., similar between siblings), but boundary separation and NIH Toolbox score were not. Average drift rate and raw accuracy to incongruent stimuli were both familial at trend levels (see Table 3).
 
 # Discussion
+Despite numerous advantages for computational modeling, psychometric studies are lacking [@hauserPromiseModelbasedPsychiatry2022], with one study mostly focused on boundary separation [@hedgeSlowSteadyStrategic2019]. This study thus provides robust within- and between-subject replication of the relatively reliability and validity of HDDM parameters compared to more traditional behavioral measures of the Eriksen flanker task. The current study sought to compare the psychometrics of three measures of behavioral performance on the Eriksen flanker task. In doing so, we found that hierarchical drift diffusion modeling (HDDM) produced parameters with comparable reliability (both internal consistency and test-retest reliability) to traditional scores such as raw accuracy and the NIH Toolbox metric but better convergent validity with brain (ERN) and behavioral (neuropsychological) indicators of inhibition and executive function, as well as better familiality. Many of these findings replicated in an independent sample.
 
-	○ Short paragraph about these may reflect more trait-like processes (familiality) and perhaps endophenotypes
-	○ Paragraph on the optimal/minimal length
-Treatment implications
+## Hierarchical drift diffusion modeling
+Psychometric studies are imperative to informing the use of behavioral measures like the Flanker task in clinical studies. Identifying the advantages and disadvantages of these measures *quantitatively* can lead to more nuanced use.
+For example, if stable measurements of HDDM parameters can be achieved with fewer trials than typically collected (\~300 trials), then this could make the task more tolerable in clinical and youth samples. Indeed, we found that only about 210-240 trials are needed to reliably estimate drift rate, and that very few trials are needed to estimate boundary separation (~30). Moreover, our finding that at least 150 trials is needed to reliably measure the NIH Toolbox score is at odds with the fact that only 20 trials are administered as part of the NIH Toolbox battery, perhaps one of, if not the primary reason, it shows low reliability even in very large samples [ICC=0.43, @anokhinAgerelatedChangesLongitudinal2022].
+
+In terms of validity, one straightforward explanation for the relatively better validity of HDDM parameters is that it probes qualitatively different psychological processes. Drift rate and boundary separation, for example, represent discrete cognitive processes of evidence accumulation and speed-accuracy tradeoff, respectively, making them purer indices of specific cognitive processes. This means that changes in behavior unrelated to the process of interest do not conflate that process. For example, it can determine whether a participant speeding up is due to 1) a greater emphasis on responding quickly at the cost of being accurate, 2) improved evidence accumulating (i.e., responding quicker and more accurately), or 3) an altered starting bias towards one particular answer. This is one explanation for the significant relationships between HDDM parameters and brain and neurocognitive convergent measures. 
+
+Additionally, the convergent validity of drift rate and its significant familiality support this parameter reflecting a trait-like process. This supports its use in clinical studies examining cognitive aberrations that predict disease progression.  Moreover, drift rate may reflect a cognitive endophenotype (i.e., a heritable trait that appears in patients as well as relatives) of evidence accumulation that may predict risk for psychiatric and neurological disorders. Twin studies could further test whether drift rate varies as a function of heritability, for instance comparing monozygotic and dizygotic twins to each other and to non-twin siblings. This opens up exciting avenues whereby behavioral heritability may explain disorder heritability.
+
+Beyond that, this study has numerous implications for understanding cognitive control, and even for the treatment of psychiatric disorders. First, it suggests that computational modeling of this task does indeed provide reliable and more interpretable metrics of the underlying cognitive processes, as theorized and demonstrated elsewhere [e.g., @johnsonAdvancingResearchCognitive2017; @lercheRetestReliabilityParameters2017; @priceComputationalModelingApplied2019]. Second, it suggests that such parameters yield stronger brain-behavior relationships, more detectable with smaller sample sizes. Given enough trials, researchers may immediately apply these models to their own datasets. Although running such models requires some familiar with software/statistical packages, it is becoming increasingly accessible to users thanks to already developed tools for Python (<https://hddm.readthedocs.io/en/latest/#>) and R (<https://ccs-lab.github.io/hBayesDM/articles/getting_started.html>). Third, it suggests that the evidence garnered from the stimulus (i.e., drift rate) is the primary cognitive process driving individual differences in this task, though participants' caution/speed-accuracy tradeoff (i.e., boundary separation) also appears to be implicated in neuropsychological function. Fourth, and more clinically, HDDM parameters of tasks such as the Eriksen flanker may be able to predict who is at risk for developing a disorder. Fifth, different parameters may be able to explain heterogeniety and homogeneity between disorders. For example, deficits in accumulating evidence (drift rate) may put individuals at risk for neurodevelopmental disorders (e.g., attention-deficit/hyperactivity disorder), whereas deficits in properly trading-off speed and accuracy (knowing when to speed up vs slow down) may be an indicator of risk for anxiety disorders. Thus, a relatively inexpensive and brief behavioral task could be used to aid in diagnosis, particularly when comorbidity is present. Finally, psychometric studies in general provide useful benchmarks as researchers plan analyses. Knowing the reliability and validity of one's measures is necessary in designing tasks and determining the power needed.
 
 
-The current study sought to compare the psychometrics of three measures of behavioral performance on the Eriksen flanker task. In doing so, we found that hierarchical drift diffusion modeling (HDDM) produced parameters with comparable reliability (both internal consistency and test-retest reliability) to traditional scores such as raw accuracy and the NIH Toolbox metric but better convergent validity with brain (ERN) and behavioral (neuropsychological inhibition and shifting) indicators of inhibition and executive function, as well as better familiality. Many of these findings replicated in an independent sample.
+## NIH Toolbox and accuracy metrics
 
-One straightforward explanation for the relatively better validity of HDDM parameters is that it probes qualitatively different psychological processes. Drift rate and boundary separation, for example, represent discrete cognitive processes of evidence accumulation and speed-accuracy tradeoff, respectively, making them purer indices of specific cognitive processes. This means that changes in behavior unrelated to the process of interest do not conflate that process. For example, it can determine whether a participant speeding up is due to 1) a greater emphasis on responding quickly at the cost of being accurate, 2) improved evidence accumulating (i.e., responding quicker and more accurately), or 3) an altered starting bias towards one particular answer. This is one explanation for the significant relationships between HDDM parameters and brain and neurocognitive convergent measures. 
-
- First, the NIH Toolbox measure only includes reaction time on incongruent trials, thus excluding information about participants differential reaction time to incongruent relative to congruent stimuli. Second, like accuracy, it conflates many underlying psychological processes. For example, participants may slow down in responding due to a greater emphasis on accuracy, greater difficulty accumulating evidence in order to make a response, or simply distraction.
-
-## HDDM
-
-Despite numerous advantages for computational modeling, psychometric studies are lacking [@hauserPromiseModelbasedPsychiatry2022].
-One psychometric study mostly focused on boundary separation: @hedgeSlowSteadyStrategic2019
-
-... Identifying the advantages and disadvantages of these measures *quantitatively* can lead to more nuanced use.
-For example, if stable measurements of HDDM parameters can be achieved with fewer trials than typically collected (\~300 trials), then this could make the task more tolerable in clinical and youth samples.
-...
-
-One explanation for the concordance between drift rate and the ERN is the so-called Gratton effect, whereby there is a decrease in interference after an incongruent trial, and the subsequent conflict/control loop theory [@botvinickConflictMonitoringCognitive2001].
-That is, participants' ability to infer evidence from the stimulus may improve following challenging or incongruent stimuli.
-
-## NIH Toolbox
-
-In terms of reliability, the NIH Toolbox score performed worse than both the HDDM and accuracy scores.
-This was somewhat surprising given prior literature on its psychometrics.
-One possible explanation for this is that it represents a score that is more generalizable than raw accuracy (since it includes both accuracy and reaction time), but conflates cognitive processes of interest (e.g., drift rate, boundary separation) with others that introduce noise (e.g., bias, non-decision time as modeled in the HDDM).
-Indeed, in terms of validity, the NIH Toolbox the score is correlated with convergent measures (ERN, neuropsychological) even if not accounting for unique variance above HDDM parameters; whereas raw accuracy to incongruent stimuli is not.
-Moreover, the NIH Toolbox can be measured with very few trials (20) making it more accommodating for clinical and youth samples.
-**PRIOR LITERATURE PSYCHOMETRICS** Initial validation studies supported the psychometric reliability of this measure (CITE); however, more recent investigations have found them to be less reliable [@anokhinAgerelatedChangesLongitudinal2022].
-
-## Accuracy
-
-One somewhat surprising finding was the relatively good reliability of the raw accuracy score, at times yielding better test-retest reliability than the DDM parameters and NIH Toolbox score.
-At the same time, accuracy showed variable correlations with measures of convergent validity (ERN, neuropsychological cognitive control and executive functioning).
+One somewhat surprising finding was the relatively good reliability of the raw accuracy score, at times yielding better test-retest reliability than the DDM parameters and NIH Toolbox score. At the same time, accuracy showed variable correlations with measures of convergent validity (ERN, neuropsychological inhibition and executive functioning).
 This suggests that task performance is reliable, but that this score may not reflect a generalizable cognitive ability.
 Rather, it may illustrate that individuals that perform accurately on the task at one time point, tend to continue to do so, and that individuals who perform relatively worse, continue to do so too.
 
-Of note, we used accuracy only on incongruent trials for two reasons.
-First, it was much more normally distributed than overall accuracy ,or accuracy on congruent trials where participants neared 100% accuracy.
-Second, accuracy on incongruent trials appeared from prior literature to be more reliable [@wostmannReliabilityPlasticityResponse2013].
-
-## Implications and future directions
-
-The current study has implications for the measurement of behavior on a widely-used task.
-First, it suggests that computational modeling of this task does indeed provide more reliable and interpretable metrics of the underlying cognitive processes, as theorized and demonstrated elsewhere (CITE).
-Second, it suggests that such parameters yield stronger brain-behavior relationships, more detectable with smaller sample sizes.
-Third, it suggests that the evidence garnered from the stimulus (i.e., drift rate) is the primary cognitive process driving individual differences in this task, though participants' caution/speed-accuracy tradeoff (i.e., boundary separation) also appears to be implicated in neuropsychological function.
-Given enough trials, researchers may immediately apply these models to their own datasets.
-Although running such models requires some familiar with software/statistical packages, it is becoming increasingly accessible to users thanks to already developed tools for Python (<https://hddm.readthedocs.io/en/latest/#>) and R (<https://ccs-lab.github.io/hBayesDM/articles/getting_started.html>).
-
-In the future, more research is needed comparing the parameters of these models to behavioral performance and brain responses on other tasks, so as to further clarify what it is precisely measuring.
-A natural next direction is examining the extent to which these parameters are related to current, past, or future psychopathology, such as anxiety and externalizing symptoms which are often linked to impairments in cognitive control and/or error monitoring (CITE).
+The NIH Toolbox score showed more mixed results than prior studies would suggest [@weintraubCognitionAssessmentUsing2013; @zelazoNihToolboxCognition2013; @zelazoNIHToolboxCognition2014]. While it performed equal to or worse than both the HDDM and accuracy scores on measures of reliability, it was correlated with convergent measures (ERN, neuropsychological) even if not accounting for unique variance over-and-above HDDM parameters. One possible explanation for this is that it represents a score that is more generalizable than raw accuracy (since it includes both accuracy and reaction time), but conflates cognitive processes of interest (e.g., drift rate, boundary separation) with others that introduce noise (e.g., bias, non-decision time as modeled in the HDDM). This noise then reduces both its reliability and validity, since we do not expect noise to be reliable nor associated with signal from other measures.
 
 ## Limitations and considerations
+```{r}
+load(file=here("../data/LDDM_cleaning04_rdoc_calc4.RData"))
+load(file=here("../data/LDDM_cleaning04_d1_calc4.RData"))
+load(file=here("../data/LDDM_cleaning04_d2_calc4.RData"))
+load(file=here("../data/LDDM_cleaning04_d3_calc4.RData"))
 
-There were also specific exceptions and limitations to the conclusions described above.
-First, although the HDDM model outperformed raw accuracy and the NIH Toolbox score, it should be noted that these latter scores require fewer trials to generate a score.
-However, it is possible that HDMM models may be fitted with fewer than 330 trials (i.e., 30 trials in 11 blocks) to achieve convergence and stable parameter estimates.
-Indeed, we found that at around block 7 (210 trials), estimates of drift rate began to reach an asymptote.
-Second, while the relationship between drift rate and the ERN in session 3 of Study 2 was non-significant, the effect size is consistent with session 1 of Study 2 and Study 1, suggesting that the sample from session 3 may have been underpowered to detect this effect.
-It is also possible that this was due to practice effects.
-Future research with large, longitudinal samples would be able to address this.
-Third, we indicated both statistically significant and trending effects, as well as their 95% confidence interval.
-This was done to increase transparency, as well as aid in interpreting effect sizes.
-With studies increasingly taking a Bayesian approach, we hope that such effects may serve as potential priors for future analyses.
-Fourth, we present results from only two potential variations of the HDDM model.
-These models were chosen based on their good fit and prior literature which has included these parameters (CITE).
-Fifth, though we replicated results in two independent samples of adults, we cannot be sure other their generalizability to youth and older adults.
-Sixth, The causality of the association between drift rate/boundary separation and ERN cannot be determined.
-We believe it is more likely that larger ERN amplitudes to errors drive improved accumulation of evidence, though the reverse direction is also possible.
-Similarly, for the associations between HDDM parameters and neuropsychological measures, further research could examine the temporal relationship between individual-level changes in executive functioning, inhibition broadly, and drift rate and boundary separation.
-Such findings could identify behavioral targets for intervention to improve cognitive control in disorders such as attention-deficit/hyperactivity disorder.
-Finally, we did not compare the psychometric properties of raw reaction time (or raw differential reaction time).
-Prior psychometric studies of the flanker task have often focused on this measure [@evansPsychometricComparisonAnxietyrelevant2018; @wostmannReliabilityPlasticityResponse2013].
-Reaction time is also highly correlated with DDM parameters (**ADD DDM TO RT CORRELATIONS HERE)**, leading to concerns that including them as predictors in multiple regression models were lead to uninterpretable results.
-Those findings that were not replicated will require replication in an independent sample--specifically, the relationship between HDDM parameters, primarily drift rate, and neurocognitive measures of inhibiton and exeuctive function, as well as the familiality of these measures.
+LDDM_do3_rdoc_no_outliers_rt <- LDDM_cleaning04_rdoc_ind_short %>%
+  mutate(SubjectID = subj_idx) %>%
+  right_join(y=LDDM_do3_rdoc_no_outliers, by="SubjectID")
+
+LDDM_do3_d1_no_outliers_rt <- LDDM_cleaning04_d1_ind %>%
+  mutate(id.x = subj_idx) %>%
+  right_join(y=LDDM_do2_d1_not_outliers, by="id.x")
+
+LDDM_do3_d2_no_outliers_rt <- LDDM_cleaning04_d2_ind %>%
+  mutate(id.x = subj_idx) %>%
+  right_join(y=LDDM_do2_d2_not_outliers, by="id.x")
+
+LDDM_do3_d3_no_outliers_rt <- LDDM_cleaning04_d3_ind %>%
+  mutate(id.x = subj_idx) %>%
+  right_join(y=LDDM_do2_d3_not_outliers, by="id.x")
+
+cor_rt_dr <- corr.test(LDDM_do3_rdoc_no_outliers_rt$med_rt, LDDM_do3_rdoc_no_outliers_rt$B11_avtz_DO_v_v_z, use="complete.obs")
+cor_rt_bs <- corr.test(LDDM_do3_rdoc_no_outliers_rt$med_rt, LDDM_do3_rdoc_no_outliers_rt$B11_avtz_DO_v_a_z, use="complete.obs")
+```
+There were specific exceptions and limitations to the conclusions described above. First, although we found improved convergent validity, the test-retest reliability of HDDM parameters of interest (drift rate and boundary separation) were still below "good" reliability. Considering that the sessions were only weeks apart, we think it is unlikely that developmental changes (i.e., true change in congition) played a role. One possibility is that tasks designed to elicit condition effects (incongruent relative to congruent) may show lower between-person reliability [@hedgeReliabilityParadoxWhy2018]. Second, while the relationship between drift rate and the ERN in session 3 of study 2 was non-significant, the effect size is consistent with study 1 and sessions 1 and 2 of study 2, suggesting that the sample from session 3 may have been underpowered to detect this effect. Future research with large, longitudinal samples would be able to address this. Third, we indicated both statistically significant and trending effects, as well as their 95% confidence interval. This was done to increase transparency, as well as aid in interpreting effect sizes. With studies increasingly taking a Bayesian approach, we hope that such effects may serve as potential priors for future analyses. Fourth, we present results from only two potential variations of the HDDM model. These models were chosen based on their absolute fit and prior literature which has included these parameters [e.g., @aylwardTranslatingRodentMeasure2020; @ossolaEffortfulControlAssociated2021; @zieglerModellingADHDReview2016]. Fifth, though we replicated results in two independent samples of adults, we cannot be sure of their generalizability to youth and older adults. This provides another, interesting direction for future work. Sixth, the causality of the association between drift rate/boundary separation and ERN cannot be determined. We believe it is more likely that larger ERN amplitudes to errors drive improved accumulation of evidence, though the reverse direction is also possible. Similarly, for the associations between HDDM parameters and neuropsychological measures, further research could examine the temporal relationship between individual-level changes in executive functioning, inhibition broadly, and drift rate and boundary separation. Such findings could identify behavioral targets for intervention to improve cognitive control in disorders such as attention-deficit/hyperactivity disorder. Seventh, we used accuracy only on incongruent trials and did not assess the psychometrics of accuracy to congruent trials, or overall, for two reasons: a) raw accuracy on incongruent trials was much more normally distributed, and b) accuracy on incongruent trials appeared from prior literature to be more reliable [@wostmannReliabilityPlasticityResponse2013]. Eighth, we did not compare the psychometric properties of raw reaction time (or raw differential reaction time). Prior psychometric studies of the flanker task have often focused on this measure [@evansPsychometricComparisonAnxietyrelevant2018; @wostmannReliabilityPlasticityResponse2013]. Reaction time is also highly correlated with DDM parameters (Study 1 Drift rate: $r$(`r cor_rt_dr$n`)=`r round(cor_rt_dr$r,2)`, $p$< .001; Study 1 Boundary separation: $r$(`r cor_rt_bs$n`)=`r round(cor_rt_bs$r,2)`, $p$< .001), leading to concerns that including them as predictors in multiple regression models would lead to uninterpretable results. Finally, those findings that were not replicated will require replication in an independent sample--specifically, the relationship between HDDM parameters, primarily drift rate, and neurocognitive measures of inhibiton and exeuctive function, as well as the familiality of these measures.
 
 
-This study sought to compare the realibility and validity of novel HDDM parameters to other conventional scores to measure behavior in the Flanker task.
-We hope that this supports researchers in designing studies of cognitive control or reanalyzing existing data to more powerfully capture and disentangle these cognitive processes.
-In doing so, such findings have the potential to inform low-cost, behavioral targets for clinical intervention.
+In conclusion, this study sought to compare the reliability and validity of novel HDDM parameters to other conventional scores to measure behavior in the Flanker task. We hope that this supports researchers in designing studies of cognitive control or reanalyzing existing data to more powerfully capture and disentangle these cognitive processes. In addition, further research could compare the parameters of these models to behavioral performance and brain responses on other tasks, so as to further clarify what parameters like drift rate and boundary separation are precisely measuring. Another natural next direction is examining the extent to which these parameters are related to current, past, or future psychopathology, such as anxiety and externalizing symptoms which are often linked to impairments in cognitive control and/or error monitoring [@barchChapterSystemsLevel2018; @goschkeDysfunctionsDecisionmakingCognitive2014; @mcteagueTransdiagnosticImpairmentCognitive2016]. In doing so, such findings have the potential to inform low-cost, behavioral targets for clinical diagnosis and intervention.
 
 \newpage
 
 # Acknowledgements
-The authors would like to thank all the participants from both studies. They would also like to thank Dr. James Glazer for insight on ERP analyses. This work was supported by NIH Grants R01 MH11874 (SAS), R01 MH098093 (SAS), TL1 TR001423 (AML), and T32 MH126368 (BIR).
+The authors would like to thank all the participants from both studies. They would also like to thank Dr. James Glazer for insight on ERP analyses. This work was supported by NIH Grants R01 MH11874 (SAS), R01 MH098093 (SAS), TL1 TR001423 (AML), K23 MH129607 (AML), and T32 MH126368 (BIR).
 
 # References
 
