@@ -3,7 +3,16 @@ title             : "Psychometrics of parameters from hierarchical drift diffusi
 shorttitle        : "Psychometrics of HDDM"
 author: 
   - name          : "Brent I. Rappaport, Allison M. Letkiewicz, Savannah Buchanan, Anna Weinberg, Stewart A. Shankman"
-    
+
+header-includes:
+  - \usepackage{setspace}
+  - \AtBeginEnvironment{tabular}{\singlespacing}
+  - \AtBeginEnvironment{lltable}{\singlespacing}
+  - \addtolength{\tabcolsep}{-5pt}
+  - \AtBeginEnvironment{tablenotes}{\doublespacing}
+  - \captionsetup[table]{font={stretch=1.5}}
+  - \captionsetup[figure]{font={stretch=1.5}}
+  
 floatsintext      : yes
 linenumbers       : yes
 draft             : no
@@ -70,6 +79,80 @@ load(file=here("../data/LDDM_do3_rdoc_no_outliers.RData"))
 load(file=here("../data/spearman_brown_rdoc.RData"))
 ```
 
+ Function correlation_matrix
+```{r}
+ correlation_matrix <- function(df, 
+                                type = "spearman",
+                                digits = 3, 
+                                decimal.mark = ".",
+                                use = "all", 
+                                show_significance = TRUE, 
+                                replace_diagonal = FALSE, 
+                                replacement = ""){
+   
+   # check arguments
+   stopifnot({
+     is.numeric(digits)
+     digits >= 0
+     use %in% c("all", "upper", "lower")
+     is.logical(replace_diagonal)
+     is.logical(show_significance)
+     is.character(replacement)
+   })
+   # we need the Hmisc package for this
+   require(Hmisc)
+   
+   # retain only numeric and boolean columns
+   isNumericOrBoolean = vapply(df, function(x) is.numeric(x) | is.logical(x), logical(1))
+   if (sum(!isNumericOrBoolean) > 0) {
+     cat('Dropping non-numeric/-boolean column(s):', paste(names(isNumericOrBoolean)[!isNumericOrBoolean], collapse = ', '), '\n\n')
+   }
+   df = df[isNumericOrBoolean]
+   
+   # transform input data frame to matrix
+   x <- as.matrix(df)
+   
+   # run correlation analysis using Hmisc package
+   correlation_matrix <- Hmisc::rcorr(x, type = )
+   R <- correlation_matrix$r # Matrix of correlation coeficients
+   p <- correlation_matrix$P # Matrix of p-value 
+   
+   # transform correlations to specific character format
+   Rformatted = formatC(R, format = 'f', digits = digits, decimal.mark = decimal.mark)
+   
+   # if there are any negative numbers, we want to put a space before the positives to align all
+   if (sum(R < 0) > 0) {
+     Rformatted = ifelse(R > 0, paste0(' ', Rformatted), Rformatted)
+   }
+   
+   # add significance levels if desired
+   if (show_significance) {
+     # define notions for significance levels; spacing is important.
+     stars <- ifelse(is.na(p), "   ", ifelse(p < .01, "** ", ifelse(p < .05, "*  ", "   ")))
+     Rformatted = paste0(Rformatted, stars)
+   }
+   # build a new matrix that includes the formatted correlations and their significance stars
+   Rnew <- matrix(Rformatted, ncol = ncol(x))
+   rownames(Rnew) <- colnames(x)
+   colnames(Rnew) <- paste(colnames(x), "", sep =" ")
+   
+   # replace undesired values
+   if (use == 'upper') {
+     Rnew[lower.tri(Rnew, diag = replace_diagonal)] <- replacement
+   } else if (use == 'lower') {
+     Rnew[upper.tri(Rnew, diag = replace_diagonal)] <- replacement
+   } else if (replace_diagonal) {
+     diag(Rnew) <- replacement
+   }
+   
+   return(Rnew)
+ }
+
+ save_correlation_matrix = function(df, filename, ...) {
+   write.csv2(correlation_matrix(df, ...), file = filename)
+ }
+```
+
 ```{r}
 make_CI <- function(lower, upper) {
   paste0("[", round(lower,2), ", ", round(upper,2), "]")
@@ -112,6 +195,7 @@ full_demo <- data.frame("Variable"= c("Female",demo_rdoc$table[,1]),
 # demo_d1$caption
 ```
 ```{r}
+# Print the demographic table
 apa_table(full_demo,
           caption="Demographics of two study samples",
           note="Means (SD) for continuous variables, N (%) for dichotomous variables. Study 1: N=5 missing Age. N=13 missing IQ. N=15 missing Inhibition. N=28 missing Executive function. Study 2: N=8 missing Age.",
@@ -122,7 +206,78 @@ apa_table(full_demo,
 ```
 
 ```{r schematic, fig.cap = "Depiction HDDM modeling of flanker behavioral data.", out.width='100%'}
+# Include the image of the DDM modeling that Allie made
 knitr::include_graphics('../figures/LDDM_figure1.png')
+```
+
+```{r Correlation tables}
+all_measures_sttr <- c("FCZ_ERN_080_d1_z","flanker_score_d1_z","accuracy_incongruent_d1_z",
+                   "v_S1_B11_d1_z","v_congruent_S1_B11_d1_z","v_incongruent_S1_B11_d1_z","a_S1_B11_d1_z",
+                   "FCZ_ERN_080_d2_z","flanker_score_d2_z","accuracy_incongruent_d2_z",
+                   "v_S2_B11_d2_z","v_congruent_S2_B11_d2_z","v_incongruent_S2_B11_d2_z","a_S2_B11_d2_z",
+                   "FCZ_ERN_080_d3_z","flanker_score_d3_z","accuracy_incongruent_d3_z",
+                   "v_S3_B11_d3_z","v_congruent_S3_B11_d3_z","v_incongruent_S3_B11_d3_z","a_S3_B11_d3_z")
+
+all_measures_rdoc <- c("FCz_ERN_080_z","flanker_score_rdoc_z","accuracy_incongruent_z",
+                   "B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon_z","B11_avtz_DO_v_a_z","Inhib_time_rev_z","exec_composite_z")
+
+# Merge all STTR datasets together
+LDDM_do2_sttr_not_outliers <- full_join(LDDM_do2_d1_not_outliers, LDDM_do2_d2_not_outliers, by="id.x") %>%
+   full_join(LDDM_do2_d3_not_outliers, by="id.x")
+
+# Make correlation matrices for STTR and RDOC
+sttr_correlations <- correlation_matrix(LDDM_do2_sttr_not_outliers[c(all_measures_sttr)], type = c("spearman"), use = 'lower', replace_diagonal=TRUE, replacement="")
+rdoc_correlations <- correlation_matrix(LDDM_do3_rdoc_no_outliers[c(all_measures_rdoc)], type = c("spearman"), use = 'lower', replace_diagonal=TRUE, replacement="")
+
+# For STTR, specify variables in each Session
+`Session 1` <- 1:7
+`Session 2` <- 8:14
+`Session 3` <- 15:21
+table_list <- list(`Session 1`, `Session 2`, `Session 3`)
+
+# Set all missing values to be empty
+sttr_correlations[is.na(sttr_correlations)] <- ""
+sttr_correlations[is.na(rdoc_correlations)] <- ""
+
+# Rename all columns and rows for STTR and RDOC correlation matrices
+# colnames(sttr_correlations)=rep(c("ERN","NIH","Acc",
+#                    "DR","DR (co)","Drift rate (incon)","BS"),3)
+sttr_correlations <-  as.data.frame(sttr_correlations) %>%
+  mutate(measures=rep(c("ERN","NIH","Acc","DR","DR (con)","DR (incon)","BS"),3)) %>%
+  select(measures, everything())
+ 
+# colnames(rdoc_correlations)=rep(c("ERN","NIH","Acc",
+#                    "DR","DR (co)","Drift rate (incon)","BS","Inhibition","EF"),1)
+rownames(rdoc_correlations)=rep(c("ERN","NIH","Acc",
+                   "DR","DR (con)","DR (incon)","BS","Inhibition","EF"),1)
+
+# Make the actual tables
+apa_table(rdoc_correlations,
+           # added_stub_head=c("Session 1", "Session 2", "Session 3"),
+           # stub_indents=table_list,
+           row.names=TRUE,
+           align = c("p{2.6cm}", rep("p{1.6cm}", ncol(rdoc_correlations)-1)),
+           col.names=c("Measures","ERN","NIH","Acc",
+                   "DR","DR con","DR incon","BS","Inhibition","EF"),
+           font_size="footnotesize",
+           caption = "Bivariate spearman correlations among Study 1 variables",
+           note = "** p < .01, * p < .05. ERN: error-related negativity, NIH: NIH Toolbox, Acc: raw accuracy (incongruent), DR: drift rate, BS: boundary separation, con: congruent trials, incon: incongruent trials, EF: executive functioning.",
+           landscape=TRUE
+)
+  
+apa_table(sttr_correlations,
+           row.names=FALSE,
+           align = c("p{1.7cm}", rep("p{1cm}", ncol(sttr_correlations)-1)),
+           col.names=c("Measures",rep(c("ERN","NIH","Acc",
+                   "DR","DR con","DR incon","BS"),3)),
+           font_size="tiny",
+           col_spanners = list(` ` = c(1,1),`Session 1` = c(2,8), `Session 2` = c(9,15), `Session 3` = c(16,22)),
+           caption = "Bivariate spearman correlations among Study 2 variables",
+           note = "** p < .01, * p < .05. ERN: error-related negativity, NIH: NIH Toolbox, Acc: raw accuracy (incongruent), DR: drift rate, BS: boundary separation, con: congruent trials, incon: incongruent trials.",
+           stub_indents=list(`Session 1`=c(1:7), `Session 2`=c(8:14), `Session 3`=c(15:21)),
+           landscape=TRUE
+)
+
 ```
 
 ```{r Split-half, warning=FALSE}
@@ -134,12 +289,9 @@ splithalf_rdoc <- read.csv(here("../../Split_Half/RDoC_splithalf_all_rev_mean_ci
 
 make_splithalf_datatable <- function (df) {
   data.frame(trials=seq(15,165,15),
-                             rvcon=df$avtz_DO_v_df_vcon,
-                             rvcon_cilower=df$avtz_DO_v_df_v_con_ci_lower,
-                             rvcon_ciupper=df$avtz_DO_v_df_v_con_ci_upper,
-                             rvincon=df$avtz_DO_v_df_vinc,
-                             rvincon_cilower=df$avtz_DO_v_df_v_inc_ci_lower,
-                             rvincon_ciupper=df$avtz_DO_v_df_v_inc_ci_upper,
+                             rv=rowMeans(df[,c("avtz_DO_v_df_vcon","avtz_DO_v_df_vinc")]),
+                             rv_cilower=rowMeans(df[,c("avtz_DO_v_df_v_con_ci_lower","avtz_DO_v_df_v_inc_ci_lower")]),
+                             rv_ciupper=rowMeans(df[,c("avtz_DO_v_df_v_con_ci_lower","avtz_DO_v_df_v_inc_ci_lower")]),
                              ra=df$avtz_DO_v_df_a,
                              ra_cilower=df$avtz_DO_v_df_a_ci_lower,
                              ra_ciupper=df$avtz_DO_v_df_a_ci_upper)
@@ -174,7 +326,7 @@ spearman_brown_d1_plot <- spearman_brown_d1 %>%
   mutate(r=`NA`) %>%
   select(-c(`NA`))
 
-spearman_brown_d1_plot$Measure_long <- recode_factor(spearman_brown_d1_plot$Measure, rvcon = "Drift rate (congruent)", rvincon = "Drift rate (incongruent)",  ra = "Boundary separation", rnih = "NIH Toolbox", racc = "Accuracy (incongruent)")
+spearman_brown_d1_plot$Measure_long <- recode_factor(spearman_brown_d1_plot$Measure, rv = "Drift rate", ra = "Boundary separation", rnih = "NIH Toolbox", racc = "Accuracy (incongruent)")
                                                
 sh_d1 <- ggplot(spearman_brown_d1_plot, aes(x=trials*2, y=r, fill=Measure_long)) +
   geom_line(aes(color=Measure_long)) +
@@ -183,7 +335,7 @@ sh_d1 <- ggplot(spearman_brown_d1_plot, aes(x=trials*2, y=r, fill=Measure_long))
   scale_x_continuous(breaks=spearman_brown_d1$trials*2) +
   scale_y_continuous(limits = c(-0.3, 1), breaks=seq(0,1,by=0.10)) +
   scale_color_manual(name="Measure", values=group.colors,
-                    labels=c(str_wrap("Drift rate (congruent)", 10), str_wrap("Drift rate (incongruent)",10), str_wrap("Boundary separation",10),
+                    labels=c(str_wrap("Drift rate", 10), str_wrap("Boundary separation",10),
                              str_wrap("NIH Toolbox",10), str_wrap("Accuracy (incongruent)",10))) +
   scale_fill_manual(guide=NULL, values=group.colors) +
   theme_apa() +
@@ -198,7 +350,7 @@ spearman_brown_d2_plot <- spearman_brown_d2 %>%
   mutate(r=`NA`) %>%
   select(-c(`NA`))
 
-spearman_brown_d2_plot$Measure_long <- recode_factor(spearman_brown_d2_plot$Measure, rvcon = "Drift rate (congruent)", rvincon = "Drift rate (incongruent)",  ra = "Boundary separation", rnih = "NIH Toolbox", racc = "Accuracy (incongruent)")
+spearman_brown_d2_plot$Measure_long <- recode_factor(spearman_brown_d2_plot$Measure, rv = "Drift rate", ra = "Boundary separation", rnih = "NIH Toolbox", racc = "Accuracy (incongruent)")
 
 sh_d2 <- ggplot(spearman_brown_d2_plot, aes(x=trials*2, y=r, fill=Measure_long)) +
   geom_line(aes(color=Measure_long)) +
@@ -207,7 +359,7 @@ sh_d2 <- ggplot(spearman_brown_d2_plot, aes(x=trials*2, y=r, fill=Measure_long))
   scale_x_continuous(breaks=spearman_brown_d2$trials*2) +
   scale_y_continuous(limits = c(-0.3, 1), breaks=seq(0,1,by=0.10)) +
   scale_color_manual(name="Measure", values=group.colors,
-                    labels=c(str_wrap("Drift rate (congruent)", 10), str_wrap("Drift rate (incongruent)",10), str_wrap("Boundary separation",10),
+                    labels=c(str_wrap("Drift rate", 10), str_wrap("Boundary separation",10),
                              str_wrap("NIH Toolbox",10), str_wrap("Accuracy (incongruent)",10))) +
   scale_fill_manual(guide=NULL, values=group.colors) +
   theme_apa() +
@@ -222,7 +374,7 @@ spearman_brown_d3_plot <- spearman_brown_d3 %>%
   mutate(r=`NA`) %>%
   select(-c(`NA`))
 
-spearman_brown_d3_plot$Measure_long <- recode_factor(spearman_brown_d3_plot$Measure, rvcon = "Drift rate (congruent)", rvincon = "Drift rate (incongruent)",  ra = "Boundary separation", rnih = "NIH Toolbox", racc = "Accuracy (incongruent)")
+spearman_brown_d3_plot$Measure_long <- recode_factor(spearman_brown_d3_plot$Measure, rv = "Drift rate", ra = "Boundary separation", rnih = "NIH Toolbox", racc = "Accuracy (incongruent)")
 
 sh_d3 <- ggplot(spearman_brown_d3_plot, aes(x=trials*2, y=r, fill=Measure_long)) +
   geom_line(aes(color=Measure_long)) +
@@ -231,7 +383,7 @@ sh_d3 <- ggplot(spearman_brown_d3_plot, aes(x=trials*2, y=r, fill=Measure_long))
   scale_x_continuous(breaks=spearman_brown_d3$trials*2) +
   scale_y_continuous(limits = c(-0.3, 1), breaks=seq(0,1,by=0.10)) +
   scale_color_manual(name="Measure", values=group.colors,
-                    labels=c(str_wrap("Drift rate (congruent)", 10), str_wrap("Drift rate (incongruent)",10), str_wrap("Boundary separation",10),
+                    labels=c(str_wrap("Drift rate", 10), str_wrap("Boundary separation",10),
                              str_wrap("NIH Toolbox",10), str_wrap("Accuracy (incongruent)",10))) +
   scale_fill_manual(guide=NULL, values=group.colors) +
   theme_apa() +
@@ -246,7 +398,7 @@ spearman_brown_rdoc_plot <- spearman_brown_rdoc %>%
   mutate(r=`NA`) %>%
   select(-c(`NA`))
 
-spearman_brown_rdoc_plot$Measure_long <- recode_factor(spearman_brown_rdoc_plot$Measure, rvcon = "Drift rate (congruent)", rvincon = "Drift rate (incongruent)",  ra = "Boundary separation", rnih = "NIH Toolbox", racc = "Accuracy (incongruent)")
+spearman_brown_rdoc_plot$Measure_long <- recode_factor(spearman_brown_rdoc_plot$Measure, rv = "Drift rate", ra = "Boundary separation", rnih = "NIH Toolbox", racc = "Accuracy (incongruent)")
 
 sh_rdoc <- ggplot(spearman_brown_rdoc_plot, aes(x=trials*2, y=r)) +
   geom_line(aes(color=Measure_long)) +
@@ -255,7 +407,7 @@ sh_rdoc <- ggplot(spearman_brown_rdoc_plot, aes(x=trials*2, y=r)) +
   scale_x_continuous(breaks=spearman_brown_rdoc$trials*2) +
   scale_y_continuous(limits = c(-0.3, 1), breaks=seq(0,1,by=0.10)) +
   scale_color_manual(name="Measure", values=group.colors,
-                    labels=c(str_wrap("Drift rate (congruent)", 10), str_wrap("Drift rate (incongruent)",10), str_wrap("Boundary separation",10),
+                    labels=c(str_wrap("Drift rate", 10), str_wrap("Boundary separation",10),
                              str_wrap("NIH Toolbox",10), str_wrap("Accuracy (incongruent)",10))) +
   scale_fill_manual(guide=NULL, values=group.colors) +
   theme_apa() +
