@@ -51,11 +51,16 @@ This script computes the NIH Toolbox Flanker score
 ## Load Data
 Remember to immediately rename and remove. Avoid overwriting old data.
 ```{r}
-LDDM_cleaning04_fullbeh_d1 <- read.csv(here("../DDM_Trialwise_Prepped/Block_Based/Day1/StTr_S1_ERN_HDDM_data_acc_coded_rev_B11.csv"))
+here::i_am("work/management/data02_LDDM_sttr.Rmd")
 
-LDDM_cleaning04_fullbeh_d2 <- read.csv(here("../DDM_Trialwise_Prepped/Block_Based/Day2/StTr_S2_ERN_HDDM_data_acc_coded_rev_B11.csv"))
+LDDM_cleaning04_fullbeh_d1 <- read.csv(here("./DDM_Trialwise_Prepped/Block_Based/Day1/StTr_S1_ERN_HDDM_data_acc_coded_rev_B11.csv"))
 
-LDDM_cleaning04_fullbeh_d3 <- read.csv(here("../DDM_Trialwise_Prepped/Block_Based/Day3/StTr_S3_ERN_HDDM_data_acc_coded_rev_B11_corrected.csv"))
+LDDM_cleaning04_fullbeh_d2 <- read.csv(here("./DDM_Trialwise_Prepped/Block_Based/Day2/StTr_S2_ERN_HDDM_data_acc_coded_rev_B11.csv"))
+
+LDDM_cleaning04_fullbeh_d3 <- read.csv(here("./DDM_Trialwise_Prepped/Block_Based/Day3/StTr_S3_ERN_HDDM_data_acc_coded_rev_B11_corrected.csv"))
+
+sttr_all_data <- read_sav("./data/STTR_master_6.6.18_clean_ERN_PE_LPPbehav.sav") %>%
+  select(ID, Age)
 ```
 
 ## Day 1
@@ -360,13 +365,17 @@ LDDM_cleaning04_d3_calc3_short <- LDDM_cleaning04_d3_calc1_short %>%
   In this step, go ahead and close out of the file and quit R without saving  
   the work space.
 ```{r}
-save(LDDM_cleaning04_fullbeh_d1, file=here("./data/LDDM_cleaning04_fullbeh_d1.RData"))
-save(LDDM_cleaning04_fullbeh_d2, file=here("./data/LDDM_cleaning04_fullbeh_d2.RData"))
-save(LDDM_cleaning04_fullbeh_d3, file=here("./data/LDDM_cleaning04_fullbeh_d3.RData"))
+LDDM_cleaning04_d1_calc4 <- full_join(LDDM_cleaning04_d1_calc4, sttr_all_data, by="ID")
+LDDM_cleaning04_d2_calc4 <- full_join(LDDM_cleaning04_d2_calc4, sttr_all_data, by="ID")
+LDDM_cleaning04_d3_calc4 <- full_join(LDDM_cleaning04_d3_calc4, sttr_all_data, by="ID")
 
-save(LDDM_cleaning04_d1_calc4, LDDM_cleaning04_d1_calc1, LDDM_cleaning04_d1_calc3_short, file=here("./data/LDDM_cleaning04_d1_calc4.RData"))
-save(LDDM_cleaning04_d2_calc4, LDDM_cleaning04_d2_calc1, LDDM_cleaning04_d2_calc3_short, file=here("./data/LDDM_cleaning04_d2_calc4.RData"))
-save(LDDM_cleaning04_d3_calc4, LDDM_cleaning04_d3_calc1, LDDM_cleaning04_d3_calc3_short, file=here("./data/LDDM_cleaning04_d3_calc4.RData"))
+save(LDDM_cleaning04_fullbeh_d1, file=here("./work/data/LDDM_cleaning04_fullbeh_d1.RData"))
+save(LDDM_cleaning04_fullbeh_d2, file=here("./work/data/LDDM_cleaning04_fullbeh_d2.RData"))
+save(LDDM_cleaning04_fullbeh_d3, file=here("./work/data/LDDM_cleaning04_fullbeh_d3.RData"))
+
+save(LDDM_cleaning04_d1_calc4, LDDM_cleaning04_d1_calc1, LDDM_cleaning04_d1_calc3_short, LDDM_cleaning04_d1_ind, file=here("./work/data/LDDM_cleaning04_d1_calc4.RData"))
+save(LDDM_cleaning04_d2_calc4, LDDM_cleaning04_d2_calc1, LDDM_cleaning04_d2_calc3_short, LDDM_cleaning04_d2_ind, file=here("./work/data/LDDM_cleaning04_d2_calc4.RData"))
+save(LDDM_cleaning04_d3_calc4, LDDM_cleaning04_d3_calc1, LDDM_cleaning04_d3_calc3_short, LDDM_cleaning04_d3_ind, file=here("./work/data/LDDM_cleaning04_d3_calc4.RData"))
    # renv::snapshot()   #Take a snapshot of environment
 ```
 

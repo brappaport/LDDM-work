@@ -51,6 +51,8 @@ This script imports and merges the self-report data from the Flanker task of the
 ## 1.5 Load Data
 Remember to immediately rename and remove. Avoid overwriting old data.
 ```{r}
+here::i_am("work/management/data01_LDDM.Rmd")
+
 LDDM_cleaning02_DDM1 <- read.csv(here("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/DDM_Results/Block_Based_Day1/Flanker_StTr_S1_Blocks_acc_avtz_DO_v.csv"))
 LDDM_cleaning02_DDM1$ID <- LDDM_cleaning02_DDM1$id
 
@@ -83,16 +85,16 @@ LDDM_cleaning02 <- LDDM_cleaning02_DDM1 %>%
   left_join(LDDM_cleaning02_DDM3, by='ID') %>%
   left_join(LDDM_cleaning02_erp, by='ID')
 
-save(LDDM_cleaning02, file=here("./data/LDDM_cleaning02.RData"))
+save(LDDM_cleaning02, file=here("./work/data/LDDM_cleaning02.RData"))
 ```
 
 ### 1.5.1 Non-DMM Flanker behavioral RT
 ```{r}
-LDDM_cleaning02_rt <- read_sav(here("./data/**STTR_master_6.6.18_clean_ERN_PE_LPPbehav**.sav"))
+LDDM_cleaning02_rt <- read_sav(here("./work/data/STTR_master_6.6.18_clean_ERN_PE_LPPbehav.sav"))
 LDDM_cleaning02_rt <-  LDDM_cleaning02_rt %>%
   select("ID",matches("Correct|Errors")) %>%
   select(-matches('neut|mut|erot'))
-save(LDDM_cleaning02_rt, file=here("./data/LDDM_cleaning02_rt.RData"))
+save(LDDM_cleaning02_rt, file=here("./work/data/LDDM_cleaning02_rt.RData"))
 ```
 
 # 1. Select only days 1 and 2 and 3
@@ -144,10 +146,10 @@ for (ex in electrodes_list[4:6]){
   In this step, go ahead and close out of the file and quit R without saving  
   the work space.
 ```{r}
-save(LDDM_cleaning03, file=here("./data/LDDM_cleaning03.RData"))
-save(LDDM_cleaning03_d1, file=here("./data/LDDM_cleaning03_d1.RData"))
-save(LDDM_cleaning03_d2, file=here("./data/LDDM_cleaning03_d2.RData"))
-save(LDDM_cleaning03_d3, file=here("./data/LDDM_cleaning03_d3.RData"))
+save(LDDM_cleaning03, file=here("./work/data/LDDM_cleaning03.RData"))
+save(LDDM_cleaning03_d1, file=here("./work/data/LDDM_cleaning03_d1.RData"))
+save(LDDM_cleaning03_d2, file=here("./work/data/LDDM_cleaning03_d2.RData"))
+save(LDDM_cleaning03_d3, file=here("./work/data/LDDM_cleaning03_d3.RData"))
 
    # renv::snapshot()   #Take a snapshot of environment
 ```

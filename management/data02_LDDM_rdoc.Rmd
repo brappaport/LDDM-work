@@ -1,5 +1,5 @@
 ---
-title: "Data prep script 2: Compute NIH TOolbox Flanker Score"
+title: "Data prep script 2: Compute NIH Toolbox Flanker Score"
 author: "Brent Rappaport"
 date: "`r format(Sys.time(),  '%Y-%m-%d')`"
 output:
@@ -51,7 +51,8 @@ This script computes the NIH Toolbox Flanker score
 ## 1.5 Load Data
 Remember to immediately rename and remove. Avoid overwriting old data.
 ```{r}
-LDDM_cleaning04_fullbeh_rdoc <- read.csv(here("../RDoC/DDM_Trialwise_Prepped/Block-Based/RDoC_ERN_HDDM_data_acc_coded_rev_B11.csv"))
+here::i_am("work/management/data02_LDDM_rdoc.Rmd")
+LDDM_cleaning04_fullbeh_rdoc <- read.csv(here("./RDoC/DDM_Trialwise_Prepped/Block-Based/RDoC_ERN_HDDM_data_acc_coded_rev_B11.csv"))
 ```
 
 ## 3.1 All trials
@@ -157,9 +158,9 @@ LDDM_cleaning04_rdoc_calc3_short <- LDDM_cleaning04_rdoc_calc1_short %>%
   In this step, go ahead and close out of the file and quit R without saving  
   the work space.
 ```{r}
-save(LDDM_cleaning04_fullbeh_rdoc, file=here("./data/LDDM_cleaning04_fullbeh_rdoc.RData"))
+save(LDDM_cleaning04_fullbeh_rdoc, file=here("./work/data/LDDM_cleaning04_fullbeh_rdoc.RData"))
 
-save(LDDM_cleaning04_rdoc_calc4, LDDM_cleaning04_rdoc_calc1, LDDM_cleaning04_rdoc_calc3_short, file=here("./data/LDDM_cleaning04_rdoc_calc4.RData"))
+save(LDDM_cleaning04_rdoc_calc4, LDDM_cleaning04_rdoc_calc1, LDDM_cleaning04_rdoc_calc3_short, LDDM_cleaning04_rdoc_ind_short, file=here("./work/data/LDDM_cleaning04_rdoc_calc4.RData"))
    # renv::snapshot()   #Take a snapshot of environment
 ```
 
