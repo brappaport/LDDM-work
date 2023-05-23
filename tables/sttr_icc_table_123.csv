@@ -1,8 +1,10 @@
 "","parameters","ICC"
-"1","v",0.531923478717947
-"2","v_congruent",0.628944953922359
-"3","v_incongruent",0.521878937128387
-"4","a",0.654806423924675
-"5","t",0.311317022551403
-"6","z",0.229329258843048
-"7","nihtoolbox_flanker",0.412986554603982
+"1","Drift rate",0.531923478717947
+"2","Drift rate (congruent)",0.628944953922359
+"3","Drift rate (incongruent)",0.521878937128387
+"4","Boundary separation",0.654806423924675
+"5","Non-decision time",0.311317022551403
+"6","Starting bias",0.229329258843048
+"7","NIH Toolbox",0.467645218521263
+"8","Raw accuracy",0.682860899357094
+"9","Raw accuracy (incongruent)",0.696546393454037
