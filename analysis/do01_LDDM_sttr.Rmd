@@ -137,40 +137,40 @@ here::i_am("work/analysis/do01_LDDM_sttr.Rmd")
 
 # FULL DATA--ALL DAYS
 ## Load full multi-day dataset
-load(file=here("./work/data/LDDM_cleaning03.RData"))
+load(file=here("work/data/LDDM_cleaning03.RData"))
 LDDM_do1 <- LDDM_cleaning03; rm(LDDM_cleaning03)
 ## Load raw data across all days
-load(file=here("./work/data/LDDM_cleaning02_rt.RData"))
+load(file=here("work/data/LDDM_cleaning02_rt.RData"))
 LDDM_do1_rt <- LDDM_cleaning02_rt; rm(LDDM_cleaning02_rt)
 
 # DAY 1
 ## Load Day 1 dataset
-load(file=here("./work/data/LDDM_cleaning03_d1.RData"))
+load(file=here("work/data/LDDM_cleaning03_d1.RData"))
 LDDM_do1_d1 <- LDDM_cleaning03_d1; rm(LDDM_cleaning03_d1)
 # Load NIH Toolbox flanker score Day 1 dataset
-load(file=here("./work/data/LDDM_cleaning04_d1_calc4.RData"))
+load(file=here("work/data/LDDM_cleaning04_d1_calc4.RData"))
 # Merge Day 1 dataset with NIH Toolbox flanker score Day 1 dataset
 LDDM_do2_d1 <- left_join(LDDM_do1_d1, LDDM_cleaning04_d1_calc4, by="ID")
 # Load Day 1 Alternative model results
-LDDM_do_alt_d1 <- read.csv(here("./DDM_Results/Block_Based_Day1/Day1_Block11_Alternative_Models.csv"), header=TRUE)
+LDDM_do_alt_d1 <- read.csv(here("DDM_Results/Block_Based_Day1/Day1_Block11_Alternative_Models.csv"), header=TRUE)
 LDDM_do2_alt_d1<- left_join(select(LDDM_do1_d1, contains("ID") | contains("ERN") | contains ("P3")), LDDM_do_alt_d1, by="ID")
 
 
 # DAY 2
 ## Load Day 2 dataset
-load(file=here("./work/data/LDDM_cleaning03_d2.RData"))
+load(file=here("work/data/LDDM_cleaning03_d2.RData"))
 LDDM_do1_d2 <- LDDM_cleaning03_d2; rm(LDDM_cleaning03_d2)
 # Load NIH Toolbox flanker score Day 2 dataset
-load(file=here("./work/data/LDDM_cleaning04_d2_calc4.RData"))
+load(file=here("work/data/LDDM_cleaning04_d2_calc4.RData"))
 # Merge Day 2 dataset with NIH Toolbox flanker score Day 2 dataset
 LDDM_do2_d2 <- left_join(LDDM_do1_d2, LDDM_cleaning04_d2_calc4, by="ID")
 
 # DAY 3
 ## Load Day 3 dataset
-load(file=here("./work/data/LDDM_cleaning03_d3.RData"))
+load(file=here("work/data/LDDM_cleaning03_d3.RData"))
 LDDM_do1_d3 <- LDDM_cleaning03_d3; rm(LDDM_cleaning03_d3)
 # Load NIH Toolbox flanker score Day 3 dataset
-load(file=here("./work/data/LDDM_cleaning04_d3_calc4.RData"))
+load(file=here("work/data/LDDM_cleaning04_d3_calc4.RData"))
 # Merge Day 3 dataset with NIH Toolbox flanker score Day 3 dataset
 LDDM_do2_d3 <- left_join(LDDM_do1_d3, LDDM_cleaning04_d3_calc4, by="ID")
 ```
@@ -271,10 +271,10 @@ LDDM_do2_not_outliers <- full_join(LDDM_do2_d1_not_outliers, LDDM_do2_d2_not_out
 
 sttr_correlations <- correlation_matrix(LDDM_do2_not_outliers[c(all_measures_d1,all_measures_d2,all_measures_d3)], type = c("spearman"), use = 'lower', replace_diagonal=TRUE, replacement="")
 
-write.csv(sttr_d1_correlations, file=here("./work/tables/sttr_d1_correlations.csv"))
-write.csv(sttr_d2_correlations, file=here("./work/tables/sttr_d2_correlations.csv"))
-write.csv(sttr_d3_correlations, file=here("./work/tables/sttr_d3_correlations.csv"))
-write.csv(sttr_correlations, file=here("./work/tables/sttr_correlations.csv"))
+write.csv(sttr_d1_correlations, file=here("work/tables/sttr_d1_correlations.csv"))
+write.csv(sttr_d2_correlations, file=here("work/tables/sttr_d2_correlations.csv"))
+write.csv(sttr_d3_correlations, file=here("work/tables/sttr_d3_correlations.csv"))
+write.csv(sttr_correlations, file=here("work/tables/sttr_correlations.csv"))
 
 # ERN_table_d1 <- data.frame(parameters= c("v", "v_congruent", "v_incongruent", "a", "t", "z"),
 #                         r= c(corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_d1_z, LDDM_do2_d1_not_outliers$v_S1_B11_d1_d1_z)$r,
@@ -291,7 +291,7 @@ write.csv(sttr_correlations, file=here("./work/tables/sttr_correlations.csv"))
 #                              corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_d1_z, LDDM_do2_d1_not_outliers$z_S1_B11_d1_d1_z)$p)); ERN_table_d1$p_corrected <- p.adjust(ERN_table_d1$p_nominal, method="fdr"); ERN_table_d1[,2:4] <- round(ERN_table_d1[,2:4], 3)
 # ERN_table_d1
 
-# write.csv(ERN_table_d1, here("./work/tables/sttr_ERN_table_d1.csv"))
+# write.csv(ERN_table_d1, here("work/tables/sttr_ERN_table_d1.csv"))
 
 # ggplot(LDDM_do2_d1, aes(x=FCZ_ERN_080_d1_z, y=v_S1_B11)) +
 #   geom_point() +
@@ -348,10 +348,10 @@ ERN_table_d1_alt4 <- data.frame(parameters= c("v_congruent", "v_incongruent", "a
                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_z_con_d1_z)$p,
                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_z_incon_d1_z)$p)); ERN_table_d1_alt4$p_corrected <- p.adjust(ERN_table_d1_alt4$p_nominal, method="fdr"); ERN_table_d1_alt4[,2:4] <- round(ERN_table_d1_alt4[,2:4], 3)
 
-write.csv(t(ERN_table_d1_alt1), here("./work/tables/ERN_table_d1_alt1.csv"))
-write.csv(t(ERN_table_d1_alt2), here("./work/tables/ERN_table_d1_alt2.csv"))
-write.csv(t(ERN_table_d1_alt3), here("./work/tables/ERN_table_d1_alt3.csv"))
-write.csv(t(ERN_table_d1_alt4), here("./work/tables/ERN_table_d1_alt4.csv"))
+write.csv(t(ERN_table_d1_alt1), here("work/tables/ERN_table_d1_alt1.csv"))
+write.csv(t(ERN_table_d1_alt2), here("work/tables/ERN_table_d1_alt2.csv"))
+write.csv(t(ERN_table_d1_alt3), here("work/tables/ERN_table_d1_alt3.csv"))
+write.csv(t(ERN_table_d1_alt4), here("work/tables/ERN_table_d1_alt4.csv"))
 ```
 
 #  Multiple regressions
@@ -394,8 +394,8 @@ for (var in c("v_S1_B11_d1_z","v_congruent_S1_B11_d1_z","v_incongruent_S1_B11_d1
 }
 colnames(mr_ERN_table_d1) <- c("Parameters","DDM", "NIH Toolbox", "Raw accuracy")
 
-write.csv(mr_ERN_table_d1, here("./work/tables/mr_ERN_table_d1.csv"))
-write.csv(mr_ERN_table_d1_raw, here("./work/tables/mr_ERN_table_d1_raw.csv"))
+write.csv(mr_ERN_table_d1, here("work/tables/mr_ERN_table_d1.csv"))
+write.csv(mr_ERN_table_d1_raw, here("work/tables/mr_ERN_table_d1_raw.csv"))
 
 # ggplot(filter(LDDM_do2_d1_not_outliers), aes(x=FCZ_ERN_080_d1_z, y=flanker_score_d1)) +
 #   geom_point() +
@@ -441,8 +441,8 @@ for (var in c("v_S2_B11_d2_z","v_congruent_S2_B11_d2_z","v_incongruent_S2_B11_d2
 }
 colnames(mr_ERN_table_d2) <- c("Parameters","DDM", "NIH Toolbox", "Raw accuracy")
 
-write.csv(mr_ERN_table_d2, here("./work/tables/mr_ERN_table_d2.csv"))
-write.csv(mr_ERN_table_d2_raw, here("./work/tables/mr_ERN_table_d2_raw.csv"))
+write.csv(mr_ERN_table_d2, here("work/tables/mr_ERN_table_d2.csv"))
+write.csv(mr_ERN_table_d2_raw, here("work/tables/mr_ERN_table_d2_raw.csv"))
 
 # ggplot(filter(LDDM_do2_d2), aes(x=FCZ_ERN_080_d1_z, y=flanker_score_d2)) +
 #   geom_point() +
@@ -492,8 +492,8 @@ for (var in c("v_S3_B11_d3_z","v_congruent_S3_B11_d3_z","v_incongruent_S3_B11_d3
 }
 colnames(mr_ERN_table_d3) <- c("Parameters","DDM", "NIH Toolbox", "Raw accuracy")
 
-write.csv(mr_ERN_table_d3, here("./work/tables/mr_ERN_table_d3.csv"))
-write.csv(mr_ERN_table_d3_raw, here("./work/tables/mr_ERN_table_d3_raw.csv"))
+write.csv(mr_ERN_table_d3, here("work/tables/mr_ERN_table_d3.csv"))
+write.csv(mr_ERN_table_d3_raw, here("work/tables/mr_ERN_table_d3_raw.csv"))
 
 # ggplot(filter(LDDM_do2_d3), aes(x=FCZ_ERN_080_d1_z, y=flanker_score_d3)) +
 #   geom_point() +
@@ -545,15 +545,15 @@ sttr_icc_table_123 <- data.frame(parameters= c("Drift rate", "Drift rate (congru
                            icc(LDDM_do2_irr[c("accuracy_d1_z","accuracy_d2_z","accuracy_d3_z")])$value,
                            icc(LDDM_do2_irr[c("accuracy_incongruent_d1_z","accuracy_incongruent_d2_z","accuracy_incongruent_d3_z")])$value))
 
-# write.csv(sttr_icc_table_12, "./work/tables/sttr_icc_table_12.csv")
-# write.csv(sttr_icc_table_23, "./work/tables/sttr_icc_table_23.csv")
-write.csv(sttr_icc_table_123, here("./work/tables/sttr_icc_table_123.csv"))
+# write.csv(sttr_icc_table_12, "work/tables/sttr_icc_table_12.csv")
+# write.csv(sttr_icc_table_23, "work/tables/sttr_icc_table_23.csv")
+write.csv(sttr_icc_table_123, here("work/tables/sttr_icc_table_123.csv"))
 ```
 
 ## Split half reliability (Spearman-Brown prophecy)
 ### Day 1
 ```{r}
-load(file=here("./work/data/LDDM_cleaning04_fullbeh_d1.RData"))
+load(file=here("work/data/LDDM_cleaning04_fullbeh_d1.RData"))
 library(confintr)
 
 LDDM_cleaning04_d1_reliability <- LDDM_cleaning04_fullbeh_d1 %>%
@@ -665,7 +665,7 @@ for (s in seq(15,165,15)){
   i=i+1
 }
 
-sttr_d1_ddm_splithalf <- read.csv(here("./Split_Half/StTr_S1_splithalf.csv"))
+sttr_d1_ddm_splithalf <- read.csv(here("Split_Half/StTr_S1_splithalf.csv"))
 spearman_brown_d1$rdriftcon <- sttr_d1_ddm_splithalf$avtz_DO_v_vcon
 spearman_brown_d1$rdriftincon <- sttr_d1_ddm_splithalf$avtz_DO_v_vinc
 spearman_brown_d1$rboundary_separation <- sttr_d1_ddm_splithalf$avtz_DO_v_a
@@ -685,7 +685,7 @@ spearman_brown_d1$rboundary_separation <- sttr_d1_ddm_splithalf$avtz_DO_v_a
 
 ### Day 2
 ```{r}
-load(file=here("./work/data/LDDM_cleaning04_fullbeh_d2.RData"))
+load(file=here("work/data/LDDM_cleaning04_fullbeh_d2.RData"))
 
 LDDM_cleaning04_d2_reliability <- LDDM_cleaning04_fullbeh_d2 %>%
   group_by(subj_idx) %>%
@@ -793,7 +793,7 @@ for (s in seq(15,165,15)){
   i=i+1
 }
 
-sttr_d2_ddm_splithalf <- read.csv(here("../Split_Half/StTr_S2_splithalf.csv"))
+sttr_d2_ddm_splithalf <- read.csv(here("Split_Half/StTr_S2_splithalf.csv"))
 spearman_brown_d2$rdriftcon <- sttr_d2_ddm_splithalf$avtz_DO_v_vcon
 spearman_brown_d2$rdriftincon <- sttr_d2_ddm_splithalf$avtz_DO_v_vincon
 spearman_brown_d2$rboundary_separation <- sttr_d2_ddm_splithalf$avtz_DO_v_a
@@ -810,7 +810,7 @@ spearman_brown_d2$rboundary_separation <- sttr_d2_ddm_splithalf$avtz_DO_v_a
 ### Day 3
 ```{r}
 # Calculate typical metrics
-load(file=here("./work/data/LDDM_cleaning04_fullbeh_d3.RData"))
+load(file=here("work/data/LDDM_cleaning04_fullbeh_d3.RData"))
 
 LDDM_cleaning04_d3_calc1 <- LDDM_cleaning04_fullbeh_d3 %>%
   group_by(subj_idx) %>%
@@ -923,7 +923,7 @@ for (s in seq(15,165,15)){
                          spearman_brown_d3[i,7] <- round(as.numeric(racc_sb_ciupper_',s,'),3)')))
   i=i+1
 }
-sttr_d3_ddm_splithalf <- read.csv(here("../Split_Half/StTr_S3_splithalf.csv"))
+sttr_d3_ddm_splithalf <- read.csv(here("Split_Half/StTr_S3_splithalf.csv"))
 spearman_brown_d3$rdriftcon <- sttr_d3_ddm_splithalf$avtz_DO_v_vcon
 spearman_brown_d3$rdriftincon <- sttr_d3_ddm_splithalf$avtz_DO_v_vincon
 spearman_brown_d3$rboundary_separation <- sttr_d3_ddm_splithalf$avtz_DO_v_a
@@ -939,14 +939,14 @@ spearman_brown_d3$rboundary_separation <- sttr_d3_ddm_splithalf$avtz_DO_v_a
   In this step, go ahead and close out of the file and quit R without saving
   the work space.
 ```{r}
-save(LDDM_do2_d1_not_outliers, file=here("./work/data/LDDM_do2_d1_not_outliers.RData"))
-save(LDDM_do2_d2_not_outliers, file=here("./work/data/LDDM_do2_d2_not_outliers.RData"))
-save(LDDM_do2_d3_not_outliers, file=here("./work/data/LDDM_do2_d3_not_outliers.RData"))
+save(LDDM_do2_d1_not_outliers, file=here("work/data/LDDM_do2_d1_not_outliers.RData"))
+save(LDDM_do2_d2_not_outliers, file=here("work/data/LDDM_do2_d2_not_outliers.RData"))
+save(LDDM_do2_d3_not_outliers, file=here("work/data/LDDM_do2_d3_not_outliers.RData"))
 
-# save(LDDM_cleaning04_calc3_1to3, file=here("./work/data/LDDM_cleaning04_calc3_1to3.RData"))
-save(LDDM_do2_irr, file=here("./work/data/LDDM_do2_irr.RData"))
-# save(LDDM_do2, file=here("./work/data/LDDM_do2.RData"))
-save(spearman_brown_d1, file=here("./work/data/spearman_brown_d1.RData"))
-save(spearman_brown_d2, file=here("./work/data/spearman_brown_d2.RData"))
-save(spearman_brown_d3, file=here("./work/data/spearman_brown_d3.RData"))
+# save(LDDM_cleaning04_calc3_1to3, file=here("work/data/LDDM_cleaning04_calc3_1to3.RData"))
+save(LDDM_do2_irr, file=here("work/data/LDDM_do2_irr.RData"))
+# save(LDDM_do2, file=here("work/data/LDDM_do2.RData"))
+save(spearman_brown_d1, file=here("work/data/spearman_brown_d1.RData"))
+save(spearman_brown_d2, file=here("work/data/spearman_brown_d2.RData"))
+save(spearman_brown_d3, file=here("work/data/spearman_brown_d3.RData"))
 ```
