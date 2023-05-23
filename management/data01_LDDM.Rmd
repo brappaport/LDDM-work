@@ -53,24 +53,24 @@ Remember to immediately rename and remove. Avoid overwriting old data.
 ```{r}
 here::i_am("work/management/data01_LDDM.Rmd")
 
-LDDM_cleaning02_DDM1 <- read.csv(here("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/DDM_Results/Block_Based_Day1/Flanker_StTr_S1_Blocks_acc_avtz_DO_v.csv"))
+LDDM_cleaning02_DDM1 <- read.csv(here("DDM_Results/Block_Based_Day1/Flanker_StTr_S1_Blocks_acc_avtz_DO_v.csv"))
 LDDM_cleaning02_DDM1$ID <- LDDM_cleaning02_DDM1$id
 
-LDDM_cleaning02_DDM2 <- read.csv(here("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/DDM_Results/Block_Based_Day2/Flanker_StTr_S2_Blocks_DO_v.csv"))
+LDDM_cleaning02_DDM2 <- read.csv(here("DDM_Results/Block_Based_Day2/Flanker_StTr_S2_Blocks_DO_v.csv"))
 LDDM_cleaning02_DDM2$ID <- LDDM_cleaning02_DDM2$id
 
-LDDM_cleaning02_DDM3 <- read.csv(here("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/DDM_Results/Block_Based_Day3/Day3_Block11_Alternative_Models.csv"))
+LDDM_cleaning02_DDM3 <- read.csv(here("DDM_Results/Block_Based_Day3/Day3_Block11_Alternative_Models.csv"))
 LDDM_cleaning02_DDM3$ID <- LDDM_cleaning02_DDM3$id
 
-LDDM_cleaning02_frac_prak_latency <- read.csv("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/eeg_processing/erppath/frac_peak_latency_p3_200800.csv")[,1:15]
+LDDM_cleaning02_frac_prak_latency <- read.csv(here("eeg_processing/erppath/frac_peak_latency_p3_200800.csv"))[,1:15]
 LDDM_cleaning02_frac_prak_latency <- LDDM_cleaning02_frac_prak_latency %>% 
   rename_with(~paste0(., "_fpl"), contains("bin"))
 
-LDDM_cleaning02_mean_amplitude_ERN_CRN_080 <- read.csv("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/eeg_processing/erppath/mean_amplitude_ERN_CRN_080.csv")[,1:15]
+LDDM_cleaning02_mean_amplitude_ERN_CRN_080 <- read.csv(here("eeg_processing/erppath/mean_amplitude_ERN_CRN_080.csv"))[,1:15]
 LDDM_cleaning02_mean_amplitude_ERN_CRN_080 <- LDDM_cleaning02_mean_amplitude_ERN_CRN_080 %>% 
   rename_with(~paste0(., "_080"), contains("bin"))
 
-LDDM_cleaning02_mean_amplitude_ERN_CRN_0100 <- read.csv("/Volumes/fsmresfiles/PBS/Stewarts/State Trait Study/current_studies/Letkiewicz_DDM/eeg_processing/erppath/mean_amplitude_ERN_CRN_0100.csv")[,1:15]
+LDDM_cleaning02_mean_amplitude_ERN_CRN_0100 <- read.csv(here("eeg_processing/erppath/mean_amplitude_ERN_CRN_0100.csv"))[,1:15]
 LDDM_cleaning02_mean_amplitude_ERN_CRN_0100 <- LDDM_cleaning02_mean_amplitude_ERN_CRN_0100 %>% 
   rename_with(~paste0(., "_0100"), contains("bin"))
 
@@ -85,16 +85,16 @@ LDDM_cleaning02 <- LDDM_cleaning02_DDM1 %>%
   left_join(LDDM_cleaning02_DDM3, by='ID') %>%
   left_join(LDDM_cleaning02_erp, by='ID')
 
-save(LDDM_cleaning02, file=here("./work/data/LDDM_cleaning02.RData"))
+save(LDDM_cleaning02, file=here("work/data/LDDM_cleaning02.RData"))
 ```
 
 ### 1.5.1 Non-DMM Flanker behavioral RT
 ```{r}
-LDDM_cleaning02_rt <- read_sav(here("./work/data/STTR_master_6.6.18_clean_ERN_PE_LPPbehav.sav"))
+LDDM_cleaning02_rt <- read_sav(here("work/data/STTR_master_6.6.18_clean_ERN_PE_LPPbehav.sav"))
 LDDM_cleaning02_rt <-  LDDM_cleaning02_rt %>%
   select("ID",matches("Correct|Errors")) %>%
   select(-matches('neut|mut|erot'))
-save(LDDM_cleaning02_rt, file=here("./work/data/LDDM_cleaning02_rt.RData"))
+save(LDDM_cleaning02_rt, file=here("work/data/LDDM_cleaning02_rt.RData"))
 ```
 
 # 1. Select only days 1 and 2 and 3
@@ -146,10 +146,10 @@ for (ex in electrodes_list[4:6]){
   In this step, go ahead and close out of the file and quit R without saving  
   the work space.
 ```{r}
-save(LDDM_cleaning03, file=here("./work/data/LDDM_cleaning03.RData"))
-save(LDDM_cleaning03_d1, file=here("./work/data/LDDM_cleaning03_d1.RData"))
-save(LDDM_cleaning03_d2, file=here("./work/data/LDDM_cleaning03_d2.RData"))
-save(LDDM_cleaning03_d3, file=here("./work/data/LDDM_cleaning03_d3.RData"))
+save(LDDM_cleaning03, file=here("work/data/LDDM_cleaning03.RData"))
+save(LDDM_cleaning03_d1, file=here("work/data/LDDM_cleaning03_d1.RData"))
+save(LDDM_cleaning03_d2, file=here("work/data/LDDM_cleaning03_d2.RData"))
+save(LDDM_cleaning03_d3, file=here("work/data/LDDM_cleaning03_d3.RData"))
 
    # renv::snapshot()   #Take a snapshot of environment
 ```

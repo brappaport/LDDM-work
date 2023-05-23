@@ -53,13 +53,13 @@ Remember to immediately rename and remove. Avoid overwriting old data.
 ```{r}
 here::i_am("work/management/data02_LDDM_sttr.Rmd")
 
-LDDM_cleaning04_fullbeh_d1 <- read.csv(here("./DDM_Trialwise_Prepped/Block_Based/Day1/StTr_S1_ERN_HDDM_data_acc_coded_rev_B11.csv"))
+LDDM_cleaning04_fullbeh_d1 <- read.csv(here("DDM_Trialwise_Prepped/Block_Based/Day1/StTr_S1_ERN_HDDM_data_acc_coded_rev_B11.csv"))
 
-LDDM_cleaning04_fullbeh_d2 <- read.csv(here("./DDM_Trialwise_Prepped/Block_Based/Day2/StTr_S2_ERN_HDDM_data_acc_coded_rev_B11.csv"))
+LDDM_cleaning04_fullbeh_d2 <- read.csv(here("DDM_Trialwise_Prepped/Block_Based/Day2/StTr_S2_ERN_HDDM_data_acc_coded_rev_B11.csv"))
 
-LDDM_cleaning04_fullbeh_d3 <- read.csv(here("./DDM_Trialwise_Prepped/Block_Based/Day3/StTr_S3_ERN_HDDM_data_acc_coded_rev_B11_corrected.csv"))
+LDDM_cleaning04_fullbeh_d3 <- read.csv(here("DDM_Trialwise_Prepped/Block_Based/Day3/StTr_S3_ERN_HDDM_data_acc_coded_rev_B11_corrected.csv"))
 
-sttr_all_data <- read_sav("./data/STTR_master_6.6.18_clean_ERN_PE_LPPbehav.sav") %>%
+sttr_all_data <- read_sav(here("work/data/STTR_master_6.6.18_clean_ERN_PE_LPPbehav.sav")) %>%
   select(ID, Age)
 ```
 
@@ -76,7 +76,7 @@ LDDM_cleaning04_d1_calc1 <- LDDM_cleaning04_fullbeh_d1 %>%
 # Calculate the accuracy per subject (according to NIH toolbox this should be the number of correct responses * 5/total trials (330))
 LDDM_cleaning04_d1_calc2 <- LDDM_cleaning04_d1_calc1 %>%
   group_by(subj_idx) %>%
-  summarise(accuracy_score = sum(response==1)*(5/length(trial)))
+  reframe(accuracy_score = sum(response==1)*(5/length(trial)))
 
 LDDM_cleaning04_d1_ind <-  LDDM_cleaning04_d1_calc1 %>%
   group_by(subj_idx) %>% # per subject
@@ -84,7 +84,7 @@ LDDM_cleaning04_d1_ind <-  LDDM_cleaning04_d1_calc1 %>%
   mutate(mean_rt = mean(rt),
          sd_rt = sd(rt)) %>% # compute individual mean and sd RT
   filter(rt>=0.1 & rt>(mean_rt - 3*sd_rt) & rt<(mean_rt + 3*sd_rt)) %>% #remove trials less than 100ms and less than 3SD below or 2SD above the mean RT
-  summarise(med_rt = median(rt)*1000) %>% # compute individual level median RT
+  reframe(med_rt = median(rt)*1000) %>% # compute individual level median RT
   mutate(rt_score = 5-(5*((log(med_rt)-log(250))/(log(1000)-log(250)))),
          rt_score_truncated = 5-(5*((log(med_rt)-log(500))/(log(3000)-log(500)))))
 
@@ -93,12 +93,12 @@ LDDM_cleaning04_d1_calc3 <- LDDM_cleaning04_d1_calc1 %>%
   full_join(LDDM_cleaning04_d1_calc2, by='subj_idx') %>%
   group_by(subj_idx) %>% # per subject
   mutate(total_accuracy_perc = sum(response==1)/length(response)) %>% # compute total accuracy percentage
-  summarise(flanker_score_list_d1 = if_else(total_accuracy_perc>0.8, accuracy_score+rt_score, accuracy_score),
+  reframe(flanker_score_list_d1 = if_else(total_accuracy_perc>0.8, accuracy_score+rt_score, accuracy_score),
             flanker_score_list_d1_truncated = if_else(total_accuracy_perc>0.8, accuracy_score+rt_score_truncated, accuracy_score),
             accuracy = mean(total_accuracy_perc)) %>% # if accuracy is above 80% then add accuracy and rt flanker scores, if not base the flanker score only on accuracy
   transmute(ID=subj_idx, flanker_score_list_d1=flanker_score_list_d1, flanker_score_list_d1_truncated=flanker_score_list_d1_truncated, accuracy=accuracy) %>%
   group_by(ID) %>% # per subject
-  summarise(flanker_score = mean(flanker_score_list_d1),
+  reframe(flanker_score = mean(flanker_score_list_d1),
             flanker_score_truncated = mean(flanker_score_list_d1_truncated),
             accuracy = mean(accuracy))
 
@@ -107,7 +107,7 @@ LDDM_cleaning04_d1_accuracy_by_condition <- LDDM_cleaning04_d1_calc1 %>%
   full_join(LDDM_cleaning04_d1_calc2, by='subj_idx') %>%
   group_by(subj_idx, stim) %>% # per subject
   mutate(total_accuracy_perc = sum(response==1)/length(response)) %>% # compute total accuracy percentage
-  summarise(accuracy_by_stim = mean(total_accuracy_perc)) %>%
+  reframe(accuracy_by_stim = mean(total_accuracy_perc)) %>%
   pivot_wider(names_from=stim, values_from=accuracy_by_stim, id_cols=subj_idx, names_prefix="accuracy_") %>%
   mutate(ID=subj_idx,
          accuracy_congruent_log = log(accuracy_congruent))
@@ -135,7 +135,7 @@ LDDM_cleaning04_d1_calc1_short <- rbind(LDDM_cleaning04_d1_calc1_short_incon, LD
 # Calculate the accuracy per subject (according to NIH toolbox this should be the number of correct responses * 5/total trials (330))
 LDDM_cleaning04_d1_calc2_short <- LDDM_cleaning04_d1_calc1_short %>%
   group_by(subj_idx) %>%
-  summarise(accuracy_score = sum(response==1)*(5/length(trial)))
+  reframe(accuracy_score = sum(response==1)*(5/length(trial)))
 
 LDDM_cleaning04_d1_ind_short <-  LDDM_cleaning04_d1_calc1_short %>%
   group_by(subj_idx) %>% # per subject
@@ -143,7 +143,7 @@ LDDM_cleaning04_d1_ind_short <-  LDDM_cleaning04_d1_calc1_short %>%
   mutate(mean_rt = mean(rt),
          sd_rt = sd(rt)) %>% # compute individual mean and sd RT
   filter(rt>=0.1 & rt>(mean_rt - 3*sd_rt) & rt<(mean_rt + 3*sd_rt)) %>% #remove trials less than 100ms and less than 3SD below or 2SD above the mean RT
-  summarise(med_rt = median(rt)*1000) %>% # compute individual level median RT
+  reframe(med_rt = median(rt)*1000) %>% # compute individual level median RT
   mutate(rt_score = 5-(5*((log(med_rt)-log(250))/(log(1000)-log(250)))),
          rt_score_truncated = 5-(5*((log(med_rt)-log(500))/(log(3000)-log(500)))))
 
@@ -152,12 +152,12 @@ LDDM_cleaning04_d1_calc3_short <- LDDM_cleaning04_d1_calc1_short %>%
   full_join(LDDM_cleaning04_d1_calc2, by='subj_idx') %>%
   group_by(subj_idx) %>% # per subject
   mutate(total_accuracy_perc = sum(response==1)/length(response)) %>% # compute total accuracy percentage
-  summarise(flanker_score_list_d1 = if_else(total_accuracy_perc>0.8, accuracy_score+rt_score, accuracy_score),
+  reframe(flanker_score_list_d1 = if_else(total_accuracy_perc>0.8, accuracy_score+rt_score, accuracy_score),
             flanker_score_list_d1_truncated = if_else(total_accuracy_perc>0.8, accuracy_score+rt_score_truncated, accuracy_score),
             accuracy = mean(total_accuracy_perc)) %>%# if accuracy is above 80% then add accuracy and rt flanker scores, if not base the flanker score only on accuracy
   transmute(ID=subj_idx, flanker_score_list_d1=flanker_score_list_d1, flanker_score_list_d1_truncated=flanker_score_list_d1_truncated, accuracy=accuracy) %>%
   group_by(ID) %>% # per subject
-  summarise(flanker_score = mean(flanker_score_list_d1),
+  reframe(flanker_score = mean(flanker_score_list_d1),
             flanker_score_truncated = mean(flanker_score_list_d1_truncated),
             accuracy = mean(accuracy))
 ```
@@ -175,7 +175,7 @@ LDDM_cleaning04_d2_calc1 <- LDDM_cleaning04_fullbeh_d2 %>%
 # Calculate the accuracy per subject (according to NIH toolbox this should be the number of correct responses * 5/total trials (330))
 LDDM_cleaning04_d2_calc2 <- LDDM_cleaning04_d2_calc1 %>%
   group_by(subj_idx) %>%
-  summarise(accuracy_score = sum(response==1)*(5/length(trial)))
+  reframe(accuracy_score = sum(response==1)*(5/length(trial)))
 
 LDDM_cleaning04_d2_ind <-  LDDM_cleaning04_d2_calc1 %>%
   group_by(subj_idx) %>% # per subject
@@ -183,7 +183,7 @@ LDDM_cleaning04_d2_ind <-  LDDM_cleaning04_d2_calc1 %>%
   mutate(mean_rt = mean(rt),
          sd_rt = sd(rt)) %>% # compute individual mean and sd RT
   filter(rt>=0.1 & rt>(mean_rt - 3*sd_rt) & rt<(mean_rt + 3*sd_rt)) %>% #remove trials less than 100ms and less than 3SD below or 2SD above the mean RT
-  summarise(med_rt = median(rt)*1000) %>% # compute individual level median RT
+  reframe(med_rt = median(rt)*1000) %>% # compute individual level median RT
   mutate(rt_score = 5-(5*((log(med_rt)-log(250))/(log(1000)-log(250)))),
          rt_score_truncated = 5-(5*((log(med_rt)-log(500))/(log(3000)-log(500)))))
 
@@ -192,12 +192,12 @@ LDDM_cleaning04_d2_calc3 <- LDDM_cleaning04_d2_calc1 %>%
   full_join(LDDM_cleaning04_d2_calc2, by='subj_idx') %>%
   group_by(subj_idx) %>% # per subject
   mutate(total_accuracy_perc = sum(response==1)/length(response)) %>% # compute total accuracy percentage
-  summarise(flanker_score_list_d2 = if_else(total_accuracy_perc>0.8, accuracy_score+rt_score, accuracy_score),
+  reframe(flanker_score_list_d2 = if_else(total_accuracy_perc>0.8, accuracy_score+rt_score, accuracy_score),
             flanker_score_list_d2_truncated = if_else(total_accuracy_perc>0.8, accuracy_score+rt_score_truncated, accuracy_score),
             accuracy = mean(total_accuracy_perc)) %>%# if accuracy is above 80% then add accuracy and rt flanker scores, if not base the flanker score only on accuracy
   transmute(ID=subj_idx, flanker_score_list_d2=flanker_score_list_d2, flanker_score_list_d2_truncated=flanker_score_list_d2_truncated, accuracy=accuracy) %>%
   group_by(ID) %>% # per subject
-  summarise(flanker_score = mean(flanker_score_list_d2),
+  reframe(flanker_score = mean(flanker_score_list_d2),
             flanker_score_truncated = mean(flanker_score_list_d2_truncated),
             accuracy = mean(accuracy))
 
@@ -206,7 +206,7 @@ LDDM_cleaning04_d2_accuracy_by_condition <- LDDM_cleaning04_d2_calc1 %>%
   full_join(LDDM_cleaning04_d2_calc2, by='subj_idx') %>%
   group_by(subj_idx, stim) %>% # per subject
   mutate(total_accuracy_perc = sum(response==1)/length(response)) %>% # compute total accuracy percentage
-  summarise(accuracy_by_stim = mean(total_accuracy_perc)) %>%
+  reframe(accuracy_by_stim = mean(total_accuracy_perc)) %>%
   pivot_wider(names_from=stim, values_from=accuracy_by_stim, id_cols=subj_idx, names_prefix="accuracy_") %>%
   mutate(ID=subj_idx,
          accuracy_congruent_log = log(accuracy_congruent))
@@ -233,7 +233,7 @@ LDDM_cleaning04_d2_calc1_short <- rbind(LDDM_cleaning04_d2_calc1_short_incon, LD
 # Calculate the accuracy per subject (according to NIH toolbox this should be the number of correct responses * 5/total trials (330))
 LDDM_cleaning04_d2_calc2_short <- LDDM_cleaning04_d2_calc1_short %>%
   group_by(subj_idx) %>%
-  summarise(accuracy_score = sum(response==1)*(5/length(trial)))
+  reframe(accuracy_score = sum(response==1)*(5/length(trial)))
 
 LDDM_cleaning04_d2_ind_short <-  LDDM_cleaning04_d2_calc1_short %>%
   group_by(subj_idx) %>% # per subject
@@ -241,7 +241,7 @@ LDDM_cleaning04_d2_ind_short <-  LDDM_cleaning04_d2_calc1_short %>%
   mutate(mean_rt = mean(rt),
          sd_rt = sd(rt)) %>% # compute individual mean and sd RT
   filter(rt>=0.1 & rt>(mean_rt - 3*sd_rt) & rt<(mean_rt + 3*sd_rt)) %>% #remove trials less than 100ms and less than 3SD below or 2SD above the mean RT
-  summarise(med_rt = median(rt)*1000) %>% # compute individual level median RT
+  reframe(med_rt = median(rt)*1000) %>% # compute individual level median RT
   mutate(rt_score = 5-(5*((log(med_rt)-log(250))/(log(1000)-log(250)))),
          rt_score_truncated = 5-(5*((log(med_rt)-log(500))/(log(3000)-log(500)))))
 
@@ -250,12 +250,12 @@ LDDM_cleaning04_d2_calc3_short <- LDDM_cleaning04_d2_calc1_short %>%
   full_join(LDDM_cleaning04_d2_calc2, by='subj_idx') %>%
   group_by(subj_idx) %>% # per subject
   mutate(total_accuracy_perc = sum(response==1)/length(response)) %>% # compute total accuracy percentage
-  summarise(flanker_score_list_d2 = if_else(total_accuracy_perc>0.8, accuracy_score+rt_score, accuracy_score),
+  reframe(flanker_score_list_d2 = if_else(total_accuracy_perc>0.8, accuracy_score+rt_score, accuracy_score),
             flanker_score_list_d2_truncated = if_else(total_accuracy_perc>0.8, accuracy_score+rt_score_truncated, accuracy_score),
             accuracy = mean(total_accuracy_perc)) %>%# if accuracy is above 80% then add accuracy and rt flanker scores, if not base the flanker score only on accuracy
   transmute(ID=subj_idx, flanker_score_list_d2=flanker_score_list_d2, flanker_score_list_d2_truncated=flanker_score_list_d2_truncated, accuracy=accuracy) %>%
   group_by(ID) %>% # per subject
-  summarise(flanker_score = mean(flanker_score_list_d2),
+  reframe(flanker_score = mean(flanker_score_list_d2),
             flanker_score_truncated = mean(flanker_score_list_d2_truncated),
             accuracy = mean(accuracy))
 ```
@@ -275,7 +275,7 @@ LDDM_cleaning04_d3_calc1 <- LDDM_cleaning04_fullbeh_d3 %>%
 # Calculate the accuracy per subject (according to NIH toolbox this should be the number of correct responses * 5/total trials (330))
 LDDM_cleaning04_d3_calc2 <- LDDM_cleaning04_d3_calc1 %>%
   group_by(subj_idx) %>%
-  summarise(accuracy_score = sum(response==1)*(5/length(trial)))
+  reframe(accuracy_score = sum(response==1)*(5/length(trial)))
 
 LDDM_cleaning04_d3_ind <-  LDDM_cleaning04_d3_calc1 %>%
   group_by(subj_idx) %>% # per subject
@@ -283,7 +283,7 @@ LDDM_cleaning04_d3_ind <-  LDDM_cleaning04_d3_calc1 %>%
   mutate(mean_rt = mean(rt),
          sd_rt = sd(rt)) %>% # compute individual mean and sd RT
   filter(rt>=0.1 & rt>(mean_rt - 3*sd_rt) & rt<(mean_rt + 3*sd_rt)) %>% #remove trials less than 100ms and less than 3SD below or 2SD above the mean RT
-  summarise(med_rt = median(rt)*1000) %>% # compute individual level median RT
+  reframe(med_rt = median(rt)*1000) %>% # compute individual level median RT
   mutate(rt_score = 5-(5*((log(med_rt)-log(250))/(log(1000)-log(250)))),
          rt_score_truncated = 5-(5*((log(med_rt)-log(500))/(log(3000)-log(500)))))
 
@@ -292,12 +292,12 @@ LDDM_cleaning04_d3_calc3 <- LDDM_cleaning04_d3_calc1 %>%
   full_join(LDDM_cleaning04_d3_calc2, by='subj_idx') %>%
   group_by(subj_idx) %>% # per subject
   mutate(total_accuracy_perc = sum(response==1)/length(response)) %>% # compute total accuracy percentage
-  summarise(flanker_score_list_d3 = if_else(total_accuracy_perc>0.8, accuracy_score+rt_score, accuracy_score),
+  reframe(flanker_score_list_d3 = if_else(total_accuracy_perc>0.8, accuracy_score+rt_score, accuracy_score),
             flanker_score_list_d3_truncated = if_else(total_accuracy_perc>0.8, accuracy_score+rt_score_truncated, accuracy_score),
             accuracy = mean(total_accuracy_perc)) %>%# if accuracy is above 80% then add accuracy and rt flanker scores, if not base the flanker score only on accuracy
   transmute(ID=subj_idx, flanker_score_list_d3=flanker_score_list_d3, flanker_score_list_d3_truncated=flanker_score_list_d3_truncated, accuracy=accuracy) %>%
   group_by(ID) %>% # per subject
-  summarise(flanker_score = mean(flanker_score_list_d3),
+  reframe(flanker_score = mean(flanker_score_list_d3),
             flanker_score_truncated = mean(flanker_score_list_d3_truncated),
             accuracy = mean(accuracy))
 
@@ -306,7 +306,7 @@ LDDM_cleaning04_d3_accuracy_by_condition <- LDDM_cleaning04_d3_calc1 %>%
   full_join(LDDM_cleaning04_d3_calc2, by='subj_idx') %>%
   group_by(subj_idx, stim) %>% # per subject
   mutate(total_accuracy_perc = sum(response==1)/length(response)) %>% # compute total accuracy percentage
-  summarise(accuracy_by_stim = mean(total_accuracy_perc)) %>%
+  reframe(accuracy_by_stim = mean(total_accuracy_perc)) %>%
   pivot_wider(names_from=stim, values_from=accuracy_by_stim, id_cols=subj_idx, names_prefix="accuracy_") %>%
   mutate(ID=subj_idx,
          accuracy_congruent_log = log(accuracy_congruent))
@@ -334,7 +334,7 @@ LDDM_cleaning04_d3_calc1_short <- rbind(LDDM_cleaning04_d3_calc1_short_incon, LD
 # Calculate the accuracy per subject (according to NIH toolbox this should be the number of correct responses * 5/total trials (330))
 LDDM_cleaning04_d3_calc2_short <- LDDM_cleaning04_d3_calc1_short %>%
   group_by(subj_idx) %>%
-  summarise(accuracy_score = sum(response==1)*(5/length(trial)))
+  reframe(accuracy_score = sum(response==1)*(5/length(trial)))
 
 LDDM_cleaning04_d3_ind_short <-  LDDM_cleaning04_d3_calc1_short %>%
   group_by(subj_idx) %>% # per subject
@@ -342,7 +342,7 @@ LDDM_cleaning04_d3_ind_short <-  LDDM_cleaning04_d3_calc1_short %>%
   mutate(mean_rt = mean(rt),
          sd_rt = sd(rt)) %>% # compute individual mean and sd RT
   filter(rt>=0.1 & rt>(mean_rt - 3*sd_rt) & rt<(mean_rt + 3*sd_rt)) %>% #remove trials less than 100ms and less than 3SD below or 2SD above the mean RT
-  summarise(med_rt = median(rt)*1000) %>% # compute individual level median RT
+  reframe(med_rt = median(rt)*1000) %>% # compute individual level median RT
   mutate(rt_score = 5-(5*((log(med_rt)-log(250))/(log(1000)-log(250)))),
          rt_score_truncated = 5-(5*((log(med_rt)-log(500))/(log(3000)-log(500)))))
 
@@ -351,12 +351,12 @@ LDDM_cleaning04_d3_calc3_short <- LDDM_cleaning04_d3_calc1_short %>%
   full_join(LDDM_cleaning04_d3_calc2, by='subj_idx') %>%
   group_by(subj_idx) %>% # per subject
   mutate(total_accuracy_perc = sum(response==1)/length(response)) %>% # compute total accuracy percentage
-  summarise(flanker_score_list_d3 = if_else(total_accuracy_perc>0.8, accuracy_score+rt_score, accuracy_score),
+  reframe(flanker_score_list_d3 = if_else(total_accuracy_perc>0.8, accuracy_score+rt_score, accuracy_score),
             flanker_score_list_d3_truncated = if_else(total_accuracy_perc>0.8, accuracy_score+rt_score_truncated, accuracy_score),
             accuracy = mean(total_accuracy_perc)) %>%# if accuracy is above 80% then add accuracy and rt flanker scores, if not base the flanker score only on accuracy
   transmute(ID=subj_idx, flanker_score_list_d3=flanker_score_list_d3, flanker_score_list_d3_truncated=flanker_score_list_d3_truncated, accuracy=accuracy) %>%
   group_by(ID) %>% # per subject
-  summarise(flanker_score = mean(flanker_score_list_d3),
+  reframe(flanker_score = mean(flanker_score_list_d3),
             flanker_score_truncated = mean(flanker_score_list_d3_truncated),
             accuracy = mean(accuracy))
 ```
