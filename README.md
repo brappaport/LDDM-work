@@ -1,2 +1,2 @@
 # LDDM-work
-R code for study examining longitudinal stability of drift diffusion modeling of Flanker task
+R code for study examining psychometrics of drift diffusion modeling of Eriksen flanker task
