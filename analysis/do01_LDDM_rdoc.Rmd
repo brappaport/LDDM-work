@@ -159,9 +159,9 @@ LDDM_do1_neuro <- read_sav(here("./work/data/RDoC_Neuropsych_Cleaning_HL_FINAL_3
 LDDM_do1_neuro$ID <- LDDM_do1_neuro$SubjectID
 # LDDM_do1_education <- read_sav(here("./work/data/FINAL_RDoC_Proband_Sibling_ALL_Questionnaires_ItemLevel_2.8.19.sav"))
 ## Load data on participant's gender
-LDDM_do3_rdoc_gender <- readxl::read_excel(here("./work/data/RDoC_ProbandSiblingCombined All 12.3.xlsx"))
-LDDM_do3_rdoc_gender$ID <- LDDM_do3_rdoc_gender$`SubjectID of RDoC_ProbandSIbling_AllQuestionnaires_Processed_8.15.18`
-LDDM_do3_rdoc_gender$Gender <- LDDM_do3_rdoc_gender$`Gender of RDoC_ProbandSiblingCombined 12.3.jmp`
+LDDM_do3_rdoc_gender <- read_sav(here("./work/data/FINAL_RDoC_Proband_Sibling_SCID_categoricalDx,10.5.2018.sav"))
+LDDM_do3_rdoc_gender$ID <- LDDM_do3_rdoc_gender$SubjectID
+LDDM_do3_rdoc_gender$Gender <- LDDM_do3_rdoc_gender$b12
 LDDM_do3_rdoc_gender_only <- LDDM_do3_rdoc_gender %>%
   select(ID,Gender)
 
@@ -226,8 +226,7 @@ LDDM_do3_rdoc$B11_avtz_DO_v_v <- rowMeans(LDDM_do3_rdoc[,c('B11_avtz_DO_v_v_con'
 LDDM_do3_rdoc$NL_time_rev <- -1*LDDM_do3_rdoc$NL_time
 LDDM_do3_rdoc$InSw_time_rev <- -1*LDDM_do3_rdoc$InSw_time
 
-LDDM_do3_rdoc$exec_composite <- rowMeans(LDDM_do3_rdoc[,c("FF_cor","Switch_cor","NL_time_rev","InSw_time_rev")], na.rm=F)
-
+LDDM_do3_rdoc$exec_composite <- -1*rowMeans(LDDM_do3_rdoc[,c("FF_cor","Switch_cor","NL_time_rev","InSw_time_rev")], na.rm=F)
 
 LDDM_do3_rdoc_no_outliers <- LDDM_do3_rdoc %>%
   mutate(FCz_ERN_080 = Winsorize(FCz_ERN_080, 
@@ -254,7 +253,7 @@ var_list <- c("B11_avtz_DO_v_v","B11_avtz_DO_v_v_con","B11_avtz_DO_v_v_incon","B
               "B11_avtz_DO_v_v","B11_avtz_DO_v_v_con","B11_avtz_DO_v_v_incon","B11_avtz_DO_v_a","B11_avtz_DO_v_t","B11_avtz_DO_v_z",
               "flanker_score_rdoc",
               "FCz_ERN_080","FCz_ERN_080_diff",
-              "Inhib_time","exec_composite","Pred_FSIQ","Motor_time","accuracy","accuracy_congruent_log","accuracy_incongruent")
+              "Inhib_time","exec_composite","Pred_FSIQ","Motor_time","accuracy","accuracy_congruent_log","accuracy_incongruent","rt_interference")
 
 for (v in var_list){ 
   print(paste0("LDDM_do3_rdoc$",v))
@@ -273,6 +272,7 @@ make_CI <- function(lower, upper) {
 
 
 #  Multiple regressions
+## ERN
 ```{r}
 i=1
 mr_ERN_table_rdoc <- as.data.frame(matrix(nrow=6, ncol=4))
@@ -282,7 +282,7 @@ mr_ERN_table_rdoc_raw[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate
 
 for (var in c("B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon_z","B11_avtz_DO_v_a_z","B11_avtz_DO_v_t_z","B11_avtz_DO_v_z_z")) {
   eval(parse(text=paste0("
-             model <- lmer(FCz_ERN_080_z ~ ",var," + flanker_score_rdoc_z + accuracy_incongruent_z + Age + Pred_FSIQ_z + Motor_time_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers)
+             model <- lmer(FCz_ERN_080_z ~ ",var," + flanker_score_rdoc_z + accuracy_incongruent_z + rt_interference_z + Age + Pred_FSIQ_z + Motor_time_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers)
              
              mr_ERN_table_rdoc[i,2] <- paste0(round(tidy(model)$estimate[2],2), ifelse(tidy(model)$p.value[2]<0.01, '** ', ifelse(tidy(model)$p.value[2]<0.05, '* ', ' ')), 
                                             make_CI(confint(model)[4,1], confint(model)[4,2]))
@@ -290,6 +290,8 @@ for (var in c("B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon
                                             make_CI(confint(model)[5,1], confint(model)[5,2]))
              mr_ERN_table_rdoc[i,4] <- paste0(round(tidy(model)$estimate[4],2), ifelse(tidy(model)$p.value[4]<0.01, '** ', ifelse(tidy(model)$p.value[4]<0.05, '* ', ' ')), 
                                             make_CI(confint(model)[6,1], confint(model)[6,2]))
+             mr_ERN_table_rdoc[i,5] <- paste0(round(tidy(model)$estimate[5],2), ifelse(tidy(model)$p.value[5]<0.01, '** ', ifelse(tidy(model)$p.value[5]<0.05, '* ', ' ')), 
+                                            make_CI(confint(model)[7,1], confint(model)[7,2]))
 
             mr_ERN_table_rdoc_raw[i,2] <- tidy(model)$estimate[2]
             mr_ERN_table_rdoc_raw[i,3] <- confint(model)[4,1]
@@ -302,6 +304,10 @@ for (var in c("B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon
             mr_ERN_table_rdoc_raw[i,8] <- tidy(model)$estimate[4]
             mr_ERN_table_rdoc_raw[i,9] <- confint(model)[6,1]
             mr_ERN_table_rdoc_raw[i,10] <- confint(model)[6,2]
+            
+            mr_ERN_table_rdoc_raw[i,11] <- tidy(model)$estimate[5]
+            mr_ERN_table_rdoc_raw[i,12] <- confint(model)[7,1]
+            mr_ERN_table_rdoc_raw[i,13] <- confint(model)[7,2]
                                    ")))
   i=i+1
 }
@@ -311,7 +317,7 @@ mr_ERN_table_rdoc_congruent <- mr_ERN_table_rdoc
 mr_ERN_table_rdoc_congruent_raw <- mr_ERN_table_rdoc_raw
 for (var in c("B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon_z","B11_avtz_DO_v_a_z","B11_avtz_DO_v_t_z","B11_avtz_DO_v_z_z")) {
   eval(parse(text=paste0("
-             model <- lmer(FCz_ERN_080_z ~ ",var," + flanker_score_rdoc_z + accuracy_congruent_log_z + Age + Pred_FSIQ_z + Motor_time_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers)
+             model <- lmer(FCz_ERN_080_z ~ ",var," + flanker_score_rdoc_z + accuracy_congruent_log_z + rt_interference_z + Age + Pred_FSIQ_z + Motor_time_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers)
              
              mr_ERN_table_rdoc_congruent[i,2] <- paste0(round(tidy(model)$estimate[2],2), ifelse(tidy(model)$p.value[2]<0.01, '** ', ifelse(tidy(model)$p.value[2]<0.05, '* ', ' ')), 
                                             make_CI(confint(model)[4,1], confint(model)[4,2]))
@@ -319,6 +325,8 @@ for (var in c("B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon
                                             make_CI(confint(model)[5,1], confint(model)[5,2]))
              mr_ERN_table_rdoc_congruent[i,4] <- paste0(round(tidy(model)$estimate[4],2), ifelse(tidy(model)$p.value[4]<0.01, '** ', ifelse(tidy(model)$p.value[4]<0.05, '* ', ' ')), 
                                             make_CI(confint(model)[6,1], confint(model)[6,2]))
+             mr_ERN_table_rdoc_congruent[i,5] <- paste0(round(tidy(model)$estimate[5],2), ifelse(tidy(model)$p.value[5]<0.01, '** ', ifelse(tidy(model)$p.value[5]<0.05, '* ', ' ')), 
+                                            make_CI(confint(model)[7,1], confint(model)[7,2]))
 
             mr_ERN_table_rdoc_congruent_raw[i,2] <- tidy(model)$estimate[2]
             mr_ERN_table_rdoc_congruent_raw[i,3] <- confint(model)[4,1]
@@ -331,12 +339,16 @@ for (var in c("B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon
             mr_ERN_table_rdoc_congruent_raw[i,8] <- tidy(model)$estimate[4]
             mr_ERN_table_rdoc_congruent_raw[i,9] <- confint(model)[6,1]
             mr_ERN_table_rdoc_congruent_raw[i,10] <- confint(model)[6,2]
+            
+            mr_ERN_table_rdoc_congruent_raw[i,11] <- tidy(model)$estimate[5]
+            mr_ERN_table_rdoc_congruent_raw[i,12] <- confint(model)[7,1]
+            mr_ERN_table_rdoc_congruent_raw[i,13] <- confint(model)[7,2]
                                    ")))
   i=i+1
 }
 
-colnames(mr_ERN_table_rdoc) <- c("Parameters","Drift rate", "NIH Toolbox", "Raw accuracy")
-colnames(mr_ERN_table_rdoc_congruent) <- c("Parameters","Drift rate", "NIH Toolbox", "Raw accuracy (congruent log)")
+colnames(mr_ERN_table_rdoc) <- c("Parameters","Drift rate", "NIH Toolbox", "Raw accuracy", "RT interference")
+colnames(mr_ERN_table_rdoc_congruent) <- c("Parameters","Drift rate", "NIH Toolbox", "Raw accuracy (congruent log)", "RT interference")
 
 write.csv(mr_ERN_table_rdoc, here("./work/tables/mr_ERN_table_rdoc.csv"))
 write.csv(mr_ERN_table_rdoc_raw, here("./work/tables/mr_ERN_table_rdoc_raw.csv"))
@@ -345,9 +357,8 @@ write.csv(mr_ERN_table_rdoc_congruent, here("./work/tables/mr_ERN_table_rdoc_con
 write.csv(mr_ERN_table_rdoc_congruent_raw, here("./work/tables/mr_ERN_table_rdoc_congruent_raw.csv"))
 ```
 
-
-# Convergence with neuropsych measures
-## Inhibition & DDM 
+## Neuropsych measures
+### Inhibition & DDM 
 ```{r}
 LDDM_do3_rdoc_no_outliers$NL_time_rev <- -1*LDDM_do3_rdoc_no_outliers$NL_time
 LDDM_do3_rdoc_no_outliers$Inhib_time_rev <- -1*LDDM_do3_rdoc_no_outliers$Inhib_time
@@ -364,7 +375,7 @@ mr_INHIB_table_rdoc_cov_raw[,1] <- c("Drift rate","Drift rate (congruent)","Drif
 
 for (var in c("B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon_z","B11_avtz_DO_v_a_z","B11_avtz_DO_v_t_z","B11_avtz_DO_v_z_z")) {
   eval(parse(text=paste0("
-             model <- lmer(Inhib_time_rev_z ~ ",var," + flanker_score_rdoc_z + accuracy_incongruent_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers)
+             model <- lmer(Inhib_time_rev_z ~ ",var," + flanker_score_rdoc_z + accuracy_incongruent_z + rt_interference_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers)
              
              mr_INHIB_table_rdoc_nocov[i,2] <- paste0(round(tidy(model)$estimate[2],2), ifelse(tidy(model)$p.value[2]<0.01, '** ', ifelse(tidy(model)$p.value[2]<0.05, '* ', ' ')), 
                                             make_CI(confint(model)[4,1], confint(model)[4,2]))
@@ -372,8 +383,10 @@ for (var in c("B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon
                                             make_CI(confint(model)[5,1], confint(model)[5,2]))
              mr_INHIB_table_rdoc_nocov[i,4] <- paste0(round(tidy(model)$estimate[4],2), ifelse(tidy(model)$p.value[4]<0.01, '** ', ifelse(tidy(model)$p.value[4]<0.05, '* ', ' ')), 
                                             make_CI(confint(model)[6,1], confint(model)[6,2]))
+             mr_INHIB_table_rdoc_nocov[i,5] <- paste0(round(tidy(model)$estimate[5],2), ifelse(tidy(model)$p.value[5]<0.01, '** ', ifelse(tidy(model)$p.value[5]<0.05, '* ', ' ')), 
+                                            make_CI(confint(model)[7,1], confint(model)[7,2]))
             
-             model_cov <- lmer(Inhib_time_rev_z ~ ",var," + flanker_score_rdoc_z + accuracy_incongruent_z + Pred_FSIQ + Motor_time + (1 | F_ID), LDDM_do3_rdoc_no_outliers)
+             model_cov <- lmer(Inhib_time_rev_z ~ ",var," + flanker_score_rdoc_z + accuracy_incongruent_z + rt_interference_z + Age + Pred_FSIQ + Motor_time + (1 | F_ID), LDDM_do3_rdoc_no_outliers)
              
              mr_INHIB_table_rdoc_cov[i,2] <- paste0(round(tidy(model_cov)$estimate[2],2), ifelse(tidy(model_cov)$p.value[2]<0.01, '** ', ifelse(tidy(model_cov)$p.value[2]<0.05, '* ', ' ')), 
                                             make_CI(confint(model_cov)[4,1], confint(model_cov)[4,2]))
@@ -381,6 +394,8 @@ for (var in c("B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon
                                             make_CI(confint(model_cov)[5,1], confint(model_cov)[5,2]))
              mr_INHIB_table_rdoc_cov[i,4] <- paste0(round(tidy(model_cov)$estimate[4],2), ifelse(tidy(model_cov)$p.value[4]<0.01, '** ', ifelse(tidy(model_cov)$p.value[4]<0.05, '* ', ' ')), 
                                             make_CI(confint(model_cov)[6,1], confint(model_cov)[6,2]))
+             mr_INHIB_table_rdoc_cov[i,5] <- paste0(round(tidy(model_cov)$estimate[5],2), ifelse(tidy(model_cov)$p.value[5]<0.01, '** ', ifelse(tidy(model_cov)$p.value[5]<0.05, '* ', ' ')), 
+                                            make_CI(confint(model_cov)[7,1], confint(model_cov)[7,2]))
                                             
             mr_INHIB_table_rdoc_cov_raw[i,2] <- tidy(model_cov)$estimate[2]
             mr_INHIB_table_rdoc_cov_raw[i,3] <- confint(model_cov)[4,1]
@@ -393,19 +408,23 @@ for (var in c("B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon
             mr_INHIB_table_rdoc_cov_raw[i,8] <- tidy(model_cov)$estimate[4]
             mr_INHIB_table_rdoc_cov_raw[i,9] <- confint(model_cov)[6,1]
             mr_INHIB_table_rdoc_cov_raw[i,10] <- confint(model_cov)[6,2]
+            
+            mr_INHIB_table_rdoc_cov_raw[i,11] <- tidy(model_cov)$estimate[5]
+            mr_INHIB_table_rdoc_cov_raw[i,12] <- confint(model_cov)[7,1]
+            mr_INHIB_table_rdoc_cov_raw[i,13] <- confint(model_cov)[7,2]
                                    ")))
   i=i+1
 }
 
-colnames(mr_INHIB_table_rdoc_nocov) <- c("Parameters","Drift rate", "NIH Toolbox", "Raw accuracy (incongruent)")
-colnames(mr_INHIB_table_rdoc_cov) <- c("Parameters","Drift rate", "NIH Toolbox", "Raw accuracy (incongruent)")
+colnames(mr_INHIB_table_rdoc_nocov) <- c("Parameters","Drift rate", "NIH Toolbox", "Raw accuracy (incongruent)", "RT Interference")
+colnames(mr_INHIB_table_rdoc_cov) <- c("Parameters","Drift rate", "NIH Toolbox", "Raw accuracy (incongruent)", "RT Interference")
 
 write.csv(mr_INHIB_table_rdoc_nocov, here("./work/tables/mr_INHIB_table_rdoc_nocov.csv"))
 write.csv(mr_INHIB_table_rdoc_cov, here("./work/tables/mr_INHIB_table_rdoc_cov.csv"))
 write.csv(mr_INHIB_table_rdoc_cov_raw, here("./work/tables/mr_INHIB_table_rdoc_cov_raw.csv"))
 ```
 
-## Set-shifting & DDM 
+### Set-shifting & DDM 
 ```{r}
 # lapply(LDDM_do3_rdoc, attr, "label")
 LDDM_do3_rdoc_no_outliers$NL_time_rev <- -1*LDDM_do3_rdoc_no_outliers$NL_time
@@ -425,7 +444,7 @@ mr_EXEC_table_rdoc_cov_raw[,1] <- c("Drift rate","Drift rate (congruent)","Drift
 
 for (var in c("B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon_z","B11_avtz_DO_v_a_z","B11_avtz_DO_v_t_z","B11_avtz_DO_v_z_z")) {
   eval(parse(text=paste0("
-             model <- lmer(exec_composite_z ~ ",var," + flanker_score_rdoc_z + accuracy_incongruent_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers)
+             model <- lmer(exec_composite_z ~ ",var," + flanker_score_rdoc_z + accuracy_incongruent_z + rt_interference_z  + (1 | F_ID), LDDM_do3_rdoc_no_outliers)
              
              mr_EXEC_table_rdoc_nocov[i,2] <- paste0(round(tidy(model)$estimate[2],2), ifelse(tidy(model)$p.value[2]<0.01, '** ', ifelse(tidy(model)$p.value[2]<0.05, '* ', ' ')), 
                                             make_CI(confint(model)[4,1], confint(model)[4,2]))
@@ -433,8 +452,10 @@ for (var in c("B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon
                                             make_CI(confint(model)[5,1], confint(model)[5,2]))
              mr_EXEC_table_rdoc_nocov[i,4] <- paste0(round(tidy(model)$estimate[4],2), ifelse(tidy(model)$p.value[4]<0.01, '** ', ifelse(tidy(model)$p.value[4]<0.05, '* ', ' ')), 
                                             make_CI(confint(model)[6,1], confint(model)[6,2]))
+             mr_EXEC_table_rdoc_nocov[i,5] <- paste0(round(tidy(model)$estimate[5],2), ifelse(tidy(model)$p.value[5]<0.01, '** ', ifelse(tidy(model)$p.value[5]<0.05, '* ', ' ')), 
+                                            make_CI(confint(model)[7,1], confint(model)[7,2]))
             
-             model_cov <- lmer(exec_composite_z ~ ",var," + flanker_score_rdoc_z + accuracy_z + Pred_FSIQ + Motor_time + (1 | F_ID), LDDM_do3_rdoc_no_outliers)
+             model_cov <- lmer(exec_composite_z ~ ",var," + flanker_score_rdoc_z + accuracy_incongruent_z + rt_interference_z + Age + Pred_FSIQ + Motor_time + (1 | F_ID), LDDM_do3_rdoc_no_outliers)
              
              mr_EXEC_table_rdoc_cov[i,2] <- paste0(round(tidy(model_cov)$estimate[2],2), ifelse(tidy(model_cov)$p.value[2]<0.01, '** ', ifelse(tidy(model_cov)$p.value[2]<0.05, '* ', ' ')), 
                                             make_CI(confint(model_cov)[4,1], confint(model_cov)[4,2]))
@@ -442,6 +463,8 @@ for (var in c("B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon
                                             make_CI(confint(model_cov)[5,1], confint(model_cov)[5,2]))
              mr_EXEC_table_rdoc_cov[i,4] <- paste0(round(tidy(model_cov)$estimate[4],2), ifelse(tidy(model_cov)$p.value[4]<0.01, '** ', ifelse(tidy(model_cov)$p.value[4]<0.05, '* ', ' ')), 
                                             make_CI(confint(model_cov)[6,1], confint(model_cov)[6,2]))
+             mr_EXEC_table_rdoc_cov[i,5] <- paste0(round(tidy(model_cov)$estimate[5],2), ifelse(tidy(model_cov)$p.value[5]<0.01, '** ', ifelse(tidy(model_cov)$p.value[5]<0.05, '* ', ' ')), 
+                                            make_CI(confint(model_cov)[7,1], confint(model_cov)[7,2]))
                                             
             mr_EXEC_table_rdoc_cov_raw[i,2] <- tidy(model_cov)$estimate[2]
             mr_EXEC_table_rdoc_cov_raw[i,3] <- confint(model_cov)[4,1]
@@ -454,12 +477,16 @@ for (var in c("B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon
             mr_EXEC_table_rdoc_cov_raw[i,8] <- tidy(model_cov)$estimate[4]
             mr_EXEC_table_rdoc_cov_raw[i,9] <- confint(model_cov)[6,1]
             mr_EXEC_table_rdoc_cov_raw[i,10] <- confint(model_cov)[6,2]
+            
+            mr_EXEC_table_rdoc_cov_raw[i,11] <- tidy(model_cov)$estimate[5]
+            mr_EXEC_table_rdoc_cov_raw[i,12] <- confint(model_cov)[7,1]
+            mr_EXEC_table_rdoc_cov_raw[i,13] <- confint(model_cov)[7,2]
                                    ")))
   i=i+1
 }
 
-colnames(mr_EXEC_table_rdoc_nocov) <- c("Parameters","Drift rate", "NIH Toolbox", "Raw accuracy (incongruent)")
-colnames(mr_EXEC_table_rdoc_cov) <- c("Parameters","Drift rate", "NIH Toolbox", "Raw accuracy (incongruent)")
+colnames(mr_EXEC_table_rdoc_nocov) <- c("Parameters","Drift rate", "NIH Toolbox", "Raw accuracy (incongruent)", "RT Interference")
+colnames(mr_EXEC_table_rdoc_cov) <- c("Parameters","Drift rate", "NIH Toolbox", "Raw accuracy (incongruent)", "RT Interference")
 
 write.csv(mr_EXEC_table_rdoc_nocov, here("./work/tables/mr_Exec_table_rdoc_nocov.csv"))
 write.csv(mr_EXEC_table_rdoc_cov, here("./work/tables/mr_Exec_table_rdoc_cov.csv"))
@@ -471,9 +498,9 @@ write.csv(mr_EXEC_table_rdoc_cov_raw, here("./work/tables/mr_EXEC_table_rdoc_cov
 LDDM_do3_rdoc_sib <- LDDM_do3_rdoc %>%
   pivot_wider(id_cols=F_ID, names_from=S_ID, 
               values_from=c(B11_avtz_DO_v_v_z, B11_avtz_DO_v_v_con_z, B11_avtz_DO_v_v_incon_z,
-                            B11_avtz_DO_v_a_z,B11_avtz_DO_v_t_z,B11_avtz_DO_v_z_z,flanker_score_rdoc_z,accuracy_incongruent_z,accuracy_z))
+                            B11_avtz_DO_v_a_z,B11_avtz_DO_v_t_z,B11_avtz_DO_v_z_z,flanker_score_rdoc_z,accuracy_incongruent_z,accuracy_z,rt_interference_z))
 
-LDDM_heritability_table <- data.frame(parameters= c("v", "v_congruent", "v_incongruent", "a", "t", "z", "nihtoolbox_flanker", "accuracy_incongruent_z","accuracy_z"),
+LDDM_heritability_table <- data.frame(parameters= c("v", "v_congruent", "v_incongruent", "a", "t", "z", "nihtoolbox_flanker", "accuracy_incongruent_z","accuracy_z","rt_interference_z"),
                            ICC=c(icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_v_z_1","B11_avtz_DO_v_v_z_2")])$value,
                            icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_v_con_z_1","B11_avtz_DO_v_v_con_z_2")])$value,
                            icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_v_incon_z_1","B11_avtz_DO_v_v_incon_z_2")])$value,
@@ -482,7 +509,8 @@ LDDM_heritability_table <- data.frame(parameters= c("v", "v_congruent", "v_incon
                            icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_z_z_1","B11_avtz_DO_v_z_z_2")])$value,
                            icc(LDDM_do3_rdoc_sib[c("flanker_score_rdoc_z_1","flanker_score_rdoc_z_2")])$value,
                            icc(LDDM_do3_rdoc_sib[c("accuracy_incongruent_z_1","accuracy_incongruent_z_2")])$value,
-                           icc(LDDM_do3_rdoc_sib[c("accuracy_z_1","accuracy_z_2")])$value),
+                           icc(LDDM_do3_rdoc_sib[c("accuracy_z_1","accuracy_z_2")])$value,
+                           icc(LDDM_do3_rdoc_sib[c("rt_interference_z_1","rt_interference_z_2")])$value),
                            
                            p=c(icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_v_z_1","B11_avtz_DO_v_v_z_2")])$p.value,
                            icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_v_con_z_1","B11_avtz_DO_v_v_con_z_2")])$p.value,
@@ -492,9 +520,32 @@ LDDM_heritability_table <- data.frame(parameters= c("v", "v_congruent", "v_incon
                            icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_z_z_1","B11_avtz_DO_v_z_z_2")])$p.value,
                            icc(LDDM_do3_rdoc_sib[c("flanker_score_rdoc_z_1","flanker_score_rdoc_z_2")])$p.value,
                            icc(LDDM_do3_rdoc_sib[c("accuracy_incongruent_z_1","accuracy_incongruent_z_2")])$p.value,
-                           icc(LDDM_do3_rdoc_sib[c("accuracy_z_1","accuracy_z_2")])$p.value))
+                           icc(LDDM_do3_rdoc_sib[c("accuracy_z_1","accuracy_z_2")])$p.value,
+                           icc(LDDM_do3_rdoc_sib[c("rt_interference_z_1","rt_interference_z_2")])$p.value))
 
 write.csv(LDDM_heritability_table, here("./work/tables/rdoc_heritability_table.csv"))
+```
+
+### Permutation testing
+```{r eval=FALSE}
+set.seed(312) ## for reproducibility
+nsim <- 1000
+perm <- data.frame(B11_avtz_DO_v_v_z_1 = LDDM_do3_rdoc_sib_no_NA$B11_avtz_DO_v_v_z_1)
+res <- data.frame(value=NA) ## set aside space for results
+
+LDDM_do3_rdoc_sib_no_NA <- LDDM_do3_rdoc_sib %>%
+  filter(complete.cases(B11_avtz_DO_v_v_z_1) & complete.cases(B11_avtz_DO_v_v_z_2))
+
+for (i in 1:nsim) {
+    ## standard approach: scramble response value
+    perm$B11_avtz_DO_v_v_z_2_shuffled <- sample(LDDM_do3_rdoc_sib_no_NA$B11_avtz_DO_v_v_z_2)
+    ## compute & store difference in means; store the value
+    res[i,1] <- icc(perm[c("B11_avtz_DO_v_v_z_1","B11_avtz_DO_v_v_z_2_shuffled")])$value
+    # res[i,2] <- icc(perm[c("B11_avtz_DO_v_v_z_1","B11_avtz_DO_v_v_z_2_shuffled")])$p.value
+}
+obs <- icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_v_z_1","B11_avtz_DO_v_v_z_2")])$value
+
+hist(res, col='grey'); abline(v=obs, lwd=3, col="red")
 ```
 
 # Split half reliability (Spearman-Brown prophecy)
@@ -514,10 +565,10 @@ LDDM_second',s,'_1 <- LDDM_cleaning04_rdoc_reliability %>% filter(trial< ',(s*2)
   
 LDDM_first',s,'_2 <- LDDM_first',s,'_1 %>%
   group_by(subj_idx) %>% # per subject
-  summarise(accuracy_score = sum(response==1)*(5/length(trial))) # accuracy score per NIH Toolbox manual
+  reframe(accuracy_score = sum(response==1)*(5/length(trial))) # accuracy score per NIH Toolbox manual
 LDDM_second',s,'_2 <- LDDM_second',s,'_1 %>%
   group_by(subj_idx) %>%
-  summarise(accuracy_score = sum(response==1)*(5/length(trial))) # accuracy score per NIH Toolbox manual
+  reframe(accuracy_score = sum(response==1)*(5/length(trial))) # accuracy score per NIH Toolbox manual
 
 LDDM_first',s,'_3 <-  LDDM_first',s,'_1 %>%
   group_by(subj_idx) %>% # per subject
@@ -525,7 +576,7 @@ LDDM_first',s,'_3 <-  LDDM_first',s,'_1 %>%
   mutate(mean_rt = mean(rt),
          sd_rt = sd(rt)) %>% # compute individual mean and sd RT for use below
   filter(rt>=0.1 & rt>(mean_rt - 3*sd_rt) & rt<(mean_rt + 3*sd_rt)) %>% # remove trials less than 100ms and less than 3SD below or 3SD above the mean RT
-  summarise(med_rt = median(rt)*1000) %>% # compute individual level median RT
+  reframe(med_rt = median(rt)*1000) %>% # compute individual level median RT
   mutate(rt_score = 5-(5*((log(med_rt)-log(250))/(log(1000)-log(250))))) # compute RT score to go into flanker score
 LDDM_second',s,'_3 <-  LDDM_second',s,'_1 %>%
   group_by(subj_idx) %>% # per subject
@@ -533,7 +584,7 @@ LDDM_second',s,'_3 <-  LDDM_second',s,'_1 %>%
   mutate(mean_rt = mean(rt),
          sd_rt = sd(rt)) %>% # compute individual mean and sd RT for use below
   filter(rt>=0.1 & rt>(mean_rt - 3*sd_rt) & rt<(mean_rt + 3*sd_rt)) %>% # remove trials less than 100ms and less than 3SD below or 3SD above the mean RT
-  summarise(med_rt = median(rt)*1000) %>% # compute individual level median RT
+  reframe(med_rt = median(rt)*1000) %>% # compute individual level median RT
   mutate(rt_score = 5-(5*((log(med_rt)-log(250))/(log(1000)-log(250))))) # compute RT score to go into flanker score
 
 LDDM_first',s,' <- LDDM_first',s,'_1 %>%
@@ -541,50 +592,76 @@ LDDM_first',s,' <- LDDM_first',s,'_1 %>%
   full_join(LDDM_first',s,'_3, by="subj_idx") %>%
   group_by(subj_idx) %>% # per subject
   mutate(total_accuracy_perc = sum(response==1)/length(response)) %>% # compute total accuracy percentage
-  summarise(flanker_score_list_rdoc = if_else(total_accuracy_perc>=0.8, accuracy_score+rt_score, accuracy_score),
+  reframe(flanker_score_list_rdoc = if_else(total_accuracy_perc>=0.8, accuracy_score+rt_score, accuracy_score),
             accuracy = mean(total_accuracy_perc)) %>% # if accuracy is above 80% then add accuracy and rt flanker scores, if not base the flanker score only on accuracy; also compute a regular percentage based accuracy (ie percent of trials when subject was correct)
   transmute(ID=subj_idx, flanker_score_list_rdoc=flanker_score_list_rdoc, accuracy=accuracy) %>%
   group_by(ID) %>% # per subject
-  summarise(flanker_score_rdoc = mean(flanker_score_list_rdoc),
+  reframe(flanker_score_rdoc = mean(flanker_score_list_rdoc),
             accuracy = mean(accuracy))
 LDDM_second',s,' <- LDDM_second',s,'_1 %>%
   full_join(LDDM_second',s,'_2, by = "subj_idx") %>%
   full_join(LDDM_second',s,'_3, by="subj_idx") %>%
   group_by(subj_idx) %>% # per subject
   mutate(total_accuracy_perc = sum(response==1)/length(response)) %>% # compute total accuracy percentage
-  summarise(flanker_score_list_rdoc = if_else(total_accuracy_perc>=0.8, accuracy_score+rt_score, accuracy_score),
+  reframe(flanker_score_list_rdoc = if_else(total_accuracy_perc>=0.8, accuracy_score+rt_score, accuracy_score),
             accuracy = mean(total_accuracy_perc)) %>% # if accuracy is above 80% then add accuracy and rt flanker scores, if not base the flanker score only on accuracy; also compute a regular percentage based accuracy (ie percent of trials when subject was correct)
   transmute(ID=subj_idx, flanker_score_list_rdoc=flanker_score_list_rdoc, accuracy=accuracy) %>%
   group_by(ID) %>% # per subject
-  summarise(flanker_score_rdoc = mean(flanker_score_list_rdoc),
+  reframe(flanker_score_rdoc = mean(flanker_score_list_rdoc),
             accuracy = mean(accuracy))
             
+# RT of correct responses, and interference effect difference score (RT of incongruent - congruent)
+LDDM_first_rt',s,'<- LDDM_first',s,'_1 %>%
+  group_by(subj_idx) %>%
+  mutate(rt_correct = ifelse(response==1, median(rt, na.rm=TRUE), NA)) %>%
+    pivot_wider(names_from=stim, id_cols=c(subj_idx, response, block, trial, rt_correct), values_from=rt, names_prefix="rt_") %>%
+    group_by(subj_idx) %>%
+    reframe(rt_correct = median(rt_correct, na.rm=TRUE),
+            rt_interference = median(rt_incongruent, na.rm=TRUE)-median(rt_congruent, na.rm=TRUE)) %>%
+  mutate(ID=subj_idx) %>%
+  select(-subj_idx)
+LDDM_second_rt',s,'<- LDDM_second',s,'_1 %>%
+  group_by(subj_idx) %>%
+  mutate(rt_correct = ifelse(response==1, median(rt, na.rm=TRUE), NA)) %>%
+    pivot_wider(names_from=stim, id_cols=c(subj_idx, response, block, trial, rt_correct), values_from=rt, names_prefix="rt_") %>%
+    group_by(subj_idx) %>%
+    reframe(rt_correct = median(rt_correct, na.rm=TRUE),
+            rt_interference = median(rt_incongruent, na.rm=TRUE)-median(rt_congruent, na.rm=TRUE)) %>%
+  mutate(ID=subj_idx) %>%
+  select(-subj_idx)
+
 LDDM_first_accuracy',s,'<- LDDM_first',s,'_1 %>%
   full_join(LDDM_first',s,'_2, by = "subj_idx") %>%
   full_join(LDDM_first',s,'_3, by="subj_idx") %>%
   group_by(subj_idx, stim) %>% # per subject and condition
   mutate(accuracy_by_stim = sum(response==1)/length(response)) %>%
-  summarise(accuracy_by_stim=mean(accuracy_by_stim)) %>%
+  reframe(accuracy_by_stim=mean(accuracy_by_stim)) %>%
   pivot_wider(names_from=stim, values_from=accuracy_by_stim, id_cols=subj_idx, names_prefix="accuracy_")
 LDDM_second_accuracy',s,'<- LDDM_second',s,'_1 %>%
   full_join(LDDM_second',s,'_2, by = "subj_idx") %>%
   full_join(LDDM_second',s,'_3, by="subj_idx") %>%
   group_by(subj_idx, stim) %>% # per subject and condition
   mutate(accuracy_by_stim = sum(response==1)/length(response)) %>%
-  summarise(accuracy_by_stim=mean(accuracy_by_stim)) %>%
+  reframe(accuracy_by_stim=mean(accuracy_by_stim)) %>%
   pivot_wider(names_from=stim, values_from=accuracy_by_stim, id_cols=subj_idx, names_prefix="accuracy_")
             
-r_half_',s,' <- cor(LDDM_first',s,'$flanker_score_rdoc, LDDM_second',s,'$flanker_score_rdoc, method="spearman", use="pairwise")
-r_half_ci_',s,' <- ci_cor(LDDM_first',s,'$flanker_score_rdoc, LDDM_second',s,'$flanker_score_rdoc, method="spearman", type = "bootstrap", R=1000)
+r_half_',s,' <- cor(LDDM_first',s,'$flanker_score_rdoc, LDDM_second',s,'$flanker_score_rdoc, method="pearson", use="pairwise")
+r_half_ci_',s,' <- ci_cor(LDDM_first',s,'$flanker_score_rdoc, LDDM_second',s,'$flanker_score_rdoc, method="pearson", type = "bootstrap", R=1000)
 r_sb_cilower_',s,' <- (2*r_half_ci_',s,'$interval[1])/(1+r_half_ci_',s,'$interval[1])
 r_sb_ciupper_',s,' <- (2*r_half_ci_',s,'$interval[2])/(1+r_half_ci_',s,'$interval[2])
 r_sb_',s,' <- (2*r_half_',s,')/(1+r_half_',s,')
 
-racc_half_',s,' <- cor(LDDM_first_accuracy',s,'$accuracy_incongruent, LDDM_second_accuracy',s,'$accuracy_incongruent, method="spearman")
-racc_half_ci_',s,' <- ci_cor(LDDM_first_accuracy',s,'$accuracy_incongruent, LDDM_second_accuracy',s,'$accuracy_incongruent, method="spearman", type = "bootstrap", R=1000)
+racc_half_',s,' <- cor(LDDM_first_accuracy',s,'$accuracy_incongruent, LDDM_second_accuracy',s,'$accuracy_incongruent, method="pearson")
+racc_half_ci_',s,' <- ci_cor(LDDM_first_accuracy',s,'$accuracy_incongruent, LDDM_second_accuracy',s,'$accuracy_incongruent, method="pearson", type = "bootstrap", R=1000)
 racc_sb_cilower_',s,' <- (2*racc_half_ci_',s,'$interval[1])/(1+racc_half_ci_',s,'$interval[1])
 racc_sb_ciupper_',s,' <- (2*racc_half_ci_',s,'$interval[2])/(1+racc_half_ci_',s,'$interval[2])
 racc_sb_',s,' <- (2*racc_half_',s,')/(1+racc_half_',s,')
+
+rrt_half_',s,' <- cor(LDDM_first_rt',s,'$rt_interference, LDDM_second_rt',s,'$rt_interference, method="pearson")
+rrt_half_ci_',s,' <- ci_cor(LDDM_first_rt',s,'$rt_interference, LDDM_second_rt',s,'$rt_interference, method="pearson", type = "bootstrap", R=1000)
+rrt_sb_cilower_',s,' <- (2*rrt_half_ci_',s,'$interval[1])/(1+rrt_half_ci_',s,'$interval[1])
+rrt_sb_ciupper_',s,' <- (2*rrt_half_ci_',s,'$interval[2])/(1+rrt_half_ci_',s,'$interval[2])
+rrt_sb_',s,' <- (2*rrt_half_',s,')/(1+rrt_half_',s,')
 ')))
 }
 
@@ -594,7 +671,10 @@ spearman_brown_rdoc <- data.frame(trials=seq(15,165,15),
                              rnih_ciupper=rep(NA,length(seq(15,165,15))),
                              racc=rep(NA,length(seq(15,165,15))),
                              racc_cilower=rep(NA,length(seq(15,165,15))),
-                             racc_ciupper=rep(NA,length(seq(15,165,15))))
+                             racc_ciupper=rep(NA,length(seq(15,165,15))),
+                             rrt=rep(NA,length(seq(15,165,15))),
+                             rrt_cilower=rep(NA,length(seq(15,165,15))),
+                             rrt_ciupper=rep(NA,length(seq(15,165,15))))
 i=1
 for (s in seq(15,165,15)){
   eval(parse(text=paste0('spearman_brown_rdoc[i,2] <- round(as.numeric(r_sb_',s,'),3)
@@ -602,14 +682,18 @@ for (s in seq(15,165,15)){
                          spearman_brown_rdoc[i,4] <- round(as.numeric(r_sb_ciupper_',s,'),3)
                          spearman_brown_rdoc[i,5] <- round(as.numeric(racc_sb_',s,'),3)
                          spearman_brown_rdoc[i,6] <- round(as.numeric(racc_sb_cilower_',s,'),3)
-                         spearman_brown_rdoc[i,7] <- round(as.numeric(racc_sb_ciupper_',s,'),3)')))
+                         spearman_brown_rdoc[i,7] <- round(as.numeric(racc_sb_ciupper_',s,'),3)
+                         spearman_brown_rdoc[i,8] <- round(as.numeric(rrt_sb_',s,'),3)
+                         spearman_brown_rdoc[i,9] <- round(as.numeric(rrt_sb_cilower_',s,'),3)
+                         spearman_brown_rdoc[i,10] <- round(as.numeric(rrt_sb_ciupper_',s,'),3)')))
   i=i+1
 }
 
-sttr_rdpc_ddm_splithalf <- read.csv(here("./Split_Half/RDoC_splithalf.csv"))
-spearman_brown_rdoc$rdriftcon <- sttr_rdpc_ddm_splithalf$avtz_DO_v_vcon
-spearman_brown_rdoc$rdriftincon <- sttr_rdpc_ddm_splithalf$avtz_DO_v_vinc
-spearman_brown_rdoc$rboundary_separation <- sttr_rdpc_ddm_splithalf$avtz_DO_v_a
+rdoc_ddm_splithalf <- read.csv(here("./Split_Half/RDoC_splithalf.csv"), header=TRUE)
+spearman_brown_rdoc$rdriftcon <- rdoc_ddm_splithalf$avtz_DO_v_vcon
+spearman_brown_rdoc$rdriftincon <- rdoc_ddm_splithalf$avtz_DO_v_vinc
+spearman_brown_rdoc$rdrift <- rowMeans(rdoc_ddm_splithalf[,c("avtz_DO_v_vcon","avtz_DO_v_vinc")])
+spearman_brown_rdoc$rboundary_separation <- rdoc_ddm_splithalf$avtz_DO_v_a
 
 # ggplot(spearman_brown_rdoc, aes(x=trials, y=r, group=1)) +
 #   geom_line() +
@@ -621,10 +705,10 @@ spearman_brown_rdoc$rboundary_separation <- sttr_rdpc_ddm_splithalf$avtz_DO_v_a
 # Correlations
 ## ERN amplitude, Neuropsych, & DDM
 ```{r}
-all_measures_rdoc <- c("FCz_ERN_080_z","flanker_score_rdoc_z","accuracy_z","accuracy_incongruent_z","accuracy_congruent_log_z", "exec_composite_z", "Inhib_time_rev_z",
+all_measures_rdoc <- c("FCz_ERN_080_z","flanker_score_rdoc_z","accuracy_z","accuracy_incongruent_z","accuracy_congruent_log_z", "rt_interference_z", "exec_composite_z", "Inhib_time_rev_z",
                   "B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon_z","B11_avtz_DO_v_a_z","B11_avtz_DO_v_t_z","B11_avtz_DO_v_z_z")
 
-rdoc_correlations <- correlation_matrix(LDDM_do3_rdoc_no_outliers[c(all_measures_rdoc)], type = c("spearman"), use = 'lower', replace_diagonal=TRUE, replacement="")
+rdoc_correlations <- correlation_matrix(LDDM_do3_rdoc_no_outliers[c(all_measures_rdoc)], type = c("pearson"), use = 'lower', replace_diagonal=TRUE, replacement="")
 
 write.csv(rdoc_correlations, file=here("./work/tables/rdoc_correlations.csv"))
 
