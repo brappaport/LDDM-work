@@ -215,7 +215,7 @@ knitr::include_graphics('../figures/LDDM_figure1.png')
 
 ```{r Correlation tables}
 all_measures_sttr <- c("FCZ_ERN_080_d1_z","flanker_score_d1_z","accuracy_incongruent_d1_z","rt_interference_d1_z",
-                   "v_S1_B11_d1_z","v_congruent_S1_B11_d1_z","v_incongruent_S1_B11_d1_z","a_S1_B11_d1_z",
+                   "v_S1_B11_d1_z","a_S1_B11_d1_z",
                    "FCZ_ERN_080_d2_z","flanker_score_d2_z","accuracy_incongruent_d2_z","rt_interference_d2_z",
                    "v_S2_B11_d2_z","v_congruent_S2_B11_d2_z","v_incongruent_S2_B11_d2_z","a_S2_B11_d2_z",
                    "FCZ_ERN_080_d3_z","flanker_score_d3_z","accuracy_incongruent_d3_z","rt_interference_d3_z",
