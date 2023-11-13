@@ -136,7 +136,7 @@ save_correlation_matrix = function(df, filename, ...) {
 ## Load Data
 Remember to immediately rename and remove. Avoid overwriting old data.
 ```{r}
-here::i_am("work/analysis/do01_LDDM_rdoc.Rmd")
+here::i_am("./analysis/do01_LDDM_rdoc.Rmd")
 
 LDDM_do1_alt_rdoc <- read.csv(here("./RDoC/DDM_Results/Block_Based/RDoC_Day1_Block11_Alternative_Models.csv"), header=TRUE)
 
@@ -689,7 +689,9 @@ for (s in seq(15,165,15)){
   i=i+1
 }
 
-rdoc_ddm_splithalf <- read.csv(here("./Split_Half/RDoC_splithalf.csv"), header=TRUE)
+# rdoc_ddm_splithalf <- read.csv(here("./Split_Half/RDoC_splithalf.csv"), header=TRUE)
+rdoc_ddm_splithalf <- read.csv(here("../data/Flanker_RDoC_SplitHalf_Blocks_avtz.csv"), header=TRUE)
+
 spearman_brown_rdoc$rdriftcon <- rdoc_ddm_splithalf$avtz_DO_v_vcon
 spearman_brown_rdoc$rdriftincon <- rdoc_ddm_splithalf$avtz_DO_v_vinc
 spearman_brown_rdoc$rdrift <- rowMeans(rdoc_ddm_splithalf[,c("avtz_DO_v_vcon","avtz_DO_v_vinc")])
