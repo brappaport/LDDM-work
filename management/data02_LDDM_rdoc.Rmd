@@ -63,7 +63,7 @@ LDDM_cleaning04_rdoc_calc1 <- LDDM_cleaning04_fullbeh_rdoc %>%
   mutate(block = c(rep(1,30),rep(2,30),rep(3,30),rep(4,30),rep(5,30),rep(6,30),rep(7,30),rep(8,30),rep(9,30),rep(10,30),rep(11,30))) %>%
   group_by(subj_idx, block) %>%
   mutate(trial = 1:30) %>%
-  filter(rt<999)
+  filter(rt<900)
 
 # Calculate the accuracy per subject (according to NIH toolbox this should be the number of correct responses * 5/total trials (330))
 LDDM_cleaning04_rdoc_calc2 <- LDDM_cleaning04_rdoc_calc1 %>%
@@ -79,6 +79,27 @@ LDDM_cleaning04_rdoc_ind <-  LDDM_cleaning04_rdoc_calc1 %>%
   reframe(med_rt = median(rt)*1000) %>% # compute individual level median RT
   mutate(rt_score = 5-(5*((log(med_rt)-log(250))/(log(1000)-log(250)))),
          rt_score_truncated = 5-(5*((log(med_rt)-log(500))/(log(3000)-log(500)))))
+
+# RT of correct responses, and interference effect difference score (RT of incongruent - congruent)
+LDDM_cleaning04_rdoc_ind_rt <-  LDDM_cleaning04_rdoc_calc1 %>%
+  group_by(subj_idx) %>%
+  mutate(rt_correct = ifelse(response==1, median(rt, na.rm=TRUE), NA)) %>%
+    pivot_wider(names_from=stim, id_cols=c(subj_idx, response, block, trial, rt_correct), values_from=rt, names_prefix="rt_") %>%
+    group_by(subj_idx) %>%
+    mutate(mean_rt_incongruent_log = mean(log(rt_incongruent), na.rm=TRUE),
+           mean_rt_congruent_log = mean(log(rt_congruent), na.rm=TRUE),
+           
+         sd_rt_incongruent_log = sd(log(rt_incongruent), na.rm=TRUE),
+         sd_rt_congruent_log = sd(log(rt_congruent), na.rm=TRUE)) %>%
+#remove trials less than 150ms, less than 3SD below, or 3SD above the mean log RT per Dillon et al, 2015
+  filter(rt_incongruent>=0.15 | rt_congruent>=0.15) %>%
+  filter(log(rt_incongruent)<(mean_rt_incongruent_log + 3*sd_rt_incongruent_log) |
+         log(rt_congruent)>(mean_rt_congruent_log - 3*sd_rt_congruent_log)) %>%
+  
+    reframe(rt_correct = median(log(rt_correct), na.rm=TRUE),
+            rt_interference = median(log(rt_incongruent), na.rm=TRUE)-median(log(rt_congruent), na.rm=TRUE)) %>%
+  mutate(ID=subj_idx) %>%
+  select(-subj_idx)
 
 LDDM_cleaning04_rdoc_calc3 <- LDDM_cleaning04_rdoc_calc1 %>%
   full_join(LDDM_cleaning04_rdoc_ind, by = 'subj_idx') %>%
@@ -100,12 +121,14 @@ LDDM_cleaning04_rdoc_accuracy_by_condition <- LDDM_cleaning04_rdoc_calc1 %>%
   group_by(subj_idx, stim) %>% # per subject
   mutate(total_accuracy_perc = sum(response==1)/length(response)) %>% # compute total accuracy percentage
   reframe(accuracy_by_stim = mean(total_accuracy_perc)) %>%
-  pivot_wider(names_from=stim, values_from=accuracy_by_stim, id_cols=subj_idx, names_prefix="accuracy_") %>%
+  pivot_wider(names_from=stim, values_from=c(accuracy_by_stim), id_cols=c(subj_idx), names_prefix="accuracy_") %>%
   mutate(ID=subj_idx,
          accuracy_congruent_log = log(accuracy_congruent))
 
-LDDM_cleaning04_rdoc_calc4 <- full_join(LDDM_cleaning04_rdoc_calc3, LDDM_cleaning04_rdoc_accuracy_by_condition, by="ID") %>%
-  select(-subj_idx)
+LDDM_cleaning04_rdoc_calc4 <- LDDM_cleaning04_rdoc_calc3 %>%
+  full_join(LDDM_cleaning04_rdoc_accuracy_by_condition, by="ID") %>%
+  select(-subj_idx) %>%
+  full_join(LDDM_cleaning04_rdoc_ind_rt, by="ID")
 ```
 
 ### Only 20 trials
