@@ -21,6 +21,7 @@ This script imports and merges the self-report data from the Flanker task of the
     options(width=80, Ncpus = 6) #Set width
     rm(list=ls())     #Remove everything from environment
     cat("\014")       #Clear Console
+    set.seed(312)
 ```
 
 ## 1.2. Load Libraries
@@ -38,54 +39,47 @@ This script imports and merges the self-report data from the Flanker task of the
   library(workflowr)  #helps with workflow
 ```
 
-## 1.3. Get the Working Directory
-```{r}
-  here()
-```
-
-## 1.4. Set seed
-```{r}
-     set.seed(312)    #Set seed
-```
-
-## 1.5 Load Data
+## Load Data
 Remember to immediately rename and remove. Avoid overwriting old data.
 ```{r}
 here::i_am("work/management/data01_LDDM.Rmd")
 
-LDDM_cleaning02_DDM1 <- read.csv(here("DDM_Results/Block_Based_Day1/Flanker_StTr_S1_Blocks_acc_avtz_DO_v.csv"))
+LDDM_cleaning02_DDM1 <- read.csv(here("DDM_Results/Block_Based_Day1/Day1_Block11_Alternative_Models.csv"))
 LDDM_cleaning02_DDM1$ID <- LDDM_cleaning02_DDM1$id
 
-LDDM_cleaning02_DDM2 <- read.csv(here("DDM_Results/Block_Based_Day2/Flanker_StTr_S2_Blocks_DO_v.csv"))
+LDDM_cleaning02_DDM2 <- read.csv(here("DDM_Results/Block_Based_Day2/Day2_Block11_Alternative_Models_original.csv"))
 LDDM_cleaning02_DDM2$ID <- LDDM_cleaning02_DDM2$id
 
-LDDM_cleaning02_DDM3 <- read.csv(here("DDM_Results/Block_Based_Day3/Day3_Block11_Alternative_Models.csv"))
+LDDM_cleaning02_DDM3 <- read.csv(here("DDM_Results/Block_Based_Day3/Day3_Block11_Alternative_Models_original.csv"))
 LDDM_cleaning02_DDM3$ID <- LDDM_cleaning02_DDM3$id
 
-LDDM_cleaning02_frac_prak_latency <- read.csv(here("eeg_processing/erppath/frac_peak_latency_p3_200800.csv"))[,1:15]
-LDDM_cleaning02_frac_prak_latency <- LDDM_cleaning02_frac_prak_latency %>% 
-  rename_with(~paste0(., "_fpl"), contains("bin"))
+# LDDM_cleaning02_frac_prak_latency <- read.csv(here("eeg_processing/erppath/frac_peak_latency_p3_200800.csv"))[,1:15]
+# LDDM_cleaning02_frac_prak_latency <- LDDM_cleaning02_frac_prak_latency %>% 
+#   rename_with(~paste0(., "_fpl"), contains("bin"))
 
-LDDM_cleaning02_mean_amplitude_ERN_CRN_080 <- read.csv(here("eeg_processing/erppath/mean_amplitude_ERN_CRN_080.csv"))[,1:15]
-LDDM_cleaning02_mean_amplitude_ERN_CRN_080 <- LDDM_cleaning02_mean_amplitude_ERN_CRN_080 %>% 
-  rename_with(~paste0(., "_080"), contains("bin"))
+LDDM_cleaning02_mean_amplitude_ERN_CRN_080 <- read.csv(here("eeg_processing/erppath/mean_amplitude_ERN_CRN_080.csv"))[,1:15] %>% 
+  rename_with(~paste0(., "_080"), contains("bin")) %>%
+  pivot_wider(id_cols="ID",names_from="Session",values_from = c("bin3_Correct__FCZ_080","bin4_Error__FCZ_080"),
+              names_prefix = "d")
 
-LDDM_cleaning02_mean_amplitude_ERN_CRN_0100 <- read.csv(here("eeg_processing/erppath/mean_amplitude_ERN_CRN_0100.csv"))[,1:15]
-LDDM_cleaning02_mean_amplitude_ERN_CRN_0100 <- LDDM_cleaning02_mean_amplitude_ERN_CRN_0100 %>% 
-  rename_with(~paste0(., "_0100"), contains("bin"))
+# LDDM_cleaning02_mean_amplitude_ERN_CRN_0100 <- read.csv(here("eeg_processing/erppath/mean_amplitude_ERN_CRN_0100.csv"))[,1:15]
+# LDDM_cleaning02_mean_amplitude_ERN_CRN_0100 <- LDDM_cleaning02_mean_amplitude_ERN_CRN_0100 %>% 
+#   rename_with(~paste0(., "_0100"), contains("bin"))
 
 # Merge all ERP measurements together (P3 onset, Error amplitude, Correct amplitude)
-LDDM_cleaning02_erp <- LDDM_cleaning02_frac_prak_latency %>%  
-  left_join(LDDM_cleaning02_mean_amplitude_ERN_CRN_080, by=c('ID','Session')) %>%
-  left_join(LDDM_cleaning02_mean_amplitude_ERN_CRN_0100, by=c('ID','Session'))
+# LDDM_cleaning02_erp <- LDDM_cleaning02_frac_prak_latency %>%  
+#   left_join(LDDM_cleaning02_mean_amplitude_ERN_CRN_080, by=c('ID','Session')) %>%
+#   left_join(LDDM_cleaning02_mean_amplitude_ERN_CRN_0100, by=c('ID','Session'))
 
 # Merge all three days of DDM data with ERP data
-LDDM_cleaning02 <- LDDM_cleaning02_DDM1 %>%
-  left_join(LDDM_cleaning02_DDM2, by='ID') %>%
-  left_join(LDDM_cleaning02_DDM3, by='ID') %>%
-  left_join(LDDM_cleaning02_erp, by='ID')
+LDDM_cleaning03_d1 <- LDDM_cleaning02_DDM1 %>%
+  left_join(select(LDDM_cleaning02_mean_amplitude_ERN_CRN_080, "ID", ends_with("_d1")), by='ID')
+LDDM_cleaning03_d2 <- LDDM_cleaning02_DDM2 %>%
+  left_join(select(LDDM_cleaning02_mean_amplitude_ERN_CRN_080, "ID", ends_with("_d2")), by='ID')
+LDDM_cleaning03_d3 <- LDDM_cleaning02_DDM3 %>%
+  left_join(select(LDDM_cleaning02_mean_amplitude_ERN_CRN_080, "ID", ends_with("_d3")), by='ID')
 
-save(LDDM_cleaning02, file=here("work/data/LDDM_cleaning02.RData"))
+# save(LDDM_cleaning02, file=here("work/data/LDDM_cleaning02.RData"))
 ```
 
 ### 1.5.1 Non-DMM Flanker behavioral RT
@@ -98,59 +92,42 @@ save(LDDM_cleaning02_rt, file=here("work/data/LDDM_cleaning02_rt.RData"))
 ```
 
 # 1. Select only days 1 and 2 and 3
+And remove extraneous info in the variables names.
 ```{r}
-LDDM_cleaning03 <- LDDM_cleaning02
-
-colnames(LDDM_cleaning03) <- sub('bin5_|bin7_|bin3_|bin4_', '', colnames(LDDM_cleaning03))
-colnames(LDDM_cleaning03) <- sub('Congruent_arrow_followed_by_correct', 'Congruent', colnames(LDDM_cleaning03))
-colnames(LDDM_cleaning03) <- sub('Incongruent_arrow_followed_by_correct', 'Incongruent', colnames(LDDM_cleaning03))
-colnames(LDDM_cleaning03) <- sub('__', '_', colnames(LDDM_cleaning03))
-
-
-LDDM_cleaning03_d1 <- LDDM_cleaning03 %>%
-  filter(Session==1)
-
-LDDM_cleaning03_d2 <- LDDM_cleaning03 %>%
-  filter(Session==2)
-
-LDDM_cleaning03_d3 <- LDDM_cleaning03 %>%
-  filter(Session==3)
+remove_prefixes <- function(data) {
+colnames(data) <- sub('bin5_|bin7_|bin3_|bin4_', '', colnames(data))
+colnames(data) <- sub('Congruent_arrow_followed_by_correct', 'Congruent', colnames(data))
+colnames(data) <- sub('Incongruent_arrow_followed_by_correct', 'Incongruent', colnames(data))
+colnames(data) <- sub('__', '_', colnames(data))
+}
+colnames(LDDM_cleaning03_d1) <- remove_prefixes(LDDM_cleaning03_d1)
+colnames(LDDM_cleaning03_d2) <- remove_prefixes(LDDM_cleaning03_d2)
+colnames(LDDM_cleaning03_d3) <- remove_prefixes(LDDM_cleaning03_d3)
 ```
 
 # 3. Create residualized scores
 ```{r}
-electrodes_list <- c("FZ","CZ","FCZ","CPZ","PZ","POZ")
-time_windows <- c("080","0100")
 sessions <- c(1,2,3)
 
 # Calculate residualized ERN and difference score ERN (for verification of direction)
-for (ex in electrodes_list[1:3]){ 
-  for (tw in time_windows){ 
-    for (days in sessions)
-    eval(parse(text=paste0('LDDM_cleaning03_d',days,'$',ex,'_ERN_',tw,' <- stdres(lm(Error_',ex,'_',tw,' ~ Correct_',ex,'_',tw,', LDDM_cleaning03_d',days,', na.action=na.exclude))')))
-    eval(parse(text=paste0('LDDM_cleaning03_d',days,'$',ex,'_ERN_diff',tw,' <- LDDM_cleaning03_d',days,'$Error_',ex,'_',tw,' - LDDM_cleaning03_d',days,'$Correct_',ex,'_',tw)))
-  }
-}
-
-# Calculate residualized P3 onset
-for (ex in electrodes_list[4:6]){
-      for (days in sessions) {
-        eval(parse(text=paste0('LDDM_cleaning03_d',days,'$',ex,'_P3_onset_incon <- stdres(lm(Incongruent_',ex,'_fpl ~ Congruent_',ex,'_fpl, LDDM_cleaning03_d',days,', na.action=na.exclude))')))
-        eval(parse(text=paste0('LDDM_cleaning03_d',days,'$',ex,'_P3_onset_con <- stdres(lm(Congruent_',ex,'_fpl ~ Incongruent_',ex,'_fpl, LDDM_cleaning03_d',days,', na.action=na.exclude))')))
-      }
+for (days in sessions) {
+    eval(parse(text=paste0('
+    LDDM_cleaning03_d',days,'$FCZ_ERN_080 <- stdres(lm(Error_FCZ_080_d',days,' ~ 
+    Correct_FCZ_080_d',days,', LDDM_cleaning03_d',days,', na.action=na.exclude))'
+                           )))
+    eval(parse(text=paste0('
+    LDDM_cleaning03_d',days,'$FCZ_ERN_diff080 <- 
+    LDDM_cleaning03_d',days,'$Error_FCZ_080_d',days,' - LDDM_cleaning03_d',days,'$Correct_FCZ_080_d',days
+                           )))
 }
 ```
 
-
 # 4. Closing out
-  In this step, go ahead and close out of the file and quit R without saving  
-  the work space.
+  In this step, go ahead and close out of the file and quit R without saving the work space.
 ```{r}
-save(LDDM_cleaning03, file=here("work/data/LDDM_cleaning03.RData"))
+# save(LDDM_cleaning03, file=here("work/data/LDDM_cleaning03.RData"))
 save(LDDM_cleaning03_d1, file=here("work/data/LDDM_cleaning03_d1.RData"))
 save(LDDM_cleaning03_d2, file=here("work/data/LDDM_cleaning03_d2.RData"))
 save(LDDM_cleaning03_d3, file=here("work/data/LDDM_cleaning03_d3.RData"))
-
-   # renv::snapshot()   #Take a snapshot of environment
 ```
 
