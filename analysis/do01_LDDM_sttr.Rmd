@@ -133,46 +133,54 @@ save_correlation_matrix = function(df, filename, ...) {
 ## Load Data
 Remember to immediately rename and remove. Avoid overwriting old data.
 ```{r}
-here::i_am("work/analysis/do01_LDDM_sttr.Rmd")
+here::i_am("./analysis/do01_LDDM_sttr.Rmd")
 
 # FULL DATA--ALL DAYS
 ## Load full multi-day dataset
-load(file=here("work/data/LDDM_cleaning03.RData"))
-LDDM_do1 <- LDDM_cleaning03; rm(LDDM_cleaning03)
+# load(file=here("./data/LDDM_cleaning03.RData"))
+# LDDM_do1 <- LDDM_cleaning03; rm(LDDM_cleaning03)
 ## Load raw data across all days
-load(file=here("work/data/LDDM_cleaning02_rt.RData"))
+load(file=here("./data/LDDM_cleaning02_rt.RData"))
 LDDM_do1_rt <- LDDM_cleaning02_rt; rm(LDDM_cleaning02_rt)
 
 # DAY 1
 ## Load Day 1 dataset
-load(file=here("work/data/LDDM_cleaning03_d1.RData"))
+load(file=here("./data/LDDM_cleaning03_d1.RData"))
 LDDM_do1_d1 <- LDDM_cleaning03_d1; rm(LDDM_cleaning03_d1)
 # Load NIH Toolbox flanker score Day 1 dataset
-load(file=here("work/data/LDDM_cleaning04_d1_calc4.RData"))
+load(file=here("./data/LDDM_cleaning04_d1_calc4.RData"))
 # Merge Day 1 dataset with NIH Toolbox flanker score Day 1 dataset
 LDDM_do2_d1 <- left_join(LDDM_do1_d1, LDDM_cleaning04_d1_calc4, by="ID")
 # Load Day 1 Alternative model results
-LDDM_do_alt_d1 <- read.csv(here("DDM_Results/Block_Based_Day1/Day1_Block11_Alternative_Models.csv"), header=TRUE)
-LDDM_do2_alt_d1<- left_join(select(LDDM_do1_d1, contains("ID") | contains("ERN") | contains ("P3")), LDDM_do_alt_d1, by="ID")
-
+LDDM_do2_alt_d1 <- read.csv(here("../DDM_Results/Block_Based_Day1/Day1_Block11_Alternative_Models.csv"), header=TRUE) %>%
+  mutate(ID = id) %>%
+  left_join(select(LDDM_do1_d1, "ID", "FCZ_ERN_080"), LDDM_do_alt_d1, by="ID")
 
 # DAY 2
 ## Load Day 2 dataset
-load(file=here("work/data/LDDM_cleaning03_d2.RData"))
+load(file=here("./data/LDDM_cleaning03_d2.RData"))
 LDDM_do1_d2 <- LDDM_cleaning03_d2; rm(LDDM_cleaning03_d2)
 # Load NIH Toolbox flanker score Day 2 dataset
-load(file=here("work/data/LDDM_cleaning04_d2_calc4.RData"))
+load(file=here("./data/LDDM_cleaning04_d2_calc4.RData"))
 # Merge Day 2 dataset with NIH Toolbox flanker score Day 2 dataset
 LDDM_do2_d2 <- left_join(LDDM_do1_d2, LDDM_cleaning04_d2_calc4, by="ID")
+# Load Day 2 Alternative model results
+LDDM_do2_alt_d2 <- read.csv(here("../DDM_Results/Block_Based_Day2/Day2_Block11_Alternative_Models_original.csv"), header=TRUE) %>%
+  mutate(ID = id) %>%
+  left_join(select(LDDM_do1_d2, "ID", "FCZ_ERN_080"), LDDM_do_alt_d2, by="ID")
 
 # DAY 3
 ## Load Day 3 dataset
-load(file=here("work/data/LDDM_cleaning03_d3.RData"))
+load(file=here("./data/LDDM_cleaning03_d3.RData"))
 LDDM_do1_d3 <- LDDM_cleaning03_d3; rm(LDDM_cleaning03_d3)
 # Load NIH Toolbox flanker score Day 3 dataset
-load(file=here("work/data/LDDM_cleaning04_d3_calc4.RData"))
+load(file=here("./data/LDDM_cleaning04_d3_calc4.RData"))
 # Merge Day 3 dataset with NIH Toolbox flanker score Day 3 dataset
 LDDM_do2_d3 <- left_join(LDDM_do1_d3, LDDM_cleaning04_d3_calc4, by="ID")
+# Load Day 3 Alternative model results
+LDDM_do2_alt_d3 <- read.csv(here("../DDM_Results/Block_Based_Day3/Day3_Block11_Alternative_Models_original.csv"), header=TRUE) %>%
+  mutate(ID = id) %>%
+  left_join(select(LDDM_do1_d3, "ID", "FCZ_ERN_080"), LDDM_do_alt_d3, by="ID")
 ```
 
 ## Winsorize outliers
@@ -201,32 +209,17 @@ LDDM_do2_d3_not_outliers <- LDDM_do2_d3 %>%
 
 ## Standardize scores
 ```{r}
-LDDM_do2_d1$v_S1_B11 <- rowMeans(LDDM_do2_d1[,c('v_congruent_S1_B11','v_incongruent_S1_B11')], na.rm=F)
-LDDM_do2_d1_not_outliers$v_S1_B11 <- rowMeans(LDDM_do2_d1_not_outliers[,c('v_congruent_S1_B11','v_incongruent_S1_B11')], na.rm=F)
-LDDM_do2_d2$v_S2_B11 <- rowMeans(LDDM_do2_d2[,c('v_congruent_S2_B11','v_incongruent_S2_B11')], na.rm=F)
-LDDM_do2_d2_not_outliers$v_S2_B11 <- rowMeans(LDDM_do2_d2_not_outliers[,c('v_congruent_S2_B11','v_incongruent_S2_B11')], na.rm=F)
-LDDM_do2_d3$v_S3_B11 <- rowMeans(LDDM_do2_d3[,c('v_congruent_S3_B11','v_incongruent_S3_B11')], na.rm=F)
-LDDM_do2_d3_not_outliers$v_S3_B11 <- rowMeans(LDDM_do2_d3_not_outliers[,c('v_congruent_S3_B11','v_incongruent_S3_B11')], na.rm=F)
-
-var_list_d1 <- c("v_S1_B11","v_congruent_S1_B11","v_incongruent_S1_B11","a_S1_B11","t_S1_B11","z_S1_B11",
+var_list <- c("B11_avtz_v","B11_avtz_a","B11_avtz_t","B11_avtz_z",
               "flanker_score","accuracy","accuracy_congruent_log","accuracy_incongruent","rt_interference",
-              "FCZ_ERN_080","PZ_P3_onset_con","PZ_P3_onset_incon")
-
-var_list_d2 <- c("v_S2_B11","v_congruent_S2_B11","v_incongruent_S2_B11","a_S2_B11","t_S2_B11","z_S2_B11",
-              "flanker_score","accuracy","accuracy_congruent_log","accuracy_incongruent","rt_interference",
-              "FCZ_ERN_080","PZ_P3_onset_con","PZ_P3_onset_incon")
-
-var_list_d3 <- c("v_S3_B11","v_congruent_S3_B11","v_incongruent_S3_B11","a_S3_B11","t_S3_B11","z_S3_B11",
-              "flanker_score","accuracy","accuracy_congruent_log","accuracy_incongruent","rt_interference",
-              "FCZ_ERN_080","PZ_P3_onset_con","PZ_P3_onset_incon")
+              "FCZ_ERN_080")
 
 var_list_alt <- c("B11_avt_v","B11_avt_a","B11_avt_t",
-              "B11_avtz_v","B11_avtz_a","B11_avtz_t","B11_avtz_z",
-              "B11_avtz_DO_vt_v_con","B11_avtz_DO_vt_v_incon","B11_avtz_DO_vt_a", "B11_avtz_DO_vt_t_con","B11_avtz_DO_vt_t_incon","B11_avtz_DO_vt_z",
-              "B11_avtz_DO_vtz_v_con","B11_avtz_DO_vtz_v_incon","B11_avtz_DO_vtz_a","B11_avtz_DO_vtz_t_con","B11_avtz_DO_vtz_t_incon","B11_avtz_DO_vtz_z_con","B11_avtz_DO_vtz_z_incon",
-              "FCZ_ERN_080","PZ_P3_onset_con","PZ_P3_onset_incon")
+              "B11_avtz_DO_v_v_con","B11_avtz_DO_v_v_incon","B11_avtz_DO_v_a","B11_avtz_DO_v_t","B11_avtz_DO_v_z",
+              # "B11_avtz_DO_vt_v_con","B11_avtz_DO_vt_v_incon","B11_avtz_DO_vt_a", "B11_avtz_DO_vt_t_con","B11_avtz_DO_vt_t_incon","B11_avtz_DO_vt_z",
+              # "B11_avtz_DO_vtz_v_con","B11_avtz_DO_vtz_v_incon","B11_avtz_DO_vtz_a","B11_avtz_DO_vtz_t_con","B11_avtz_DO_vtz_t_incon","B11_avtz_DO_vtz_z_con","B11_avtz_DO_vtz_z_incon",
+              "FCZ_ERN_080")
 
-for (v in var_list_d1){ 
+for (v in var_list){ 
   print(paste0("LDDM_do2_d1$",v))
   eval(parse(text=paste0('LDDM_do2_d1$',v,'_d1_z <- scale(LDDM_do2_d1$',v,', center=T, scale=T)'))) 
   eval(parse(text=paste0('LDDM_do2_d1_not_outliers$',v,'_d1_z <- scale(LDDM_do2_d1_not_outliers$',v,', center=T, scale=T)'))) 
@@ -237,16 +230,26 @@ for (v in var_list_alt){
   eval(parse(text=paste0('LDDM_do2_alt_d1$',v,'_d1_z <- scale(LDDM_do2_alt_d1$',v,', center=T, scale=T)'))) 
 }
 
-for (v in var_list_d2){ 
+for (v in var_list){ 
   print(paste0("LDDM_do2_d2$",v))
   eval(parse(text=paste0('LDDM_do2_d2$',v,'_d2_z <- scale(LDDM_do2_d2$',v,', center=T, scale=T)'))) 
   eval(parse(text=paste0('LDDM_do2_d2_not_outliers$',v,'_d2_z <- scale(LDDM_do2_d2_not_outliers$',v,', center=T, scale=T)'))) 
 }
 
-for (v in var_list_d3){ 
+for (v in var_list_alt){ 
+  print(paste0("LDDM_do2_alt_d2$",v))
+  eval(parse(text=paste0('LDDM_do2_alt_d2$',v,'_d1_z <- scale(LDDM_do2_alt_d2$',v,', center=T, scale=T)'))) 
+}
+
+for (v in var_list){ 
   print(paste0("LDDM_do2_d3$",v))
   eval(parse(text=paste0('LDDM_do2_d3$',v,'_d3_z <- scale(LDDM_do2_d3$',v,', center=T, scale=T)'))) 
   eval(parse(text=paste0('LDDM_do2_d3_not_outliers$',v,'_d3_z <- scale(LDDM_do2_d3_not_outliers$',v,', center=T, scale=T)'))) 
+}
+
+for (v in var_list_alt){ 
+  print(paste0("LDDM_do2_alt_d3$",v))
+  eval(parse(text=paste0('LDDM_do2_alt_d3$',v,'_d1_z <- scale(LDDM_do2_alt_d3$',v,', center=T, scale=T)'))) 
 }
 ```
 
@@ -254,48 +257,22 @@ for (v in var_list_d3){
 # Correlations
 ## ERN amplitude & DDM
 ```{r}
-all_measures_d1 <- c("FCZ_ERN_080_d1_z","flanker_score_d1_z","accuracy_d1_z","accuracy_incongruent_d1_z","accuracy_congruent_log_d1_z",
-                  "v_S1_B11_d1_z","v_congruent_S1_B11_d1_z","v_incongruent_S1_B11_d1_z","a_S1_B11_d1_z","t_S1_B11_d1_z","z_S1_B11_d1_z")
-all_measures_d2 <- c("FCZ_ERN_080_d2_z","flanker_score_d2_z","accuracy_d2_z","accuracy_incongruent_d2_z","accuracy_congruent_log_d2_z",
-                  "v_S2_B11_d2_z","v_congruent_S2_B11_d2_z","v_incongruent_S2_B11_d2_z","a_S2_B11_d2_z","t_S2_B11_d2_z","z_S2_B11_d2_z")
-all_measures_d3 <- c("FCZ_ERN_080_d3_z","flanker_score_d3_z","accuracy_d3_z","accuracy_incongruent_d3_z","accuracy_congruent_log_d3_z",
-                  "v_S3_B11_d3_z","v_congruent_S3_B11_d3_z","v_incongruent_S3_B11_d3_z","a_S3_B11_d3_z","t_S3_B11_d3_z","z_S3_B11_d3_z")
-
-
-sttr_d1_correlations <- correlation_matrix(LDDM_do2_d1_not_outliers[c(all_measures_d1)], type = c("pearson"), use = 'lower', replace_diagonal=TRUE, replacement="")
-sttr_d2_correlations <- correlation_matrix(LDDM_do2_d2_not_outliers[c(all_measures_d2)], type = c("pearson"), use = 'lower', replace_diagonal=TRUE, replacement="")
-sttr_d3_correlations <- correlation_matrix(LDDM_do2_d3_not_outliers[c(all_measures_d3)], type = c("pearson"), use = 'lower', replace_diagonal=TRUE, replacement="")
+sttr_d1_correlations <- correlation_matrix(LDDM_do2_d1_not_outliers[c(paste0(var_list,"_d1_z"))], type = c("pearson"), use = 'lower', replace_diagonal=TRUE, replacement="")
+sttr_d2_correlations <- correlation_matrix(LDDM_do2_d2_not_outliers[c(paste0(var_list,"_d2_z"))], type = c("pearson"), use = 'lower', replace_diagonal=TRUE, replacement="")
+sttr_d3_correlations <- correlation_matrix(LDDM_do2_d3_not_outliers[c(paste0(var_list,"_d3_z"))], type = c("pearson"), use = 'lower', replace_diagonal=TRUE, replacement="")
 
 LDDM_do2_not_outliers <- full_join(LDDM_do2_d1_not_outliers, LDDM_do2_d2_not_outliers, by="ID") %>%
   full_join(LDDM_do2_d3_not_outliers, by="ID")
 
-sttr_correlations <- correlation_matrix(LDDM_do2_not_outliers[c(all_measures_d1,all_measures_d2,all_measures_d3)], type = c("pearson"), use = 'lower', replace_diagonal=TRUE, replacement="")
+sttr_correlations <- correlation_matrix(LDDM_do2_not_outliers[c(paste0(var_list,"_d1_z"),
+                                                                paste0(var_list,"_d2_z"),
+                                                                paste0(var_list,"_d3_z"))], 
+                                        type = c("pearson"), use = 'lower', replace_diagonal=TRUE, replacement="")
 
-write.csv(sttr_d1_correlations, file=here("work/tables/sttr_d1_correlations.csv"))
-write.csv(sttr_d2_correlations, file=here("work/tables/sttr_d2_correlations.csv"))
-write.csv(sttr_d3_correlations, file=here("work/tables/sttr_d3_correlations.csv"))
-write.csv(sttr_correlations, file=here("work/tables/sttr_correlations.csv"))
-
-# ERN_table_d1 <- data.frame(parameters= c("v", "v_congruent", "v_incongruent", "a", "t", "z"),
-#                         r= c(corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_d1_z, LDDM_do2_d1_not_outliers$v_S1_B11_d1_d1_z)$r,
-#                              corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_d1_z, LDDM_do2_d1_not_outliers$v_congruent_S1_B11_d1_d1_z)$r,
-#                              corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_d1_z, LDDM_do2_d1_not_outliers$v_incongruent_S1_B11_d1_d1_z)$r,
-#                              corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_d1_z, LDDM_do2_d1_not_outliers$a_S1_B11_d1_d1_z)$r,
-#                              corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_d1_z, LDDM_do2_d1_not_outliers$t_S1_B11_d1_d1_z)$r,
-#                              corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_d1_z, LDDM_do2_d1_not_outliers$z_S1_B11_d1_d1_z)$r),
-#                         p_nominal = c(corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_d1_z, LDDM_do2_d1_not_outliers$v_S1_B11_d1_d1_z)$p,
-#                              corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_d1_z, LDDM_do2_d1_not_outliers$v_congruent_S1_B11_d1_d1_z)$p,
-#                              corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_d1_z, LDDM_do2_d1_not_outliers$v_incongruent_S1_B11_d1_d1_z)$p,
-#                              corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_d1_z, LDDM_do2_d1_not_outliers$a_S1_B11_d1_d1_z)$p,
-#                              corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_d1_z, LDDM_do2_d1_not_outliers$t_S1_B11_d1_d1_z)$p,
-#                              corr.test(LDDM_do2_d1_not_outliers$FCZ_ERN_080_d1_z, LDDM_do2_d1_not_outliers$z_S1_B11_d1_d1_z)$p)); ERN_table_d1$p_corrected <- p.adjust(ERN_table_d1$p_nominal, method="fdr"); ERN_table_d1[,2:4] <- round(ERN_table_d1[,2:4], 3)
-# ERN_table_d1
-
-# write.csv(ERN_table_d1, here("work/tables/sttr_ERN_table_d1.csv"))
-
-# ggplot(LDDM_do2_d1, aes(x=FCZ_ERN_080_d1_z, y=v_S1_B11)) +
-#   geom_point() +
-#   stat_smooth(method="lm")
+write.csv(sttr_d1_correlations, file=here("./tables/sttr_d1_correlations.csv"))
+write.csv(sttr_d2_correlations, file=here("./tables/sttr_d2_correlations.csv"))
+write.csv(sttr_d3_correlations, file=here("./tables/sttr_d3_correlations.csv"))
+write.csv(sttr_correlations, file=here("./tables/sttr_correlations.csv"))
 ```
 
 ### Alternative models
@@ -308,50 +285,52 @@ ERN_table_d1_alt1 <- data.frame(parameters= c("v", "a", "t"),
                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avt_a_d1_z)$p,
                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avt_t_d1_z)$p)); ERN_table_d1_alt1$p_corrected <- p.adjust(ERN_table_d1_alt1$p_nominal, method="fdr"); ERN_table_d1_alt1[,2:4] <- round(ERN_table_d1_alt1[,2:4], 3)
 
-ERN_table_d1_alt2 <- data.frame(parameters= c("v", "a", "t", "z"),
-                        r= c(corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_v_d1_z)$r,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_a_d1_z)$r,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_t_d1_z)$r,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_z_d1_z)$r),
-                        p_nominal = c(corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_v_d1_z)$p,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_a_d1_z)$p,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_t_d1_z)$p,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_z_d1_z)$p)); ERN_table_d1_alt2$p_corrected <- p.adjust(ERN_table_d1_alt2$p_nominal, method="fdr"); ERN_table_d1_alt2[,2:4] <- round(ERN_table_d1_alt2[,2:4], 3)
+ERN_table_d1_alt2 <- data.frame(parameters= c("v_congruent", "v_incongruent", "a", "t", "z"),
+                        r= c(corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_v_v_con_d1_z)$r,
+                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_v_v_incon_d1_z)$r,
+                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_v_a_d1_z)$r,
+                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_v_t_d1_z)$r,
+                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_v_z_d1_z)$r),
+                        p_nominal = c(corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_v_v_con_d1_z)$p,
+                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_v_v_incon_d1_z)$p,
+                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_v_a_d1_z)$p,
+                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_v_t_d1_z)$p,
+                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_v_z_d1_z)$p)); ERN_table_d1_alt2$p_corrected <- p.adjust(ERN_table_d1_alt2$p_nominal, method="fdr"); ERN_table_d1_alt2[,2:4] <- round(ERN_table_d1_alt2[,2:4], 3)
 
-ERN_table_d1_alt3 <- data.frame(parameters= c("v_congruent", "v_incongruent", "a", "t_congruent","t_incongruent", "z"),
-                        r= c(corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_v_con_d1_z)$r,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_v_incon_d1_z)$r,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_a_d1_z)$r,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_t_con_d1_z)$r,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_t_incon_d1_z)$r,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_z_d1_z)$r),
-                        p_nominal = c(corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_v_con_d1_z)$p,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_v_incon_d1_z)$p,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_a_d1_z)$p,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_t_con_d1_z)$p,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_t_incon_d1_z)$p,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_z_d1_z)$p)); ERN_table_d1_alt3$p_corrected <- p.adjust(ERN_table_d1_alt3$p_nominal, method="fdr"); ERN_table_d1_alt3[,2:4] <- round(ERN_table_d1_alt3[,2:4], 3)
+# ERN_table_d1_alt3 <- data.frame(parameters= c("v_congruent", "v_incongruent", "a", "t_congruent","t_incongruent", "z"),
+#                         r= c(corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_v_con_d1_z)$r,
+#                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_v_incon_d1_z)$r,
+#                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_a_d1_z)$r,
+#                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_t_con_d1_z)$r,
+#                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_t_incon_d1_z)$r,
+#                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_z_d1_z)$r),
+#                         p_nominal = c(corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_v_con_d1_z)$p,
+#                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_v_incon_d1_z)$p,
+#                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_a_d1_z)$p,
+#                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_t_con_d1_z)$p,
+#                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_t_incon_d1_z)$p,
+#                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vt_z_d1_z)$p)); ERN_table_d1_alt3$p_corrected <- p.adjust(ERN_table_d1_alt3$p_nominal, method="fdr"); ERN_table_d1_alt3[,2:4] <- round(ERN_table_d1_alt3[,2:4], 3)
 
-ERN_table_d1_alt4 <- data.frame(parameters= c("v_congruent", "v_incongruent", "a", "t_congruent","t_incongruent", "z_congruent", "z_incongruent"),
-                        r= c(corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_v_con_d1_z)$r,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_v_incon_d1_z)$r,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_a_d1_z)$r,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_t_con_d1_z)$r,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_t_incon_d1_z)$r,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_z_con_d1_z)$r,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_z_incon_d1_z)$r),
-                        p_nominal = c(corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_v_con_d1_z)$p,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_v_incon_d1_z)$p,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_a_d1_z)$p,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_t_con_d1_z)$p,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_t_incon_d1_z)$p,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_z_con_d1_z)$p,
-                             corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_z_incon_d1_z)$p)); ERN_table_d1_alt4$p_corrected <- p.adjust(ERN_table_d1_alt4$p_nominal, method="fdr"); ERN_table_d1_alt4[,2:4] <- round(ERN_table_d1_alt4[,2:4], 3)
+# ERN_table_d1_alt4 <- data.frame(parameters= c("v_congruent", "v_incongruent", "a", "t_congruent","t_incongruent", "z_congruent", "z_incongruent"),
+#                         r= c(corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_v_con_d1_z)$r,
+#                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_v_incon_d1_z)$r,
+#                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_a_d1_z)$r,
+#                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_t_con_d1_z)$r,
+#                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_t_incon_d1_z)$r,
+#                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_z_con_d1_z)$r,
+#                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_z_incon_d1_z)$r),
+#                         p_nominal = c(corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_v_con_d1_z)$p,
+#                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_v_incon_d1_z)$p,
+#                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_a_d1_z)$p,
+#                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_t_con_d1_z)$p,
+#                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_t_incon_d1_z)$p,
+#                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_z_con_d1_z)$p,
+#                              corr.test(LDDM_do2_alt_d1$FCZ_ERN_080_d1_z, LDDM_do2_alt_d1$B11_avtz_DO_vtz_z_incon_d1_z)$p)); ERN_table_d1_alt4$p_corrected <- p.adjust(ERN_table_d1_alt4$p_nominal, method="fdr"); ERN_table_d1_alt4[,2:4] <- round(ERN_table_d1_alt4[,2:4], 3)
 
-write.csv(t(ERN_table_d1_alt1), here("work/tables/ERN_table_d1_alt1.csv"))
-write.csv(t(ERN_table_d1_alt2), here("work/tables/ERN_table_d1_alt2.csv"))
-write.csv(t(ERN_table_d1_alt3), here("work/tables/ERN_table_d1_alt3.csv"))
-write.csv(t(ERN_table_d1_alt4), here("work/tables/ERN_table_d1_alt4.csv"))
+write.csv(t(ERN_table_d1_alt1), here("./tables/ERN_table_d1_alt1.csv"))
+write.csv(t(ERN_table_d1_alt2), here("./tables/ERN_table_d1_alt2.csv"))
+# write.csv(t(ERN_table_d1_alt3), here("./tables/ERN_table_d1_alt3.csv"))
+# write.csv(t(ERN_table_d1_alt4), here("./tables/ERN_table_d1_alt4.csv"))
 ```
 
 #  Multiple regressions
@@ -362,12 +341,12 @@ make_CI <- function(lower, upper) {
 }
 
 i=1
-mr_ERN_table_d1 <- as.data.frame(matrix(nrow=6, ncol=5))
-mr_ERN_table_d1[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias")
-mr_ERN_table_d1_raw <- as.data.frame(matrix(nrow=6, ncol=5))
-mr_ERN_table_d1_raw[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias")
+mr_ERN_table_d1 <- as.data.frame(matrix(nrow=4, ncol=5))
+mr_ERN_table_d1[,1] <- c("Drift rate","Boundary separation","Non-decision time","Starting bias")
+mr_ERN_table_d1_raw <- as.data.frame(matrix(nrow=4, ncol=5))
+mr_ERN_table_d1_raw[,1] <- c("Drift rate","Boundary separation","Non-decision time","Starting bias")
 
-for (var in c("v_S1_B11_d1_z","v_congruent_S1_B11_d1_z","v_incongruent_S1_B11_d1_z","a_S1_B11_d1_z","t_S1_B11_d1_z","z_S1_B11_d1_z")) {
+for (var in c("B11_avtz_a_d1_z","B11_avtz_v_d1_z","B11_avtz_t_d1_z","B11_avtz_z_d1_z")) {
   eval(parse(text=paste0("
              model <- lm(FCZ_ERN_080_d1_z ~ ",var," + flanker_score_d1_z + accuracy_incongruent_d1_z + rt_interference_d1_z + Age, LDDM_do2_d1_not_outliers)
              
@@ -400,8 +379,8 @@ for (var in c("v_S1_B11_d1_z","v_congruent_S1_B11_d1_z","v_incongruent_S1_B11_d1
 }
 colnames(mr_ERN_table_d1) <- c("Parameters","DDM", "NIH Toolbox", "Accuracy (incongruent)", "RT interference")
 
-write.csv(mr_ERN_table_d1, here("work/tables/mr_ERN_table_d1.csv"))
-write.csv(mr_ERN_table_d1_raw, here("work/tables/mr_ERN_table_d1_raw.csv"))
+write.csv(mr_ERN_table_d1, here("./tables/mr_ERN_table_d1.csv"))
+write.csv(mr_ERN_table_d1_raw, here("./tables/mr_ERN_table_d1_raw.csv"))
 
 # ggplot(filter(LDDM_do2_d1_not_outliers), aes(x=FCZ_ERN_080_d1_z, y=flanker_score_d1)) +
 #   geom_point() +
@@ -415,12 +394,12 @@ write.csv(mr_ERN_table_d1_raw, here("work/tables/mr_ERN_table_d1_raw.csv"))
 ### Day 2
 ```{r}
 i=1
-mr_ERN_table_d2 <- as.data.frame(matrix(nrow=6, ncol=5))
-mr_ERN_table_d2[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias")
-mr_ERN_table_d2_raw <- as.data.frame(matrix(nrow=6, ncol=5))
-mr_ERN_table_d2_raw[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias")
+mr_ERN_table_d2 <- as.data.frame(matrix(nrow=4, ncol=5))
+mr_ERN_table_d2[,1] <- c("Drift rate","Boundary separation","Non-decision time","Starting bias")
+mr_ERN_table_d2_raw <- as.data.frame(matrix(nrow=4, ncol=5))
+mr_ERN_table_d2_raw[,1] <- c("Drift rate","Boundary separation","Non-decision time","Starting bias")
 
-for (var in c("v_S2_B11_d2_z","v_congruent_S2_B11_d2_z","v_incongruent_S2_B11_d2_z","a_S2_B11_d2_z","t_S2_B11_d2_z","z_S2_B11_d2_z")) {
+for (var in c("B11_avtz_a_d2_z","B11_avtz_v_d2_z","B11_avtz_t_d2_z","B11_avtz_z_d2_z")) {
   eval(parse(text=paste0("
              model <- lm(FCZ_ERN_080_d2_z ~ ",var," + flanker_score_d2_z + accuracy_incongruent_d2_z + rt_interference_d2_z + Age, LDDM_do2_d2_not_outliers)
              
@@ -453,8 +432,8 @@ for (var in c("v_S2_B11_d2_z","v_congruent_S2_B11_d2_z","v_incongruent_S2_B11_d2
 }
 colnames(mr_ERN_table_d2) <- c("Parameters","DDM", "NIH Toolbox", "Accuracy (incongruent)", "RT interference")
 
-write.csv(mr_ERN_table_d2, here("work/tables/mr_ERN_table_d2.csv"))
-write.csv(mr_ERN_table_d2_raw, here("work/tables/mr_ERN_table_d2_raw.csv"))
+write.csv(mr_ERN_table_d2, here("./tables/mr_ERN_table_d2.csv"))
+write.csv(mr_ERN_table_d2_raw, here("./tables/mr_ERN_table_d2_raw.csv"))
 
 # ggplot(filter(LDDM_do2_d2), aes(x=FCZ_ERN_080_d2_z, y=flanker_score_d2)) +
 #   geom_point() +
@@ -472,12 +451,12 @@ write.csv(mr_ERN_table_d2_raw, here("work/tables/mr_ERN_table_d2_raw.csv"))
 ### Day 3
 ```{r}
 i=1
-mr_ERN_table_d3 <- as.data.frame(matrix(nrow=6, ncol=5))
-mr_ERN_table_d3[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias")
-mr_ERN_table_d3_raw <- as.data.frame(matrix(nrow=6, ncol=5))
-mr_ERN_table_d3_raw[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias")
+mr_ERN_table_d3 <- as.data.frame(matrix(nrow=4, ncol=5))
+mr_ERN_table_d3[,1] <- c("Drift rate","Boundary separation","Non-decision time","Starting bias")
+mr_ERN_table_d3_raw <- as.data.frame(matrix(nrow=4, ncol=5))
+mr_ERN_table_d3_raw[,1] <- c("Drift rate","Boundary separation","Non-decision time","Starting bias")
 
-for (var in c("v_S3_B11_d3_z","v_congruent_S3_B11_d3_z","v_incongruent_S3_B11_d3_z","a_S3_B11_d3_z","t_S3_B11_d3_z","z_S3_B11_d3_z")) {
+for (var in c("B11_avtz_a_d3_z","B11_avtz_v_d3_z","B11_avtz_t_d3_z","B11_avtz_z_d3_z")) {
   eval(parse(text=paste0("
              model <- lm(FCZ_ERN_080_d3_z ~ ",var," + flanker_score_d3_z + accuracy_incongruent_d3_z + rt_interference_d3_z + Age, LDDM_do2_d3_not_outliers)
              
@@ -510,8 +489,8 @@ for (var in c("v_S3_B11_d3_z","v_congruent_S3_B11_d3_z","v_incongruent_S3_B11_d3
 }
 colnames(mr_ERN_table_d3) <- c("Parameters","DDM", "NIH Toolbox", "Accuracy (incongruent)", "RT interference")
 
-write.csv(mr_ERN_table_d3, here("work/tables/mr_ERN_table_d3.csv"))
-write.csv(mr_ERN_table_d3_raw, here("work/tables/mr_ERN_table_d3_raw.csv"))
+write.csv(mr_ERN_table_d3, here("./tables/mr_ERN_table_d3.csv"))
+write.csv(mr_ERN_table_d3_raw, here("./tables/mr_ERN_table_d3_raw.csv"))
 
 # ggplot(filter(LDDM_do2_d3), aes(x=FCZ_ERN_080_d1_z, y=flanker_score_d3)) +
 #   geom_point() +
@@ -529,44 +508,30 @@ write.csv(mr_ERN_table_d3_raw, here("work/tables/mr_ERN_table_d3_raw.csv"))
 # Reliability
 ## Test-retest (ICC)
 ```{r}
-LDDM_do2_irr <- full_join(LDDM_do2_d1, LDDM_do2_d2, by="ID") %>%
-  full_join(LDDM_do2_d3, by="ID")
+LDDM_do2_irr <- LDDM_do2_d1 %>%
+  select(ID,contains("_d1_")) %>%
+  full_join(LDDM_do2_d2, by="ID") %>%
+  select(ID,contains("_d1_") | contains("_d2_")) %>%
+  full_join(LDDM_do2_d3, by="ID") %>%
+  select(ID,contains("_d1_") | contains("_d2_") | contains("_d3_"))
 
 library("irr")
 
-# sttr_icc_table_12 <- data.frame(parameters= c("v", "v_congruent", "v_incongruent", "a", "t", "z", "nihtoolbox_flanker"),
-#                            ICC=c(icc(LDDM_do2_irr[c("v_S1_B11","v_S2_B11")])$value,
-#                            icc(LDDM_do2_irr[c("v_congruent_S1_B11.x","v_congruent_S2_B11.x")])$value,
-#                            icc(LDDM_do2_irr[c("v_incongruent_S1_B11.x","v_incongruent_S2_B11.x")])$value,
-#                            icc(LDDM_do2_irr[c("a_S1_B11.x","a_S2_B11.x")])$value,
-#                            icc(LDDM_do2_irr[c("t_S1_B11.x","t_S2_B11.x")])$value,
-#                            icc(LDDM_do2_irr[c("z_S1_B11.x","z_S2_B11.x")])$value,
-#                            icc(LDDM_do2_irr[c("flanker_score_d1","flanker_score_d2")])$value))
-# 
-# sttr_icc_table_23 <- data.frame(parameters= c("v", "v_congruent", "v_incongruent", "a", "t", "z", "nihtoolbox_flanker"),
-#                            ICC=c(icc(LDDM_do2_irr[c("v_S1_B11","v_S2_B11","v_S3_B11")])$value,
-#                            icc(LDDM_do2_irr[c("v_congruent_S2_B11.x","v_congruent_S3_B11.x")])$value,
-#                            icc(LDDM_do2_irr[c("v_incongruent_S2_B11.x","v_incongruent_S3_B11.x")])$value,
-#                            icc(LDDM_do2_irr[c("a_S2_B11.x","a_S3_B11.x")])$value,
-#                            icc(LDDM_do2_irr[c("t_S2_B11.x","t_S3_B11.x")])$value,
-#                            icc(LDDM_do2_irr[c("z_S2_B11.x","z_S3_B11.x")])$value,
-#                            icc(LDDM_do2_irr[c("flanker_score_d2","flanker_score_d3")])$value))
-
-sttr_icc_table_123 <- data.frame(parameters= c("Drift rate", "Drift rate (congruent)", "Drift rate (incongruent)", "Boundary separation", "Non-decision time", "Starting bias", "NIH Toolbox", "Raw accuracy", "Raw accuracy (incongruent)", "RT interference"),
-                           ICC=c(icc(LDDM_do2_irr[c("v_S1_B11","v_S2_B11","v_S3_B11")])$value,
-                           icc(LDDM_do2_irr[c("v_congruent_S1_B11.x","v_congruent_S2_B11.x","v_congruent_S3_B11.x")])$value,
-                           icc(LDDM_do2_irr[c("v_incongruent_S1_B11.x","v_incongruent_S2_B11.x","v_incongruent_S3_B11.x")])$value,
-                           icc(LDDM_do2_irr[c("a_S1_B11.x","a_S2_B11.x","a_S3_B11.x")])$value,
-                           icc(LDDM_do2_irr[c("t_S1_B11.x","t_S2_B11.x","t_S3_B11.x")])$value,
-                           icc(LDDM_do2_irr[c("z_S1_B11.x","z_S2_B11.x","z_S3_B11.x")])$value,
+sttr_icc_table_123 <- data.frame(parameters= c("Drift rate", "Boundary separation", "Non-decision time", "Starting bias",
+                                               "NIH Toolbox", "Raw accuracy", "Raw accuracy (incongruent)", "RT interference"),
+                           ICC=c(icc(LDDM_do2_irr[c("B11_avtz_v_d1_z","B11_avtz_v_d2_z","B11_avtz_v_d3_z")])$value,
+                           icc(LDDM_do2_irr[c("B11_avtz_a_d1_z","B11_avtz_a_d2_z","B11_avtz_a_d3_z")])$value,
+                           icc(LDDM_do2_irr[c("B11_avtz_t_d1_z","B11_avtz_t_d2_z","B11_avtz_t_d3_z")])$value,
+                           icc(LDDM_do2_irr[c("B11_avtz_z_d1_z","B11_avtz_z_d2_z","B11_avtz_z_d3_z")])$value,
+                           
                            icc(LDDM_do2_irr[c("flanker_score_d1_z","flanker_score_d2_z","flanker_score_d3_z")])$value,
                            icc(LDDM_do2_irr[c("accuracy_d1_z","accuracy_d2_z","accuracy_d3_z")])$value,
                            icc(LDDM_do2_irr[c("accuracy_incongruent_d1_z","accuracy_incongruent_d2_z","accuracy_incongruent_d3_z")])$value,
                     icc(LDDM_do2_irr[c("rt_interference_d1_z","rt_interference_d2_z","rt_interference_d3_z")])$value))
 
-# write.csv(sttr_icc_table_12, "work/tables/sttr_icc_table_12.csv")
-# write.csv(sttr_icc_table_23, "work/tables/sttr_icc_table_23.csv")
-write.csv(sttr_icc_table_123, here("work/tables/sttr_icc_table_123.csv"))
+# write.csv(sttr_icc_table_12, "./tables/sttr_icc_table_12.csv")
+# write.csv(sttr_icc_table_23, "./tables/sttr_icc_table_23.csv")
+write.csv(sttr_icc_table_123, here("./tables/sttr_icc_table_123.csv"))
 ```
 
 ## Test-retest at different trial levels
@@ -782,7 +747,7 @@ icc[i,2] <- icc(LDDM_cleaning04_reliability_accuracy',s,'[c("accuracy_incongruen
 ## Split half reliability (Spearman-Brown prophecy)
 ### Day 1
 ```{r}
-load(file=here("work/data/LDDM_cleaning04_fullbeh_d1.RData"))
+load(file=here("./data/LDDM_cleaning04_fullbeh_d1.RData"))
 library(confintr)
 
 LDDM_cleaning04_d1_reliability <- LDDM_cleaning04_fullbeh_d1 %>%
@@ -900,7 +865,33 @@ rrt_sb_ciupper_',s,' <- (2*rrt_half_ci_',s,'$interval[2])/(1+rrt_half_ci_',s,'$i
 rrt_sb_',s,' <- (2*rrt_half_',s,')/(1+rrt_half_',s,')
 ')))
 }
+
+d1_ddm_splithalf <- read.csv(here("./data/Flanker_StTr_SplitHalf_S1_Blocks_avtz.csv"), header=TRUE)
+
+for (s in seq(1,11)){
+    eval(parse(text=paste0('
+r_v_half_B',s,' <- cor(d1_ddm_splithalf$v_S1_B',s,'a, d1_ddm_splithalf$v_S1_B',s,'b, method="pearson", use="pairwise")
+r_v_half_ci_B',s,' <- ci_cor(d1_ddm_splithalf$v_S1_B',s,'a, d1_ddm_splithalf$v_S1_B',s,'b, method="pearson", type = "bootstrap", R=1000)
+r_v_sb_cilower_B',s,' <- (2*r_v_half_ci_B',s,'$interval[1])/(1+r_v_half_ci_B',s,'$interval[1])
+r_v_sb_ciupper_B',s,' <- (2*r_v_half_ci_B',s,'$interval[2])/(1+r_v_half_ci_B',s,'$interval[2])
+r_v_sb_B',s,' <- (2*r_v_half_B',s,')/(1+r_v_half_B',s,')
+
+r_a_half_B',s,' <- cor(d1_ddm_splithalf$a_S1_B',s,'a, d1_ddm_splithalf$a_S1_B',s,'b, method="pearson", use="pairwise")
+r_a_half_ci_B',s,' <- ci_cor(d1_ddm_splithalf$a_S1_B',s,'a, d1_ddm_splithalf$a_S1_B',s,'b, method="pearson", type = "bootstrap", R=1000)
+r_a_sb_cilower_B',s,' <- (2*r_a_half_ci_B',s,'$interval[1])/(1+r_a_half_ci_B',s,'$interval[1])
+r_a_sb_ciupper_B',s,' <- (2*r_a_half_ci_B',s,'$interval[2])/(1+r_a_half_ci_B',s,'$interval[2])
+r_a_sb_B',s,' <- (2*r_a_half_B',s,')/(1+r_a_half_B',s,')
+')))
+}
 spearman_brown_d1 <- data.frame(trials=seq(15,165,15),
+                                 # DDM measures
+                             rv=rep(NA,length(seq(15,165,15))),
+                             rv_cilower=rep(NA,length(seq(15,165,15))),
+                             rv_ciupper=rep(NA,length(seq(15,165,15))),
+                             ra=rep(NA,length(seq(15,165,15))),
+                             ra_cilower=rep(NA,length(seq(15,165,15))),
+                             ra_ciupper=rep(NA,length(seq(15,165,15))),
+                                 # Traditional measures
                              rnih=rep(NA,length(seq(15,165,15))),
                              rnih_cilower=rep(NA,length(seq(15,165,15))),
                              rnih_ciupper=rep(NA,length(seq(15,165,15))),
@@ -910,20 +901,38 @@ spearman_brown_d1 <- data.frame(trials=seq(15,165,15),
                              rrt=rep(NA,length(seq(15,165,15))),
                              rrt_cilower=rep(NA,length(seq(15,165,15))),
                              rrt_ciupper=rep(NA,length(seq(15,165,15))))
+
 i=1
-for (s in seq(15,165,15)){
-  eval(parse(text=paste0('spearman_brown_d1[i,2] <- round(as.numeric(r_sb_',s,'),3)
-                         spearman_brown_d1[i,3] <- round(as.numeric(r_sb_cilower_',s,'),3)
-                         spearman_brown_d1[i,4] <- round(as.numeric(r_sb_ciupper_',s,'),3)
-                         spearman_brown_d1[i,5] <- round(as.numeric(racc_sb_',s,'),3)
-                         spearman_brown_d1[i,6] <- round(as.numeric(racc_sb_cilower_',s,'),3)
-                         spearman_brown_d1[i,7] <- round(as.numeric(racc_sb_ciupper_',s,'),3)
-                         spearman_brown_d1[i,8] <- round(as.numeric(rrt_sb_',s,'),3)
-                         spearman_brown_d1[i,9] <- round(as.numeric(rrt_sb_cilower_',s,'),3)
-                         spearman_brown_d1[i,10] <- round(as.numeric(rrt_sb_ciupper_',s,'),3)')))
+for (s in seq(1,11)){
+  eval(parse(text=paste0('
+                         spearman_brown_d1[i,2] <- round(as.numeric(r_v_sb_B',s,'),3)
+                         spearman_brown_d1[i,3] <- round(as.numeric(r_v_sb_cilower_B',s,'),3)
+                         spearman_brown_d1[i,4] <- round(as.numeric(r_v_sb_ciupper_B',s,'),3)
+                         
+                         spearman_brown_d1[i,5] <- round(as.numeric(r_a_sb_B',s,'),3)
+                         spearman_brown_d1[i,6] <- round(as.numeric(r_a_sb_cilower_B',s,'),3)
+                         spearman_brown_d1[i,7] <- round(as.numeric(r_a_sb_ciupper_B',s,'),3)
+                         ')))
   i=i+1
 }
 
+i=1
+for (s in seq(15,165,15)){
+  eval(parse(text=paste0('spearman_brown_d1[i,8] <- round(as.numeric(r_sb_',s,'),3)
+                         spearman_brown_d1[i,9] <- round(as.numeric(r_sb_cilower_',s,'),3)
+                         spearman_brown_d1[i,10] <- round(as.numeric(r_sb_ciupper_',s,'),3)
+                         spearman_brown_d1[i,11] <- round(as.numeric(racc_sb_',s,'),3)
+                         spearman_brown_d1[i,12] <- round(as.numeric(racc_sb_cilower_',s,'),3)
+                         spearman_brown_d1[i,13] <- round(as.numeric(racc_sb_ciupper_',s,'),3)
+                         spearman_brown_d1[i,14] <- round(as.numeric(rrt_sb_',s,'),3)
+                         spearman_brown_d1[i,15] <- round(as.numeric(rrt_sb_cilower_',s,'),3)
+                         spearman_brown_d1[i,16] <- round(as.numeric(rrt_sb_ciupper_',s,'),3)')))
+  i=i+1
+}
+```
+
+This is for the method of calculating the Spearman-Brown values for the RDoC sample when using the model with the following parameters: a, t, z, v by condition.
+```{r, eval=FALSE}
 sttr_d1_ddm_splithalf <- read.csv(here("Split_Half/StTr_S1_splithalf.csv"))
 spearman_brown_d1$rdriftcon <- sttr_d1_ddm_splithalf$avtz_DO_v_vcon
 spearman_brown_d1$rdriftincon <- sttr_d1_ddm_splithalf$avtz_DO_v_vinc
@@ -945,7 +954,7 @@ spearman_brown_d1$rboundary_separation <- sttr_d1_ddm_splithalf$avtz_DO_v_a
 
 ### Day 2
 ```{r}
-load(file=here("work/data/LDDM_cleaning04_fullbeh_d2.RData"))
+load(file=here("./data/LDDM_cleaning04_fullbeh_d2.RData"))
 
 LDDM_cleaning04_d2_reliability <- LDDM_cleaning04_fullbeh_d2 %>%
   group_by(subj_idx) %>%
@@ -1060,7 +1069,32 @@ rrt_sb_',s,' <- (2*rrt_half_',s,')/(1+rrt_half_',s,')
 ')))
 }
 
+d2_ddm_splithalf <- read.csv(here("./data/Flanker_StTr_SplitHalf_S2_Blocks_avtz.csv"), header=TRUE)
+
+for (s in seq(1,11)){
+    eval(parse(text=paste0('
+r_v_half_B',s,' <- cor(d2_ddm_splithalf$v_S2_B',s,'a, d2_ddm_splithalf$v_S2_B',s,'b, method="pearson", use="pairwise")
+r_v_half_ci_B',s,' <- ci_cor(d2_ddm_splithalf$v_S2_B',s,'a, d2_ddm_splithalf$v_S2_B',s,'b, method="pearson", type = "bootstrap", R=1000)
+r_v_sb_cilower_B',s,' <- (2*r_v_half_ci_B',s,'$interval[1])/(1+r_v_half_ci_B',s,'$interval[1])
+r_v_sb_ciupper_B',s,' <- (2*r_v_half_ci_B',s,'$interval[2])/(1+r_v_half_ci_B',s,'$interval[2])
+r_v_sb_B',s,' <- (2*r_v_half_B',s,')/(1+r_v_half_B',s,')
+
+r_a_half_B',s,' <- cor(d2_ddm_splithalf$a_S2_B',s,'a, d2_ddm_splithalf$a_S2_B',s,'b, method="pearson", use="pairwise")
+r_a_half_ci_B',s,' <- ci_cor(d2_ddm_splithalf$a_S2_B',s,'a, d2_ddm_splithalf$a_S2_B',s,'b, method="pearson", type = "bootstrap", R=1000)
+r_a_sb_cilower_B',s,' <- (2*r_a_half_ci_B',s,'$interval[1])/(1+r_a_half_ci_B',s,'$interval[1])
+r_a_sb_ciupper_B',s,' <- (2*r_a_half_ci_B',s,'$interval[2])/(1+r_a_half_ci_B',s,'$interval[2])
+r_a_sb_B',s,' <- (2*r_a_half_B',s,')/(1+r_a_half_B',s,')
+')))
+}
 spearman_brown_d2 <- data.frame(trials=seq(15,165,15),
+                                 # DDM measures
+                             rv=rep(NA,length(seq(15,165,15))),
+                             rv_cilower=rep(NA,length(seq(15,165,15))),
+                             rv_ciupper=rep(NA,length(seq(15,165,15))),
+                             ra=rep(NA,length(seq(15,165,15))),
+                             ra_cilower=rep(NA,length(seq(15,165,15))),
+                             ra_ciupper=rep(NA,length(seq(15,165,15))),
+                                 # Traditional measures
                              rnih=rep(NA,length(seq(15,165,15))),
                              rnih_cilower=rep(NA,length(seq(15,165,15))),
                              rnih_ciupper=rep(NA,length(seq(15,165,15))),
@@ -1070,19 +1104,38 @@ spearman_brown_d2 <- data.frame(trials=seq(15,165,15),
                              rrt=rep(NA,length(seq(15,165,15))),
                              rrt_cilower=rep(NA,length(seq(15,165,15))),
                              rrt_ciupper=rep(NA,length(seq(15,165,15))))
+
 i=1
-for (s in seq(15,165,15)){
-  eval(parse(text=paste0('spearman_brown_d2[i,2] <- round(as.numeric(r_sb_',s,'),3)
-                         spearman_brown_d2[i,3] <- round(as.numeric(r_sb_cilower_',s,'),3)
-                         spearman_brown_d2[i,4] <- round(as.numeric(r_sb_ciupper_',s,'),3)
-                         spearman_brown_d2[i,5] <- round(as.numeric(racc_sb_',s,'),3)
-                         spearman_brown_d2[i,6] <- round(as.numeric(racc_sb_cilower_',s,'),3)
-                         spearman_brown_d2[i,7] <- round(as.numeric(racc_sb_ciupper_',s,'),3)
-                         spearman_brown_d2[i,8] <- round(as.numeric(rrt_sb_',s,'),3)
-                         spearman_brown_d2[i,9] <- round(as.numeric(rrt_sb_cilower_',s,'),3)
-                         spearman_brown_d2[i,10] <- round(as.numeric(rrt_sb_ciupper_',s,'),3)')))
+for (s in seq(1,11)){
+  eval(parse(text=paste0('
+                         spearman_brown_d2[i,2] <- round(as.numeric(r_v_sb_B',s,'),3)
+                         spearman_brown_d2[i,3] <- round(as.numeric(r_v_sb_cilower_B',s,'),3)
+                         spearman_brown_d2[i,4] <- round(as.numeric(r_v_sb_ciupper_B',s,'),3)
+                         
+                         spearman_brown_d2[i,5] <- round(as.numeric(r_a_sb_B',s,'),3)
+                         spearman_brown_d2[i,6] <- round(as.numeric(r_a_sb_cilower_B',s,'),3)
+                         spearman_brown_d2[i,7] <- round(as.numeric(r_a_sb_ciupper_B',s,'),3)
+                         ')))
   i=i+1
 }
+
+i=1
+for (s in seq(15,165,15)){
+  eval(parse(text=paste0('spearman_brown_d2[i,8] <- round(as.numeric(r_sb_',s,'),3)
+                         spearman_brown_d2[i,9] <- round(as.numeric(r_sb_cilower_',s,'),3)
+                         spearman_brown_d2[i,10] <- round(as.numeric(r_sb_ciupper_',s,'),3)
+                         spearman_brown_d2[i,11] <- round(as.numeric(racc_sb_',s,'),3)
+                         spearman_brown_d2[i,12] <- round(as.numeric(racc_sb_cilower_',s,'),3)
+                         spearman_brown_d2[i,13] <- round(as.numeric(racc_sb_ciupper_',s,'),3)
+                         spearman_brown_d2[i,14] <- round(as.numeric(rrt_sb_',s,'),3)
+                         spearman_brown_d2[i,15] <- round(as.numeric(rrt_sb_cilower_',s,'),3)
+                         spearman_brown_d2[i,16] <- round(as.numeric(rrt_sb_ciupper_',s,'),3)')))
+  i=i+1
+}
+```
+
+This is for the method of calculating the Spearman-Brown values for the RDoC sample when using the model with the following parameters: a, t, z, v by condition.
+```{r, eval=FALSE}
 
 sttr_d2_ddm_splithalf <- read.csv(here("Split_Half/StTr_S2_splithalf.csv"))
 spearman_brown_d2$rdriftcon <- sttr_d2_ddm_splithalf$avtz_DO_v_vcon
@@ -1102,7 +1155,7 @@ spearman_brown_d2$rboundary_separation <- sttr_d2_ddm_splithalf$avtz_DO_v_a
 ### Day 3
 ```{r}
 # Calculate typical metrics
-load(file=here("work/data/LDDM_cleaning04_fullbeh_d3.RData"))
+load(file=here("./data/LDDM_cleaning04_fullbeh_d3.RData"))
 
 LDDM_cleaning04_d3_calc1 <- LDDM_cleaning04_fullbeh_d3 %>%
   group_by(subj_idx) %>%
@@ -1223,7 +1276,32 @@ rrt_sb_',s,' <- (2*rrt_half_',s,')/(1+rrt_half_',s,')
 ')))
 }
 
+d3_ddm_splithalf <- read.csv(here("./data/Flanker_StTr_SplitHalf_S3_Blocks_avtz.csv"), header=TRUE)
+
+for (s in seq(1,11)){
+    eval(parse(text=paste0('
+r_v_half_B',s,' <- cor(d3_ddm_splithalf$v_S3_B',s,'a, d3_ddm_splithalf$v_S3_B',s,'b, method="pearson", use="pairwise")
+r_v_half_ci_B',s,' <- ci_cor(d3_ddm_splithalf$v_S3_B',s,'a, d3_ddm_splithalf$v_S3_B',s,'b, method="pearson", type = "bootstrap", R=1000)
+r_v_sb_cilower_B',s,' <- (2*r_v_half_ci_B',s,'$interval[1])/(1+r_v_half_ci_B',s,'$interval[1])
+r_v_sb_ciupper_B',s,' <- (2*r_v_half_ci_B',s,'$interval[2])/(1+r_v_half_ci_B',s,'$interval[2])
+r_v_sb_B',s,' <- (2*r_v_half_B',s,')/(1+r_v_half_B',s,')
+
+r_a_half_B',s,' <- cor(d3_ddm_splithalf$a_S3_B',s,'a, d3_ddm_splithalf$a_S3_B',s,'b, method="pearson", use="pairwise")
+r_a_half_ci_B',s,' <- ci_cor(d3_ddm_splithalf$a_S3_B',s,'a, d3_ddm_splithalf$a_S3_B',s,'b, method="pearson", type = "bootstrap", R=1000)
+r_a_sb_cilower_B',s,' <- (2*r_a_half_ci_B',s,'$interval[1])/(1+r_a_half_ci_B',s,'$interval[1])
+r_a_sb_ciupper_B',s,' <- (2*r_a_half_ci_B',s,'$interval[2])/(1+r_a_half_ci_B',s,'$interval[2])
+r_a_sb_B',s,' <- (2*r_a_half_B',s,')/(1+r_a_half_B',s,')
+')))
+}
 spearman_brown_d3 <- data.frame(trials=seq(15,165,15),
+                                 # DDM measures
+                             rv=rep(NA,length(seq(15,165,15))),
+                             rv_cilower=rep(NA,length(seq(15,165,15))),
+                             rv_ciupper=rep(NA,length(seq(15,165,15))),
+                             ra=rep(NA,length(seq(15,165,15))),
+                             ra_cilower=rep(NA,length(seq(15,165,15))),
+                             ra_ciupper=rep(NA,length(seq(15,165,15))),
+                                 # Traditional measures
                              rnih=rep(NA,length(seq(15,165,15))),
                              rnih_cilower=rep(NA,length(seq(15,165,15))),
                              rnih_ciupper=rep(NA,length(seq(15,165,15))),
@@ -1233,19 +1311,38 @@ spearman_brown_d3 <- data.frame(trials=seq(15,165,15),
                              rrt=rep(NA,length(seq(15,165,15))),
                              rrt_cilower=rep(NA,length(seq(15,165,15))),
                              rrt_ciupper=rep(NA,length(seq(15,165,15))))
+
 i=1
-for (s in seq(15,165,15)){
-  eval(parse(text=paste0('spearman_brown_d3[i,2] <- round(as.numeric(r_sb_',s,'),3)
-                         spearman_brown_d3[i,3] <- round(as.numeric(r_sb_cilower_',s,'),3)
-                         spearman_brown_d3[i,4] <- round(as.numeric(r_sb_ciupper_',s,'),3)
-                         spearman_brown_d3[i,5] <- round(as.numeric(racc_sb_',s,'),3)
-                         spearman_brown_d3[i,6] <- round(as.numeric(racc_sb_cilower_',s,'),3)
-                         spearman_brown_d3[i,7] <- round(as.numeric(racc_sb_ciupper_',s,'),3)
-                         spearman_brown_d3[i,8] <- round(as.numeric(rrt_sb_',s,'),3)
-                         spearman_brown_d3[i,9] <- round(as.numeric(rrt_sb_cilower_',s,'),3)
-                         spearman_brown_d3[i,10] <- round(as.numeric(rrt_sb_ciupper_',s,'),3)')))
+for (s in seq(1,11)){
+  eval(parse(text=paste0('
+                         spearman_brown_d3[i,2] <- round(as.numeric(r_v_sb_B',s,'),3)
+                         spearman_brown_d3[i,3] <- round(as.numeric(r_v_sb_cilower_B',s,'),3)
+                         spearman_brown_d3[i,4] <- round(as.numeric(r_v_sb_ciupper_B',s,'),3)
+                         
+                         spearman_brown_d3[i,5] <- round(as.numeric(r_a_sb_B',s,'),3)
+                         spearman_brown_d3[i,6] <- round(as.numeric(r_a_sb_cilower_B',s,'),3)
+                         spearman_brown_d3[i,7] <- round(as.numeric(r_a_sb_ciupper_B',s,'),3)
+                         ')))
   i=i+1
 }
+
+i=1
+for (s in seq(15,165,15)){
+  eval(parse(text=paste0('spearman_brown_d3[i,8] <- round(as.numeric(r_sb_',s,'),3)
+                         spearman_brown_d3[i,9] <- round(as.numeric(r_sb_cilower_',s,'),3)
+                         spearman_brown_d3[i,10] <- round(as.numeric(r_sb_ciupper_',s,'),3)
+                         spearman_brown_d3[i,11] <- round(as.numeric(racc_sb_',s,'),3)
+                         spearman_brown_d3[i,12] <- round(as.numeric(racc_sb_cilower_',s,'),3)
+                         spearman_brown_d3[i,13] <- round(as.numeric(racc_sb_ciupper_',s,'),3)
+                         spearman_brown_d3[i,14] <- round(as.numeric(rrt_sb_',s,'),3)
+                         spearman_brown_d3[i,15] <- round(as.numeric(rrt_sb_cilower_',s,'),3)
+                         spearman_brown_d3[i,16] <- round(as.numeric(rrt_sb_ciupper_',s,'),3)')))
+  i=i+1
+}
+```
+
+This is for the method of calculating the Spearman-Brown values for the RDoC sample when using the model with the following parameters: a, t, z, v by condition.
+```{r, eval=FALSE}
 sttr_d3_ddm_splithalf <- read.csv(here("Split_Half/StTr_S3_splithalf.csv"))
 spearman_brown_d3$rdriftcon <- sttr_d3_ddm_splithalf$avtz_DO_v_vcon
 spearman_brown_d3$rdriftincon <- sttr_d3_ddm_splithalf$avtz_DO_v_vincon
@@ -1264,18 +1361,18 @@ spearman_brown_d3$rboundary_separation <- sttr_d3_ddm_splithalf$avtz_DO_v_a
   In this step, go ahead and close out of the file and quit R without saving
   the work space.
 ```{r}
-save(LDDM_do2_d1_not_outliers, file=here("work/data/LDDM_do2_d1_not_outliers.RData"))
-save(LDDM_do2_d2_not_outliers, file=here("work/data/LDDM_do2_d2_not_outliers.RData"))
-save(LDDM_do2_d3_not_outliers, file=here("work/data/LDDM_do2_d3_not_outliers.RData"))
+save(LDDM_do2_d1_not_outliers, file=here("./data/LDDM_do2_d1_not_outliers.RData"))
+save(LDDM_do2_d2_not_outliers, file=here("./data/LDDM_do2_d2_not_outliers.RData"))
+save(LDDM_do2_d3_not_outliers, file=here("./data/LDDM_do2_d3_not_outliers.RData"))
 
-save(LDDM_do2_d1, LDDM_do2_d2, LDDM_do2_d3, file=here("work/data/LDDM_do2_d.RData"))
+save(LDDM_do2_d1, LDDM_do2_d2, LDDM_do2_d3, file=here("./data/LDDM_do2_d.RData"))
 
 
 
-# save(LDDM_cleaning04_calc3_1to3, file=here("work/data/LDDM_cleaning04_calc3_1to3.RData"))
-save(LDDM_do2_irr, file=here("work/data/LDDM_do2_irr.RData"))
-# save(LDDM_do2, file=here("work/data/LDDM_do2.RData"))
-save(spearman_brown_d1, file=here("work/data/spearman_brown_d1.RData"))
-save(spearman_brown_d2, file=here("work/data/spearman_brown_d2.RData"))
-save(spearman_brown_d3, file=here("work/data/spearman_brown_d3.RData"))
+# save(LDDM_cleaning04_calc3_1to3, file=here("./data/LDDM_cleaning04_calc3_1to3.RData"))
+save(LDDM_do2_irr, file=here("./data/LDDM_do2_irr.RData"))
+# save(LDDM_do2, file=here("./data/LDDM_do2.RData"))
+save(spearman_brown_d1, file=here("./data/spearman_brown_d1.RData"))
+save(spearman_brown_d2, file=here("./data/spearman_brown_d2.RData"))
+save(spearman_brown_d3, file=here("./data/spearman_brown_d3.RData"))
 ```

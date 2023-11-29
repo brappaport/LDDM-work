@@ -138,28 +138,28 @@ Remember to immediately rename and remove. Avoid overwriting old data.
 ```{r}
 here::i_am("./analysis/do01_LDDM_rdoc.Rmd")
 
-LDDM_do1_alt_rdoc <- read.csv(here("./RDoC/DDM_Results/Block_Based/RDoC_Day1_Block11_Alternative_Models.csv"), header=TRUE)
+LDDM_do1_alt_rdoc <- read.csv(here("../RDoC/DDM_Results/Block_Based/RDoC_Day1_Block11_Alternative_Models.csv"), header=TRUE)
 
-LDDM_do1_rdoc <- read_sav(here("./work/data/RDoC_ERN_0-80ms_Final.sav"))
+LDDM_do1_rdoc <- read_sav(here("./data/RDoC_ERN_0-80ms_Final.sav"))
 LDDM_do1_rdoc$ID <- LDDM_do1_rdoc$SubjectID
 
 LDDM_do2_rdoc <- LDDM_do1_rdoc %>%
   left_join(LDDM_do1_alt_rdoc, by="ID") %>%
   filter(DQ >= 0.5)
   
-load(file=here("./work/data/LDDM_cleaning04_fullbeh_rdoc.RData"))
+load(file=here("./data/LDDM_cleaning04_fullbeh_rdoc.RData"))
 
-load(file=here("./work/data/LDDM_cleaning04_rdoc_calc4.RData"))
+load(file=here("./data/LDDM_cleaning04_rdoc_calc4.RData"))
 
 ## Load Color-Word D-KEFS test (Stroop) data
-LDDM_do1_rdoc_iq <- read_sav(here("./work/data/RDoC_WTAR_FINAL 1.28.2019.sav"))
+LDDM_do1_rdoc_iq <- read_sav(here("./data/RDoC_WTAR_FINAL 1.28.2019.sav"))
 LDDM_do1_rdoc_iq$ID <- LDDM_do1_rdoc_iq$SubjectID
 # lapply(LDDM_do1_rdoc_iq, attr, "label")
-LDDM_do1_neuro <- read_sav(here("./work/data/RDoC_Neuropsych_Cleaning_HL_FINAL_3.19.18.sav"))
+LDDM_do1_neuro <- read_sav(here("./data/RDoC_Neuropsych_Cleaning_HL_FINAL_3.19.18.sav"))
 LDDM_do1_neuro$ID <- LDDM_do1_neuro$SubjectID
-# LDDM_do1_education <- read_sav(here("./work/data/FINAL_RDoC_Proband_Sibling_ALL_Questionnaires_ItemLevel_2.8.19.sav"))
+# LDDM_do1_education <- read_sav(here("./data/FINAL_RDoC_Proband_Sibling_ALL_Questionnaires_ItemLevel_2.8.19.sav"))
 ## Load data on participant's gender
-LDDM_do3_rdoc_gender <- read_sav(here("./work/data/FINAL_RDoC_Proband_Sibling_SCID_categoricalDx,10.5.2018.sav"))
+LDDM_do3_rdoc_gender <- read_sav(here("./data/FINAL_RDoC_Proband_Sibling_SCID_categoricalDx,10.5.2018.sav"))
 LDDM_do3_rdoc_gender$ID <- LDDM_do3_rdoc_gender$SubjectID
 LDDM_do3_rdoc_gender$Gender <- LDDM_do3_rdoc_gender$b12
 LDDM_do3_rdoc_gender_only <- LDDM_do3_rdoc_gender %>%
@@ -181,8 +181,8 @@ LDDM_do3_rdoc <- LDDM_do2_rdoc %>%
 
 ## Remove subjects with bad data
 ```{r}
-all_rdoc <- read_sav(here("./RDoC/All_Enrolled_IDs.sav"))
-all_ern_rdoc<- read_sav(here("./RDoC/RDoC_ERN_0-80ms_Final.sav"))
+all_rdoc <- read_sav(here("../RDoC/All_Enrolled_IDs.sav"))
+all_ern_rdoc<- read_sav(here("../RDoC/RDoC_ERN_0-80ms_Final.sav"))
 
 all_rdoc <- all_rdoc %>%
   mutate(Eligible_use_this = Eligible) %>%
@@ -275,12 +275,12 @@ make_CI <- function(lower, upper) {
 ## ERN
 ```{r}
 i=1
-mr_ERN_table_rdoc <- as.data.frame(matrix(nrow=6, ncol=4))
-mr_ERN_table_rdoc[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias")
-mr_ERN_table_rdoc_raw <- as.data.frame(matrix(nrow=6, ncol=4))
-mr_ERN_table_rdoc_raw[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias")
+mr_ERN_table_rdoc <- as.data.frame(matrix(nrow=4, ncol=4))
+mr_ERN_table_rdoc[,1] <- c("Drift rate","Boundary separation","Non-decision time","Starting bias")
+mr_ERN_table_rdoc_raw <- as.data.frame(matrix(nrow=4, ncol=4))
+mr_ERN_table_rdoc_raw[,1] <- c("Drift rate","Boundary separation","Non-decision time","Starting bias")
 
-for (var in c("B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon_z","B11_avtz_DO_v_a_z","B11_avtz_DO_v_t_z","B11_avtz_DO_v_z_z")) {
+for (var in c("B11_avtz_v_z","B11_avtz_a_z","B11_avtz_t_z","B11_avtz_z_z")) {
   eval(parse(text=paste0("
              model <- lmer(FCz_ERN_080_z ~ ",var," + flanker_score_rdoc_z + accuracy_incongruent_z + rt_interference_z + Age + Pred_FSIQ_z + Motor_time_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers)
              
@@ -315,7 +315,7 @@ for (var in c("B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon
 i=1
 mr_ERN_table_rdoc_congruent <- mr_ERN_table_rdoc
 mr_ERN_table_rdoc_congruent_raw <- mr_ERN_table_rdoc_raw
-for (var in c("B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon_z","B11_avtz_DO_v_a_z","B11_avtz_DO_v_t_z","B11_avtz_DO_v_z_z")) {
+for (var in c("B11_avtz_v_z","B11_avtz_a_z","B11_avtz_t_z","B11_avtz_z_z")) {
   eval(parse(text=paste0("
              model <- lmer(FCz_ERN_080_z ~ ",var," + flanker_score_rdoc_z + accuracy_congruent_log_z + rt_interference_z + Age + Pred_FSIQ_z + Motor_time_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers)
              
@@ -350,11 +350,11 @@ for (var in c("B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon
 colnames(mr_ERN_table_rdoc) <- c("Parameters","Drift rate", "NIH Toolbox", "Raw accuracy", "RT interference")
 colnames(mr_ERN_table_rdoc_congruent) <- c("Parameters","Drift rate", "NIH Toolbox", "Raw accuracy (congruent log)", "RT interference")
 
-write.csv(mr_ERN_table_rdoc, here("./work/tables/mr_ERN_table_rdoc.csv"))
-write.csv(mr_ERN_table_rdoc_raw, here("./work/tables/mr_ERN_table_rdoc_raw.csv"))
+write.csv(mr_ERN_table_rdoc, here("./tables/mr_ERN_table_rdoc.csv"))
+write.csv(mr_ERN_table_rdoc_raw, here("./tables/mr_ERN_table_rdoc_raw.csv"))
 
-write.csv(mr_ERN_table_rdoc_congruent, here("./work/tables/mr_ERN_table_rdoc_congruent.csv"))
-write.csv(mr_ERN_table_rdoc_congruent_raw, here("./work/tables/mr_ERN_table_rdoc_congruent_raw.csv"))
+write.csv(mr_ERN_table_rdoc_congruent, here("./tables/mr_ERN_table_rdoc_congruent.csv"))
+write.csv(mr_ERN_table_rdoc_congruent_raw, here("./tables/mr_ERN_table_rdoc_congruent_raw.csv"))
 ```
 
 ## Neuropsych measures
@@ -365,15 +365,15 @@ LDDM_do3_rdoc_no_outliers$Inhib_time_rev <- -1*LDDM_do3_rdoc_no_outliers$Inhib_t
 LDDM_do3_rdoc_no_outliers$Inhib_time_rev_z <- scale(LDDM_do3_rdoc_no_outliers$Inhib_time_rev, center=T, scale=T)
 
 i=1
-mr_INHIB_table_rdoc_nocov <- as.data.frame(matrix(nrow=6, ncol=4))
-mr_INHIB_table_rdoc_nocov[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias")
+mr_INHIB_table_rdoc_nocov <- as.data.frame(matrix(nrow=4, ncol=4))
+mr_INHIB_table_rdoc_nocov[,1] <- c("Drift rate","Boundary separation","Non-decision time","Starting bias")
 
-mr_INHIB_table_rdoc_cov <- as.data.frame(matrix(nrow=6, ncol=4))
-mr_INHIB_table_rdoc_cov[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias")
-mr_INHIB_table_rdoc_cov_raw <- as.data.frame(matrix(nrow=6, ncol=4))
-mr_INHIB_table_rdoc_cov_raw[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias")
+mr_INHIB_table_rdoc_cov <- as.data.frame(matrix(nrow=4, ncol=4))
+mr_INHIB_table_rdoc_cov[,1] <- c("Drift rate","Boundary separation","Non-decision time","Starting bias")
+mr_INHIB_table_rdoc_cov_raw <- as.data.frame(matrix(nrow=4, ncol=4))
+mr_INHIB_table_rdoc_cov_raw[,1] <- c("Drift rate","Boundary separation","Non-decision time","Starting bias")
 
-for (var in c("B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon_z","B11_avtz_DO_v_a_z","B11_avtz_DO_v_t_z","B11_avtz_DO_v_z_z")) {
+for (var in c("B11_avtz_v_z","B11_avtz_a_z","B11_avtz_t_z","B11_avtz_z_z")) {
   eval(parse(text=paste0("
              model <- lmer(Inhib_time_rev_z ~ ",var," + flanker_score_rdoc_z + accuracy_incongruent_z + rt_interference_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers)
              
@@ -419,9 +419,9 @@ for (var in c("B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon
 colnames(mr_INHIB_table_rdoc_nocov) <- c("Parameters","Drift rate", "NIH Toolbox", "Raw accuracy (incongruent)", "RT Interference")
 colnames(mr_INHIB_table_rdoc_cov) <- c("Parameters","Drift rate", "NIH Toolbox", "Raw accuracy (incongruent)", "RT Interference")
 
-write.csv(mr_INHIB_table_rdoc_nocov, here("./work/tables/mr_INHIB_table_rdoc_nocov.csv"))
-write.csv(mr_INHIB_table_rdoc_cov, here("./work/tables/mr_INHIB_table_rdoc_cov.csv"))
-write.csv(mr_INHIB_table_rdoc_cov_raw, here("./work/tables/mr_INHIB_table_rdoc_cov_raw.csv"))
+write.csv(mr_INHIB_table_rdoc_nocov, here("./tables/mr_INHIB_table_rdoc_nocov.csv"))
+write.csv(mr_INHIB_table_rdoc_cov, here("./tables/mr_INHIB_table_rdoc_cov.csv"))
+write.csv(mr_INHIB_table_rdoc_cov_raw, here("./tables/mr_INHIB_table_rdoc_cov_raw.csv"))
 ```
 
 ### Set-shifting & DDM 
@@ -434,15 +434,15 @@ LDDM_do3_rdoc_no_outliers$exec_composite <- rowMeans(LDDM_do3_rdoc_no_outliers[,
 LDDM_do3_rdoc_no_outliers$exec_composite_z <- scale(LDDM_do3_rdoc_no_outliers$exec_composite, center=T, scale=T)
 
 i=1
-mr_EXEC_table_rdoc_nocov <- as.data.frame(matrix(nrow=6, ncol=4))
-mr_EXEC_table_rdoc_nocov[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias")
+mr_EXEC_table_rdoc_nocov <- as.data.frame(matrix(nrow=4, ncol=4))
+mr_EXEC_table_rdoc_nocov[,1] <- c("Drift rate","Boundary separation","Non-decision time","Starting bias")
 
-mr_EXEC_table_rdoc_cov <- as.data.frame(matrix(nrow=6, ncol=4))
-mr_EXEC_table_rdoc_cov[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias")
-mr_EXEC_table_rdoc_cov_raw <- as.data.frame(matrix(nrow=6, ncol=4))
-mr_EXEC_table_rdoc_cov_raw[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias")
+mr_EXEC_table_rdoc_cov <- as.data.frame(matrix(nrow=4, ncol=4))
+mr_EXEC_table_rdoc_cov[,1] <- c("Drift rate","Boundary separation","Non-decision time","Starting bias")
+mr_EXEC_table_rdoc_cov_raw <- as.data.frame(matrix(nrow=4, ncol=4))
+mr_EXEC_table_rdoc_cov_raw[,1] <- c("Drift rate","Boundary separation","Non-decision time","Starting bias")
 
-for (var in c("B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon_z","B11_avtz_DO_v_a_z","B11_avtz_DO_v_t_z","B11_avtz_DO_v_z_z")) {
+for (var in c("B11_avtz_v_z","B11_avtz_a_z","B11_avtz_t_z","B11_avtz_z_z")) {
   eval(parse(text=paste0("
              model <- lmer(exec_composite_z ~ ",var," + flanker_score_rdoc_z + accuracy_incongruent_z + rt_interference_z  + (1 | F_ID), LDDM_do3_rdoc_no_outliers)
              
@@ -488,69 +488,65 @@ for (var in c("B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon
 colnames(mr_EXEC_table_rdoc_nocov) <- c("Parameters","Drift rate", "NIH Toolbox", "Raw accuracy (incongruent)", "RT Interference")
 colnames(mr_EXEC_table_rdoc_cov) <- c("Parameters","Drift rate", "NIH Toolbox", "Raw accuracy (incongruent)", "RT Interference")
 
-write.csv(mr_EXEC_table_rdoc_nocov, here("./work/tables/mr_Exec_table_rdoc_nocov.csv"))
-write.csv(mr_EXEC_table_rdoc_cov, here("./work/tables/mr_Exec_table_rdoc_cov.csv"))
-write.csv(mr_EXEC_table_rdoc_cov_raw, here("./work/tables/mr_EXEC_table_rdoc_cov_raw.csv"))
+write.csv(mr_EXEC_table_rdoc_nocov, here("./tables/mr_Exec_table_rdoc_nocov.csv"))
+write.csv(mr_EXEC_table_rdoc_cov, here("./tables/mr_Exec_table_rdoc_cov.csv"))
+write.csv(mr_EXEC_table_rdoc_cov_raw, here("./tables/mr_EXEC_table_rdoc_cov_raw.csv"))
 ```
 
 # Heritability
 ```{r}
 LDDM_do3_rdoc_sib <- LDDM_do3_rdoc %>%
   pivot_wider(id_cols=F_ID, names_from=S_ID, 
-              values_from=c(B11_avtz_DO_v_v_z, B11_avtz_DO_v_v_con_z, B11_avtz_DO_v_v_incon_z,
-                            B11_avtz_DO_v_a_z,B11_avtz_DO_v_t_z,B11_avtz_DO_v_z_z,flanker_score_rdoc_z,accuracy_incongruent_z,accuracy_z,rt_interference_z))
+              values_from=c(B11_avtz_v_z,B11_avtz_a_z,B11_avtz_t_z,B11_avtz_z_z,flanker_score_rdoc_z,accuracy_incongruent_z,accuracy_z,rt_interference_z))
 
-LDDM_heritability_table <- data.frame(parameters= c("v", "v_congruent", "v_incongruent", "a", "t", "z", "nihtoolbox_flanker", "accuracy_incongruent_z","accuracy_z","rt_interference_z"),
-                           ICC=c(icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_v_z_1","B11_avtz_DO_v_v_z_2")])$value,
-                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_v_con_z_1","B11_avtz_DO_v_v_con_z_2")])$value,
-                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_v_incon_z_1","B11_avtz_DO_v_v_incon_z_2")])$value,
-                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_a_z_1","B11_avtz_DO_v_a_z_2")])$value,
-                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_t_z_1","B11_avtz_DO_v_t_z_2")])$value,
-                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_z_z_1","B11_avtz_DO_v_z_z_2")])$value,
+LDDM_heritability_table <- data.frame(parameters= c("v", "a", "t", "z", 
+                                                    "nihtoolbox_flanker",
+                                                    "accuracy_incongruent_z",
+                                                    "rt_interference_z"),
+                           ICC=c(icc(LDDM_do3_rdoc_sib[c("B11_avtz_v_z_1","B11_avtz_v_z_2")])$value,
+                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_a_z_1","B11_avtz_a_z_2")])$value,
+                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_t_z_1","B11_avtz_t_z_2")])$value,
+                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_z_z_1","B11_avtz_z_z_2")])$value,
                            icc(LDDM_do3_rdoc_sib[c("flanker_score_rdoc_z_1","flanker_score_rdoc_z_2")])$value,
                            icc(LDDM_do3_rdoc_sib[c("accuracy_incongruent_z_1","accuracy_incongruent_z_2")])$value,
-                           icc(LDDM_do3_rdoc_sib[c("accuracy_z_1","accuracy_z_2")])$value,
                            icc(LDDM_do3_rdoc_sib[c("rt_interference_z_1","rt_interference_z_2")])$value),
                            
-                           p=c(icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_v_z_1","B11_avtz_DO_v_v_z_2")])$p.value,
-                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_v_con_z_1","B11_avtz_DO_v_v_con_z_2")])$p.value,
-                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_v_incon_z_1","B11_avtz_DO_v_v_incon_z_2")])$p.value,
-                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_a_z_1","B11_avtz_DO_v_a_z_2")])$p.value,
-                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_t_z_1","B11_avtz_DO_v_t_z_2")])$p.value,
-                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_z_z_1","B11_avtz_DO_v_z_z_2")])$p.value,
+                           p=c(icc(LDDM_do3_rdoc_sib[c("B11_avtz_v_z_1","B11_avtz_v_z_2")])$p.value,
+                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_a_z_1","B11_avtz_a_z_2")])$p.value,
+                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_t_z_1","B11_avtz_t_z_2")])$p.value,
+                           icc(LDDM_do3_rdoc_sib[c("B11_avtz_z_z_1","B11_avtz_z_z_2")])$p.value,
                            icc(LDDM_do3_rdoc_sib[c("flanker_score_rdoc_z_1","flanker_score_rdoc_z_2")])$p.value,
                            icc(LDDM_do3_rdoc_sib[c("accuracy_incongruent_z_1","accuracy_incongruent_z_2")])$p.value,
-                           icc(LDDM_do3_rdoc_sib[c("accuracy_z_1","accuracy_z_2")])$p.value,
                            icc(LDDM_do3_rdoc_sib[c("rt_interference_z_1","rt_interference_z_2")])$p.value))
 
-write.csv(LDDM_heritability_table, here("./work/tables/rdoc_heritability_table.csv"))
+write.csv(LDDM_heritability_table, here("./tables/rdoc_heritability_table.csv"))
 ```
 
 ### Permutation testing
 ```{r eval=FALSE}
 set.seed(312) ## for reproducibility
 nsim <- 1000
-perm <- data.frame(B11_avtz_DO_v_v_z_1 = LDDM_do3_rdoc_sib_no_NA$B11_avtz_DO_v_v_z_1)
+perm <- data.frame(B11_avtz_v_z_1 = LDDM_do3_rdoc_sib_no_NA$B11_avtz_v_z_1)
 res <- data.frame(value=NA) ## set aside space for results
 
 LDDM_do3_rdoc_sib_no_NA <- LDDM_do3_rdoc_sib %>%
-  filter(complete.cases(B11_avtz_DO_v_v_z_1) & complete.cases(B11_avtz_DO_v_v_z_2))
+  filter(complete.cases(B11_avtz_v_z_1) & complete.cases(B11_avtz_v_z_2))
 
 for (i in 1:nsim) {
     ## standard approach: scramble response value
-    perm$B11_avtz_DO_v_v_z_2_shuffled <- sample(LDDM_do3_rdoc_sib_no_NA$B11_avtz_DO_v_v_z_2)
+    perm$B11_avtz_v_z_2_shuffled <- sample(LDDM_do3_rdoc_sib_no_NA$B11_avtz_v_z_2)
     ## compute & store difference in means; store the value
-    res[i,1] <- icc(perm[c("B11_avtz_DO_v_v_z_1","B11_avtz_DO_v_v_z_2_shuffled")])$value
-    # res[i,2] <- icc(perm[c("B11_avtz_DO_v_v_z_1","B11_avtz_DO_v_v_z_2_shuffled")])$p.value
+    res[i,1] <- icc(perm[c("B11_avtz_v_z_1","B11_avtz_v_z_2_shuffled")])$value
+    # res[i,2] <- icc(perm[c("B11_avtz_v_z_1","B11_avtz_v_z_2_shuffled")])$p.value
 }
-obs <- icc(LDDM_do3_rdoc_sib[c("B11_avtz_DO_v_v_z_1","B11_avtz_DO_v_v_z_2")])$value
+obs <- icc(LDDM_do3_rdoc_sib[c("B11_avtz_v_z_1","B11_avtz_v_z_2")])$value
 
 hist(res, col='grey'); abline(v=obs, lwd=3, col="red")
 ```
 
 # Split half reliability (Spearman-Brown prophecy)
 ```{r}
-load(file=here("./work/data/LDDM_cleaning04_fullbeh_rdoc.RData"))
+load(file=here("./data/LDDM_cleaning04_fullbeh_rdoc.RData"))
 
 LDDM_cleaning04_rdoc_reliability <- LDDM_cleaning04_fullbeh_rdoc %>%
   group_by(subj_idx) %>%
@@ -665,7 +661,33 @@ rrt_sb_',s,' <- (2*rrt_half_',s,')/(1+rrt_half_',s,')
 ')))
 }
 
+rdoc_ddm_splithalf <- read.csv(here("./data/Flanker_RDoC_SplitHalf_Blocks_avtz.csv"), header=TRUE)
+
+for (s in seq(1,11)){
+    eval(parse(text=paste0('
+r_v_half_B',s,' <- cor(rdoc_ddm_splithalf$v_D1_B',s,'a, rdoc_ddm_splithalf$v_D1_B',s,'b, method="pearson", use="pairwise")
+r_v_half_ci_B',s,' <- ci_cor(rdoc_ddm_splithalf$v_D1_B',s,'a, rdoc_ddm_splithalf$v_D1_B',s,'b, method="pearson", type = "bootstrap", R=1000)
+r_v_sb_cilower_B',s,' <- (2*r_v_half_ci_B',s,'$interval[1])/(1+r_v_half_ci_B',s,'$interval[1])
+r_v_sb_ciupper_B',s,' <- (2*r_v_half_ci_B',s,'$interval[2])/(1+r_v_half_ci_B',s,'$interval[2])
+r_v_sb_B',s,' <- (2*r_v_half_B',s,')/(1+r_v_half_B',s,')
+
+r_a_half_B',s,' <- cor(rdoc_ddm_splithalf$a_D1_B',s,'a, rdoc_ddm_splithalf$a_D1_B',s,'b, method="pearson", use="pairwise")
+r_a_half_ci_B',s,' <- ci_cor(rdoc_ddm_splithalf$a_D1_B',s,'a, rdoc_ddm_splithalf$a_D1_B',s,'b, method="pearson", type = "bootstrap", R=1000)
+r_a_sb_cilower_B',s,' <- (2*r_a_half_ci_B',s,'$interval[1])/(1+r_a_half_ci_B',s,'$interval[1])
+r_a_sb_ciupper_B',s,' <- (2*r_a_half_ci_B',s,'$interval[2])/(1+r_a_half_ci_B',s,'$interval[2])
+r_a_sb_B',s,' <- (2*r_a_half_B',s,')/(1+r_a_half_B',s,')
+')))
+}
+
 spearman_brown_rdoc <- data.frame(trials=seq(15,165,15),
+                                  # DDM measures
+                             rv=rep(NA,length(seq(15,165,15))),
+                             rv_cilower=rep(NA,length(seq(15,165,15))),
+                             rv_ciupper=rep(NA,length(seq(15,165,15))),
+                             ra=rep(NA,length(seq(15,165,15))),
+                             ra_cilower=rep(NA,length(seq(15,165,15))),
+                             ra_ciupper=rep(NA,length(seq(15,165,15))),
+                                 # Traditional measures
                              rnih=rep(NA,length(seq(15,165,15))),
                              rnih_cilower=rep(NA,length(seq(15,165,15))),
                              rnih_ciupper=rep(NA,length(seq(15,165,15))),
@@ -676,23 +698,40 @@ spearman_brown_rdoc <- data.frame(trials=seq(15,165,15),
                              rrt_cilower=rep(NA,length(seq(15,165,15))),
                              rrt_ciupper=rep(NA,length(seq(15,165,15))))
 i=1
-for (s in seq(15,165,15)){
-  eval(parse(text=paste0('spearman_brown_rdoc[i,2] <- round(as.numeric(r_sb_',s,'),3)
-                         spearman_brown_rdoc[i,3] <- round(as.numeric(r_sb_cilower_',s,'),3)
-                         spearman_brown_rdoc[i,4] <- round(as.numeric(r_sb_ciupper_',s,'),3)
-                         spearman_brown_rdoc[i,5] <- round(as.numeric(racc_sb_',s,'),3)
-                         spearman_brown_rdoc[i,6] <- round(as.numeric(racc_sb_cilower_',s,'),3)
-                         spearman_brown_rdoc[i,7] <- round(as.numeric(racc_sb_ciupper_',s,'),3)
-                         spearman_brown_rdoc[i,8] <- round(as.numeric(rrt_sb_',s,'),3)
-                         spearman_brown_rdoc[i,9] <- round(as.numeric(rrt_sb_cilower_',s,'),3)
-                         spearman_brown_rdoc[i,10] <- round(as.numeric(rrt_sb_ciupper_',s,'),3)')))
+for (s in seq(1,11)){
+  eval(parse(text=paste0('
+                         spearman_brown_rdoc[i,2] <- round(as.numeric(r_v_sb_B',s,'),3)
+                         spearman_brown_rdoc[i,3] <- round(as.numeric(r_v_sb_cilower_B',s,'),3)
+                         spearman_brown_rdoc[i,4] <- round(as.numeric(r_v_sb_ciupper_B',s,'),3)
+                         
+                         spearman_brown_rdoc[i,5] <- round(as.numeric(r_a_sb_B',s,'),3)
+                         spearman_brown_rdoc[i,6] <- round(as.numeric(r_a_sb_cilower_B',s,'),3)
+                         spearman_brown_rdoc[i,7] <- round(as.numeric(r_a_sb_ciupper_B',s,'),3)
+                         ')))
   i=i+1
 }
 
-# rdoc_ddm_splithalf <- read.csv(here("./Split_Half/RDoC_splithalf.csv"), header=TRUE)
-rdoc_ddm_splithalf <- read.csv(here("../data/Flanker_RDoC_SplitHalf_Blocks_avtz.csv"), header=TRUE)
+i=1
+for (s in seq(15,165,15)){
+  eval(parse(text=paste0('
+                         spearman_brown_rdoc[i,8] <- round(as.numeric(r_sb_',s,'),3)
+                         spearman_brown_rdoc[i,9] <- round(as.numeric(r_sb_cilower_',s,'),3)
+                         spearman_brown_rdoc[i,10] <- round(as.numeric(r_sb_ciupper_',s,'),3)
+                         spearman_brown_rdoc[i,11] <- round(as.numeric(racc_sb_',s,'),3)
+                         spearman_brown_rdoc[i,12] <- round(as.numeric(racc_sb_cilower_',s,'),3)
+                         spearman_brown_rdoc[i,13] <- round(as.numeric(racc_sb_ciupper_',s,'),3)
+                         spearman_brown_rdoc[i,14] <- round(as.numeric(rrt_sb_',s,'),3)
+                         spearman_brown_rdoc[i,15] <- round(as.numeric(rrt_sb_cilower_',s,'),3)
+                         spearman_brown_rdoc[i,16] <- round(as.numeric(rrt_sb_ciupper_',s,'),3)')))
+  i=i+1
+}
+```
 
-spearman_brown_rdoc$rdriftcon <- rdoc_ddm_splithalf$avtz_DO_v_vcon
+This is for the method of calculating the Spearman-Brown values for the RDoC sample when using the model with the following parameters: a, t, z, v by condition.
+```{r, eval=FALSE}
+rdoc_ddm_splithalf <- read.csv(here("./Split_Half/RDoC_splithalf.csv"), header=TRUE)
+
+spearman_brown_rdoc$rdriftcon <- rdoc_ddm_splithalf$v_D1_B1a
 spearman_brown_rdoc$rdriftincon <- rdoc_ddm_splithalf$avtz_DO_v_vinc
 spearman_brown_rdoc$rdrift <- rowMeans(rdoc_ddm_splithalf[,c("avtz_DO_v_vcon","avtz_DO_v_vinc")])
 spearman_brown_rdoc$rboundary_separation <- rdoc_ddm_splithalf$avtz_DO_v_a
@@ -708,32 +747,35 @@ spearman_brown_rdoc$rboundary_separation <- rdoc_ddm_splithalf$avtz_DO_v_a
 ## ERN amplitude, Neuropsych, & DDM
 ```{r}
 all_measures_rdoc <- c("FCz_ERN_080_z","flanker_score_rdoc_z","accuracy_z","accuracy_incongruent_z","accuracy_congruent_log_z", "rt_interference_z", "exec_composite_z", "Inhib_time_rev_z",
-                  "B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon_z","B11_avtz_DO_v_a_z","B11_avtz_DO_v_t_z","B11_avtz_DO_v_z_z")
+                  "B11_avtz_v_z","B11_avtz_a_z","B11_avtz_t_z","B11_avtz_z_z")
+
+# all_measures_rdoc <- c("FCz_ERN_080_z","flanker_score_rdoc_z","accuracy_z","accuracy_incongruent_z","accuracy_congruent_log_z", "rt_interference_z", "exec_composite_z", "Inhib_time_rev_z",
+#                   "B11_avtz_v_z","B11_avtz_a_z","B11_avtz_t_z","B11_avtz_z_z")
 
 rdoc_correlations <- correlation_matrix(LDDM_do3_rdoc_no_outliers[c(all_measures_rdoc)], type = c("pearson"), use = 'lower', replace_diagonal=TRUE, replacement="")
 
-write.csv(rdoc_correlations, file=here("./work/tables/rdoc_correlations.csv"))
+write.csv(rdoc_correlations, file=here("./tables/rdoc_correlations.csv"))
 
-# ggplot(filter(LDDM_do3_rdoc,FCz_ERN_080>-3 & FCz_ERN_080<3), aes(x=FCz_ERN_080_z, y=B11_avtz_DO_v_v_z)) +
+# ggplot(filter(LDDM_do3_rdoc,FCz_ERN_080>-3 & FCz_ERN_080<3), aes(x=FCz_ERN_080_z, y=B11_avtz_v_z)) +
 #   geom_point() +
 #   stat_smooth(method="lm")
 ```
 
 # SOBP Stats
-```{r}
-sum(!is.na(LDDM_do3_rdoc_no_outliers$B11_avtz_DO_v_v_z))
+```{r, eval=FALSE}
+sum(!is.na(LDDM_do3_rdoc_no_outliers$B11_avtz_v_z))
 
-summary(lmer(FCz_ERN_080_z ~ B11_avtz_DO_v_v_con_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))
-summary(lmer(FCz_ERN_080_z ~ B11_avtz_DO_v_v_incon_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))
+summary(lmer(FCz_ERN_080_z ~ B11_avtz_v_con_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))
+summary(lmer(FCz_ERN_080_z ~ B11_avtz_v_incon_z + flanker_score_rdoc_z + accuracy_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))
 
-summary(lmer(FCz_ERN_080_z ~ B11_avtz_DO_v_v_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))
+summary(lmer(FCz_ERN_080_z ~ B11_avtz_v_z + (1 | F_ID), LDDM_do3_rdoc_no_outliers))
 ```
 
 # Save datasets
 ```{r}
-save(LDDM_do3_rdoc_with_bad_data, file=here("./work/data/LDDM_do3_rdoc_with_bad_data.RData"))
-save(LDDM_do3_rdoc, file=here("./work/data/LDDM_do3_rdoc.RData"))
-save(LDDM_do3_rdoc_no_outliers, file=here("./work/data/LDDM_do3_rdoc_no_outliers.RData"))
-save(spearman_brown_rdoc, file=here("./work/data/spearman_brown_rdoc.RData"))
+save(LDDM_do3_rdoc_with_bad_data, file=here("./data/LDDM_do3_rdoc_with_bad_data.RData"))
+save(LDDM_do3_rdoc, file=here("./data/LDDM_do3_rdoc.RData"))
+save(LDDM_do3_rdoc_no_outliers, file=here("./data/LDDM_do3_rdoc_no_outliers.RData"))
+save(spearman_brown_rdoc, file=here("./data/spearman_brown_rdoc.RData"))
 ```
 
