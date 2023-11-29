@@ -170,9 +170,9 @@ LDDM_do2_d3_not_outliers <- LDDM_do2_d3_not_outliers %>%
 
 LDDM_do3_rdoc_no_outliers$exec_composite_pos <- -1*LDDM_do3_rdoc_no_outliers$exec_composite
 LDDM_do3_rdoc_no_outliers$Gender <- case_match(LDDM_do3_rdoc_no_outliers$Gender, 1~"Male", 2~"Female")
-demo_rdoc <- FullTable1(vars=c("Gender","Age","accuracy","accuracy_congruent","accuracy_incongruent","rt_interference","flanker_score_rdoc","Pred_FSIQ","Inhib_time","exec_composite_pos"), 
+demo_rdoc <- FullTable1(vars=c("Gender","Age","accuracy","accuracy_congruent","accuracy_incongruent","rt_interference","flanker_score_rdoc","Pred_FSIQ","Motor_time","Inhib_time","exec_composite_pos"), 
                         var_names=c("Gender","Age","Raw accuracy","Accuracy (congruent)","Accuracy (incongruent)","RT interference",
-                                    "NIH Toolbox score","IQ","Inhibition","Set-shifting"),
+                                    "NIH Toolbox score","IQ","Motor speed","Inhibition","Set-shifting"),
                         data=filter(LDDM_do3_rdoc_no_outliers, complete.cases(accuracy)))
 
 demo_d1 <- FullTable1(vars=c("Gender","Age","accuracy","accuracy_congruent","accuracy_incongruent","rt_interference","flanker_score"),
@@ -190,12 +190,9 @@ demo_d3 <- FullTable1(vars=c("Gender","Age","accuracy","accuracy_congruent","acc
 
 full_demo <- data.frame("Variable"= c(demo_rdoc$table[,1]),
                         "Study1"= c(demo_rdoc$table[,2]),
-                        "Session1"= c(demo_d1$table[,2],"--","--","--"),
-                        "Session2"= c(demo_d2$table[,2],"--","--","--"),
-                        "Session3"= c(demo_d3$table[,2],"--","--","--"))
-
-# demo_rdoc$caption
-# demo_d1$caption
+                        "Session1"= c(demo_d1$table[,2],"--","--","--","--"),
+                        "Session2"= c(demo_d2$table[,2],"--","--","--","--"),
+                        "Session3"= c(demo_d3$table[,2],"--","--","--","--"))
 ```
 ```{r}
 # Print the demographic table
@@ -215,27 +212,30 @@ knitr::include_graphics('../figures/LDDM_figure1.png')
 
 ```{r Correlation tables}
 all_measures_sttr <- c("FCZ_ERN_080_d1_z","flanker_score_d1_z","accuracy_incongruent_d1_z","rt_interference_d1_z",
-                   "v_S1_B11_d1_z","a_S1_B11_d1_z",
+                   "B11_avtz_v_d1_z","B11_avtz_a_d1_z",
                    "FCZ_ERN_080_d2_z","flanker_score_d2_z","accuracy_incongruent_d2_z","rt_interference_d2_z",
-                   "v_S2_B11_d2_z","v_congruent_S2_B11_d2_z","v_incongruent_S2_B11_d2_z","a_S2_B11_d2_z",
+                   "B11_avtz_v_d2_z","B11_avtz_a_d2_z",
                    "FCZ_ERN_080_d3_z","flanker_score_d3_z","accuracy_incongruent_d3_z","rt_interference_d3_z",
-                   "v_S3_B11_d3_z","v_congruent_S3_B11_d3_z","v_incongruent_S3_B11_d3_z","a_S3_B11_d3_z")
+                   "B11_avtz_v_d3_z","B11_avtz_a_d3_z")
 
 all_measures_rdoc <- c("FCz_ERN_080_z","flanker_score_rdoc_z","accuracy_incongruent_z","rt_interference_z",
-                   "B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon_z","B11_avtz_DO_v_a_z","Inhib_time_rev_z","exec_composite_z")
+                   "B11_avtz_v_z","B11_avtz_a_z","Inhib_time_rev_z","exec_composite_z")
 
 # Merge all STTR datasets together
-LDDM_do2_sttr_not_outliers <- full_join(LDDM_do2_d1_not_outliers, LDDM_do2_d2_not_outliers, by="id.x") %>%
-   full_join(LDDM_do2_d3_not_outliers, by="id.x")
+LDDM_do2_sttr_not_outliers <- LDDM_do2_d1_not_outliers %>%
+   full_join(LDDM_do2_d2_not_outliers, by="id") %>%
+   full_join(LDDM_do2_d3_not_outliers, by="id")
 
 # Make correlation matrices for STTR and RDOC
-sttr_correlations <- correlation_matrix(LDDM_do2_sttr_not_outliers[c(all_measures_sttr)], type = c("pearson"), use = 'lower', replace_diagonal=TRUE, replacement="")
-rdoc_correlations <- correlation_matrix(LDDM_do3_rdoc_no_outliers[c(all_measures_rdoc)], type = c("pearson"), use = 'lower', replace_diagonal=TRUE, replacement="")
+sttr_correlations <- correlation_matrix(LDDM_do2_sttr_not_outliers[c(all_measures_sttr)], 
+                                        type = c("pearson"), use = 'lower', replace_diagonal=TRUE, replacement="")
+rdoc_correlations <- correlation_matrix(LDDM_do3_rdoc_no_outliers[c(all_measures_rdoc)], 
+                                        type = c("pearson"), use = 'lower', replace_diagonal=TRUE, replacement="")
 
 # For STTR, specify variables in each Session
-`Session 1` <- 1:8
-`Session 2` <- 9:15
-`Session 3` <- 16:22
+`Session 1` <- 1:6
+`Session 2` <- 7:12
+`Session 3` <- 13:18
 table_list <- list(`Session 1`, `Session 2`, `Session 3`)
 
 # Set all missing values to be empty
@@ -246,43 +246,41 @@ sttr_correlations[is.na(rdoc_correlations)] <- ""
 # colnames(sttr_correlations)=rep(c(expression("ERN"[resid]),"NIH","Acc",
 #                    "DR","DR (con)","Drift rate (incon)","BS"),3)
 sttr_correlations <-  as.data.frame(sttr_correlations) %>%
-  mutate(measures=rep(c("ERN","NIH","Acc","RT","DR","DR c","DR i","BS"),3)) %>%
+  mutate(measures=rep(c("ERN","NIH","Acc","RT","DR","BS"),3)) %>%
   select(measures, everything())
  
 # colnames(rdoc_correlations)=rep(c("ERN","NIH","Acc",
 #                    "DR","DR (co)","Drift rate (incon)","BS","Inhibition","SS"),1)
 rownames(rdoc_correlations)=rep(c("ERN\\textsubscript{r}","NIH","Acc","RT",
-                   "DR","DR c","DR i","BS","Inhibition","SS"),1)
+                   "DR","BS","Inhibition","SS"),1)
 ```
 <!-- \begin{landscape} -->
 
 \setlength{\tabcolsep}{-2pt}
 ```{r}
 # Make the actual tables
-apa_table(rdoc_correlations[,-10],
+apa_table(rdoc_correlations[,-8],
            row.names=TRUE,
            align = c("p{2.6cm}", rep("p{1.6cm}", ncol(rdoc_correlations)-1)),
            col.names=c("Measures","ERN\\textsubscript{r}","NIH","Acc","RT",
-                   "DR","DR\\textsubscript{c}","DR\\textsubscript{i}","BS","Inhibition"),
+                   "DR","BS","Inhibition"),
            font_size="footnotesize",
            caption = "Bivariate pearson correlations among Study 1 variables",
-           note = "** p < .01, * p < .05. ERN\\textsubscript{r}: error-related negativity residualized score, NIH: NIH Toolbox flanker score, Acc: raw accuracy (incongruent), RT: reaction time interference, DR\\textsubscript{c}: drift rate on congruent trials, DR\\textsubscript{i}: drift rate on incongruent trials, BS: boundary separation, SS: set-shifting.",
+           note = "** p < .01, * p < .05. ERN\\textsubscript{r}: error-related negativity residualized score, NIH: NIH Toolbox flanker score, Acc: raw accuracy (incongruent), RT: reaction time interference, DR: drift rate, BS: boundary separation, SS: set-shifting.",
            landscape=TRUE,
            escape=FALSE
 )
   
-apa_table(sttr_correlations[,-25],
+apa_table(sttr_correlations[,-19],
            row.names=FALSE,
            align = c("p{1.7cm}", rep("p{1cm}", ncol(sttr_correlations)-1)),
-           col.names=c("Measures",rep(c("ERN\\textsubscript{r}","NIH","Acc","RT",
-                   "DR","DR\\textsubscript{c}","DR\\textsubscript{i}","BS"),2),
-                   c("ERN\\textsubscript{r}","NIH","Acc","RT",
-                   "DR","DR\\textsubscript{c}","DR\\textsubscript{i}")),
+           col.names=c("Measures",rep(c("ERN\\textsubscript{r}","NIH","Acc","RT","DR","BS"),2),
+                   c("ERN\\textsubscript{r}","NIH","Acc","RT","DR")),
            font_size="tiny",
-           col_spanners = list(` ` = c(1,1),`Session 1` = c(2,9), `Session 2` = c(10,17), `Session 3` = c(18,24)),
+           col_spanners = list(` ` = c(1,1),`Session 1` = c(2,7), `Session 2` = c(8,13), `Session 3` = c(14,18)),
            caption = "Bivariate pearson correlations among Study 2 variables",
-           note = "** p < .01, * p < .05. ERN\\textsubscript{r}: error-related negativity residualized score, NIH: NIH Toolbox, Acc: raw accuracy (incongruent), RT: reaction time interference, DR\\textsubscript{c}: drift rate on congruent trials, DR\\textsubscript{i}: drift rate on incongruent trials, BS: boundary separation.",
-           stub_indents=list(`Session 1`=c(1:8), `Session 2`=c(9:16), `Session 3`=c(17:24)),
+           note = "** p < .01, * p < .05. ERN\\textsubscript{r}: error-related negativity residualized score, NIH: NIH Toolbox, Acc: raw accuracy (incongruent), RT: reaction time interference, DR: drift rate, BS: boundary separation.",
+           stub_indents=list(`Session 1`=c(1:6), `Session 2`=c(7:12), `Session 3`=c(13:18)),
            landscape=TRUE,
            escape=FALSE
 )
@@ -291,73 +289,22 @@ apa_table(sttr_correlations[,-25],
 <!-- \end{landscape} -->
 
 ```{r Split-half}
-# splithalf <- read.csv(here("./tables/splithalf.csv"))
-# splithalf_d1 <- read.csv(here("./../Split_Half/StTr_S1_splithalf_all_mean_ci.csv"))
-# splithalf_d2 <- read.csv(here("./../Split_Half/StTr_S2_splithalf_all_mean_ci.csv"))
-# splithalf_d3 <- read.csv(here("./../Split_Half/StTr_S3_splithalf_all_mean_ci.csv"))
-# splithalf_rdoc <- read.csv(here("./../Split_Half/RDoC_splithalf_all_rev_mean_ci.csv"))
-splithalf_d1 <- read.csv(here("./../Split_Half/StTr_S1_splithalf_pearson.csv"))
-splithalf_d2 <- read.csv(here("./../Split_Half/StTr_S2_splithalf_pearson.csv"))
-splithalf_d3 <- read.csv(here("./../Split_Half/StTr_S3_splithalf_pearson.csv"))
-splithalf_rdoc <- read.csv(here("./../Split_Half/RDoC_splithalf_rev_pearson.csv"))
-
-# make_splithalf_datatable <- function (df) {
-#   data.frame(trials=seq(15,165,15),
-#                              rv=rowMeans(df[,c("avtz_DO_v_df_vcon","avtz_DO_v_df_vinc")]),
-#                              rv_cilower=rowMeans(df[,c("avtz_DO_v_df_v_con_ci_lower","avtz_DO_v_df_v_inc_ci_lower")]),
-#                              rv_ciupper=rowMeans(df[,c("avtz_DO_v_df_v_con_ci_upper","avtz_DO_v_df_v_inc_ci_upper")]),
-#                              ra=df$avtz_DO_v_df_a,
-#                              ra_cilower=df$avtz_DO_v_df_a_ci_lower,
-#                              ra_ciupper=df$avtz_DO_v_df_a_ci_upper)
-# }
-
-make_splithalf_datatable <- function (df) {
-  data.frame(trials=seq(15,165,15),
-                             rv=rowMeans(df[,c("avtz_DO_v_vcon","avtz_DO_v_vinc")]),
-                             rv_cilower=rowMeans(df[,c("avtz_DO_v_v_con_ci_lower","avtz_DO_v_v_inc_ci_lower")]),
-                             rv_ciupper=rowMeans(df[,c("avtz_DO_v_v_con_ci_upper","avtz_DO_v_v_inc_ci_upper")]),
-                             ra=df$avtz_DO_v_a,
-                             ra_cilower=df$avtz_DO_v_a_ci_lower,
-                             ra_ciupper=df$avtz_DO_v_a_ci_upper)
-}
-
-spearman_brown_d1_ddm <- make_splithalf_datatable(splithalf_d1)
-spearman_brown_d2_ddm <- make_splithalf_datatable(splithalf_d2)
-spearman_brown_d3_ddm <- make_splithalf_datatable(splithalf_d3)
-spearman_brown_rdoc_ddm <- make_splithalf_datatable(splithalf_rdoc)
-
-# splithalf[6,] <- c("NIH Toolbox score", spearman_brown_d1[11,2], spearman_brown_d2[11,2], spearman_brown_d3[11,2], spearman_brown_rdoc[11,2])
-# splithalf[7,] <- c("Raw accuracy", spearman_brown_d1[11,5], spearman_brown_d2[11,5], spearman_brown_d3[11,5], spearman_brown_rdoc[11,5])
-# splithalf[,1] <- c("Drift rate to congruent stimuli", "Drift rate to incongruent stimuli", "Boundary separation", "Non-decision time", "Starting bias", "NIH Toolbox score", "Raw accuracy")
-# # splithalf <- round(splithalf[6:7,2:5], 2)
-# 
-# write.csv(splithalf, file=here("./tables/splithalf_full.csv"))
-
-# apa_table(splithalf,
-#           col.names=c("DDM paramters","Session 1","Session 2","Session 3", "Study 1"),
-#           align = c("l", rep("c", 4)),
-#           digits=2,
-#           caption = "Table 2",
-#           note = "",
-#           col_spanners=list(`Study 2`=c(2,4)))
-
 spearman_brown_d1_plot <- spearman_brown_d1 %>%
-  full_join(spearman_brown_d1_ddm, by = "trials") %>%
-  select(-c("rdriftcon","rdriftincon","rdrift","rboundary_separation")) %>%
   pivot_longer(-c(trials), names_to="Measure") %>%
   separate(Measure, "_", into = c("Measure", "Stat")) %>%
   pivot_wider(names_from=Stat, values_from=value) %>%
-  mutate(r=`NA`) %>%
-  select(-c(`NA`))
+  mutate(r=`NA`, `NA`=NULL)
 
 spearman_brown_d1_plot$Measure_long <- recode_factor(spearman_brown_d1_plot$Measure, rv = "Drift rate", ra = "Boundary separation", rnih = "NIH Toolbox", racc = "Accuracy (incongruent)", rrt = "RT interference")
-                                               
+
+ymin <- plyr::round_any(as.numeric(spearman_brown_d1_plot %>% filter(cilower>-5) %>% reframe(min(cilower))),0.1)
+
 sh_d1 <- ggplot(spearman_brown_d1_plot, aes(x=trials*2, y=r, fill=Measure_long)) +
   geom_line(aes(color=Measure_long)) +
   geom_point(aes(color=Measure_long)) +
   geom_ribbon(aes(ymin = cilower, ymax = ciupper, fill=Measure_long), alpha = 0.1) +
   scale_x_continuous(breaks=spearman_brown_d1$trials*2) +
-  scale_y_continuous(limits = c(-0.4, 1), breaks=seq(-0.4,1,by=0.10)) +
+  scale_y_continuous(limits = c(ymin, 1), breaks=seq(ymin,1,by=0.10)) +
   scale_color_manual(name="Measure", values=group.colors,
                     labels=c(str_wrap("Drift rate", 10), str_wrap("Boundary separation",10),
                              str_wrap("NIH Toolbox",10), str_wrap("Accuracy (incongruent)",10),
@@ -367,23 +314,23 @@ sh_d1 <- ggplot(spearman_brown_d1_plot, aes(x=trials*2, y=r, fill=Measure_long))
   theme_apa() +
   theme(legend.position="top")
 
+
 spearman_brown_d2_plot <- spearman_brown_d2 %>%
-  full_join(spearman_brown_d2_ddm, by = "trials") %>%
-  select(-c("rdriftcon","rdrift","rboundary_separation")) %>%
   pivot_longer(-c(trials), names_to="Measure") %>%
   separate(Measure, "_", into = c("Measure", "Stat")) %>%
   pivot_wider(names_from=Stat, values_from=value) %>%
-  mutate(r=`NA`) %>%
-  select(-c(`NA`))
+  mutate(r=`NA`, `NA`=NULL)
 
 spearman_brown_d2_plot$Measure_long <- recode_factor(spearman_brown_d2_plot$Measure, rv = "Drift rate", ra = "Boundary separation", rnih = "NIH Toolbox", racc = "Accuracy (incongruent)", rrt = "RT interference")
+
+ymin <- plyr::round_any(as.numeric(spearman_brown_d2_plot %>% filter(cilower>-5) %>% reframe(min(cilower))),0.1)
 
 sh_d2 <- ggplot(spearman_brown_d2_plot, aes(x=trials*2, y=r, fill=Measure_long)) +
   geom_line(aes(color=Measure_long)) +
   geom_point(aes(color=Measure_long)) +
   geom_ribbon(aes(ymin = cilower, ymax = ciupper, fill=Measure_long), alpha = 0.1) +
   scale_x_continuous(breaks=spearman_brown_d2$trials*2) +
-  scale_y_continuous(limits = c(-0.4, 1), breaks=seq(-0.4,1,by=0.10)) +
+  scale_y_continuous(limits = c(ymin, 1), breaks=seq(ymin,1,by=0.10)) +
   scale_color_manual(name="Measure", values=group.colors,
                     labels=c(str_wrap("Drift rate", 10), str_wrap("Boundary separation",10),
                              str_wrap("NIH Toolbox",10), str_wrap("Accuracy (incongruent)",10),
@@ -394,15 +341,14 @@ sh_d2 <- ggplot(spearman_brown_d2_plot, aes(x=trials*2, y=r, fill=Measure_long))
   theme(legend.position="top")
 
 spearman_brown_d3_plot <- spearman_brown_d3 %>%
-  full_join(spearman_brown_d3_ddm, by = "trials") %>%
-  select(-c("rdriftcon","rdrift","rboundary_separation")) %>%
   pivot_longer(-c(trials), names_to="Measure") %>%
   separate(Measure, "_", into = c("Measure", "Stat")) %>%
   pivot_wider(names_from=Stat, values_from=value) %>%
-  mutate(r=`NA`) %>%
-  select(-c(`NA`))
+  mutate(r=`NA`, `NA`=NULL)
 
 spearman_brown_d3_plot$Measure_long <- recode_factor(spearman_brown_d3_plot$Measure, rv = "Drift rate", ra = "Boundary separation", rnih = "NIH Toolbox", racc = "Accuracy (incongruent)", rrt = "RT interference")
+
+ymin <- plyr::round_any(as.numeric(spearman_brown_d3_plot %>% filter(cilower>-5) %>% reframe(min(cilower))),0.1)
 
 sh_d3 <- ggplot(spearman_brown_d3_plot, aes(x=trials*2, y=r, fill=Measure_long)) +
   geom_line(aes(color=Measure_long)) +
@@ -420,15 +366,14 @@ sh_d3 <- ggplot(spearman_brown_d3_plot, aes(x=trials*2, y=r, fill=Measure_long))
   theme(legend.position="top")
 
 spearman_brown_rdoc_plot <- spearman_brown_rdoc %>%
-  full_join(spearman_brown_rdoc_ddm, by = "trials") %>%
-  select(-c("rdriftcon","rdriftincon","rdrift","rboundary_separation")) %>%
   pivot_longer(-c(trials), names_to="Measure") %>%
   separate(Measure, "_", into = c("Measure", "Stat")) %>%
   pivot_wider(names_from=Stat, values_from=value) %>%
-  mutate(r=`NA`) %>%
-  select(-c(`NA`))
+  mutate(r=`NA`, `NA`=NULL)
 
 spearman_brown_rdoc_plot$Measure_long <- recode_factor(spearman_brown_rdoc_plot$Measure, rv = "Drift rate", ra = "Boundary separation", rnih = "NIH Toolbox", racc = "Accuracy (incongruent)", rrt = "RT interference")
+
+ymin <- spearman_brown_rdoc_plot %>% filter(cilower>-5) %>% reframe(range = min(cilower))
 
 sh_rdoc <- ggplot(spearman_brown_rdoc_plot, aes(x=trials*2, y=r)) +
   geom_line(aes(color=Measure_long)) +
@@ -441,6 +386,7 @@ sh_rdoc <- ggplot(spearman_brown_rdoc_plot, aes(x=trials*2, y=r)) +
                              str_wrap("NIH Toolbox",10), str_wrap("Accuracy (incongruent)",10),
                              str_wrap("RT interference",10))) +
   scale_fill_manual(guide=NULL, values=group.colors) +
+  labs(y="Spearman-Brown", x="Total trials") +
   # geom_hline(yintercept=0) +
   theme_apa() +
   theme(legend.position="bottom")
@@ -472,19 +418,18 @@ sh
 \end{landscape}
 \newpage
 ```{r Test-retest}
-sttr_hddm_variables <- c("v_S1_B11","v_S2_B11","v_S3_B11",
-                         "v_congruent_S1_B11.x","v_congruent_S2_B11.x","v_congruent_S3_B11.x",
-                         "v_incongruent_S1_B11.x","v_incongruent_S2_B11.x","v_incongruent_S3_B11.x",
-                         "a_S1_B11.x","a_S2_B11.x","a_S3_B11.x",
-                         "t_S1_B11.x","t_S2_B11.x","t_S3_B11.x",
-                         "z_S1_B11.x","z_S2_B11.x","z_S3_B11.x",
+sttr_hddm_variables <- c("B11_avtz_v_d1_z","B11_avtz_v_d2_z","B11_avtz_v_d3_z",
+                         "B11_avtz_a_d1_z","B11_avtz_a_d2_z","B11_avtz_a_d3_z",
+                         "B11_avtz_t_d1_z","B11_avtz_t_d2_z","B11_avtz_t_d3_z",
+                         "B11_avtz_z_d1_z","B11_avtz_z_d2_z","B11_avtz_z_d3_z",
                          "flanker_score_d1_z","flanker_score_d2_z","flanker_score_d3_z",
-                         "accuracy_d1_z","accuracy_d2_z","accuracy_d3_z",
                          "accuracy_incongruent_d1_z","accuracy_incongruent_d2_z","accuracy_incongruent_d3_z",
                          "rt_interference_d1_z","rt_interference_d2_z","rt_interference_d3_z")
 
 sttr_icc_table <- data.frame(
-                           parameters= c("Drift rate", "Drift rate (congruent)", "Drift rate (incongruent)", "Boundary separation", "Non-decision time", "Starting bias", "NIH Toolbox", "Accuracy (incongruent)", "RT interference"),
+                           parameters= c("Drift rate", "Boundary separation", 
+                                         "Non-decision time", "Starting bias", 
+                                         "NIH Toolbox", "Accuracy (incongruent)", "RT interference"),
                                  
                            ICC=c(icc(LDDM_do2_irr[sttr_hddm_variables[1:3]])$value,
                            icc(LDDM_do2_irr[sttr_hddm_variables[4:6]])$value,
@@ -492,9 +437,7 @@ sttr_icc_table <- data.frame(
                            icc(LDDM_do2_irr[sttr_hddm_variables[10:12]])$value,
                            icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$value,
                            icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$value,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$value,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[25:27]])$value,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[28:30]])$value),
+                           icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$value),
                            
                            CI=c(make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[1:3]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[1:3]])$ubound),
                            make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[4:6]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[4:6]])$ubound),
@@ -502,9 +445,7 @@ sttr_icc_table <- data.frame(
                            make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[10:12]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[10:12]])$ubound),
                            make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$ubound),
                            make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$ubound),
-                           make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$ubound),
-                           make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[25:27]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[25:27]])$ubound),
-                           make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[28:30]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[28:30]])$ubound)),
+                           make_CI(icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$lbound,icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$ubound)),
                            
                            lower_ci=c(icc(LDDM_do2_irr[sttr_hddm_variables[1:3]])$lbound,
                            icc(LDDM_do2_irr[sttr_hddm_variables[4:6]])$lbound,
@@ -512,9 +453,7 @@ sttr_icc_table <- data.frame(
                            icc(LDDM_do2_irr[sttr_hddm_variables[10:12]])$lbound,
                            icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$lbound,
                            icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$lbound,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$lbound,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[25:27]])$lbound,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[28:30]])$lbound),
+                           icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$lbound),
 
                            upper_ci=c(icc(LDDM_do2_irr[sttr_hddm_variables[1:3]])$ubound,
                            icc(LDDM_do2_irr[sttr_hddm_variables[4:6]])$ubound,
@@ -522,25 +461,23 @@ sttr_icc_table <- data.frame(
                            icc(LDDM_do2_irr[sttr_hddm_variables[10:12]])$ubound,
                            icc(LDDM_do2_irr[sttr_hddm_variables[13:15]])$ubound,
                            icc(LDDM_do2_irr[sttr_hddm_variables[16:18]])$ubound,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$ubound,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[25:27]])$ubound,
-                           icc(LDDM_do2_irr[sttr_hddm_variables[28:30]])$ubound)
+                           icc(LDDM_do2_irr[sttr_hddm_variables[19:21]])$ubound)
                            )
 
 sttr_icc_table$ICC <- round(sttr_icc_table$ICC, 2)
 write.csv(sttr_icc_table, here("./tables/sttr_icc_table.csv"))
 ```
 
-```{r fig.cap = "Test-retest reliability of traditional behavioral measures and DDM parameters of interest across three sessions.", out.width='100%'}
+```{r fig.cap = "Test-retest reliability of DDM parameters and traditional behavioral measures across three sessions.", out.width='100%'}
 sttr_icc_table$parameters <- fct_rev(factor(sttr_icc_table$parameters, levels = sttr_icc_table$parameters))
 
-ggplot(sttr_icc_table[c(1,4,7:9),], aes(y=parameters, x=ICC, color=parameters)) +
+ggplot(sttr_icc_table[c(1,2,5:7),], aes(y=parameters, x=ICC, color=parameters)) +
   geom_point() +
-  geom_text(aes(label=ICC),vjust=-0.75)+
+  geom_text(aes(label=round(ICC,2)),vjust=-0.75)+
   geom_errorbar(aes(xmin=lower_ci, xmax=upper_ci), colour="black", width=.1) +
   scale_x_continuous(limits = c(0,1), breaks=seq(0,1,0.1)) +
   scale_y_discrete(labels = label_wrap(10)) +
-  labs(y="DDM parameters/Measures", x="ICC (95% CI)") +
+  labs(y="Flanker behavioral measures", x="ICC (95% CI)") +
   scale_color_manual(values=group.colors) +
   # scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
   theme_apa() +
@@ -579,7 +516,7 @@ mr_ERN_table_rdoc_raw_new <- mr_ERN_table_rdoc_raw_new %>%
 param.labs <- c("Model 1", "Model 2")
 names(param.labs) <- c("Drift rate", "Boundary separation")
 
-ern_rdoc <- ggplot(mr_ERN_table_rdoc_raw_new[c(1:4, 13:16),], aes(x=est, label=parameters, y=measure_new, color=measure_new)) +
+ern_rdoc <- ggplot(mr_ERN_table_rdoc_raw_new[c(1:8),], aes(x=est, label=parameters, y=measure_new, color=measure_new)) +
   geom_point(position=position_dodge(width = 1), stat = "identity") +
   geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
   geom_vline(xintercept = 0) +
@@ -611,7 +548,7 @@ mr_Inhib_table_rdoc_cov_raw_new <- mr_Inhib_table_rdoc_cov_raw_new %>%
   mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy (incongruent)", ifelse(measure=="rt", "RT interference", NA))))) %>%
   mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy (incongruent)", "RT interference", "Drift rate","Boundary separation")))
 
-inh <- ggplot(mr_Inhib_table_rdoc_cov_raw_new[c(1:4, 13:16),], aes(x=est, label=parameters, y=measure_new, color=measure_new)) +
+inh <- ggplot(mr_Inhib_table_rdoc_cov_raw_new[c(1:8),], aes(x=est, label=parameters, y=measure_new, color=measure_new)) +
   geom_point(position=position_dodge(width = 1), stat = "identity") +
   geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
   geom_vline(xintercept = 0) +
@@ -646,7 +583,7 @@ model_names <- list(
   'Drift rate'="Model 1"
 )
 
-ss <- ggplot(mr_Exec_table_rdoc_cov_raw_new[c(1:4, 13:16),], aes(x=est, label=parameters, y=measure_new, color=measure_new)) +
+ss <- ggplot(mr_Exec_table_rdoc_cov_raw_new[c(1:8),], aes(x=est, label=parameters, y=measure_new, color=measure_new)) +
   geom_point(position=position_dodge(width = 1), stat = "identity") +
   geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
   geom_vline(xintercept = 0) +
@@ -663,14 +600,14 @@ ss <- ggplot(mr_Exec_table_rdoc_cov_raw_new[c(1:4, 13:16),], aes(x=est, label=pa
 ```
 
 ```{r}
+acc_ern_r <- cor.test(LDDM_do3_rdoc_no_outliers$accuracy_incongruent_z, LDDM_do3_rdoc_no_outliers$FCz_ERN_080_z, method="pearson")
 acc_inhib_r <- cor.test(LDDM_do3_rdoc_no_outliers$accuracy_incongruent_z, LDDM_do3_rdoc_no_outliers$Inhib_time_rev_z, method="pearson")
-
 acc_exec_r <- cor.test(LDDM_do3_rdoc_no_outliers$accuracy_incongruent_z, LDDM_do3_rdoc_no_outliers$exec_composite_z, method="pearson")
 ```
 
 \newpage
 \begin{landscape}
-```{r, fig.cap = paste0("Multiple regression of behavioral measures predicting ERN and neuropsychological tests of inhibition and set-shifting Note: The bivariate correlation between accuracy and inhibition ($r$ = ",round(acc_inhib_r$estimate,3),", $p$ = ", round(acc_inhib_r$p.value,3),") and between accuracy and set-shifting ($r$ = ",round(acc_exec_r$estimate,3),", $p$ = ", round(acc_exec_r$p.value,3),") are non-significant, suggesting the presence of a suppression effect."), out.width='1\\linewidth', fig.width=10, fig.height=8}
+```{r, fig.cap = paste0("Multiple regression of behavioral measures predicting ERN and neuropsychological tests of inhibition and set-shifting Note: The bivariate correlations between accuracy and ERN ($r$ = ", round(acc_ern_r$estimate,3),", $p$ = ", round(acc_ern_r$p.value,3),"), accuracy and inhibition ($r$ = ",round(acc_inhib_r$estimate,3),", $p$ = ", round(acc_inhib_r$p.value,3),") and between accuracy and set-shifting ($r$ = ",round(acc_exec_r$estimate,3),", $p$ = ", round(acc_exec_r$p.value,3),") are non-significant, suggesting the presence of a suppression effect."), out.width='1\\linewidth', fig.width=10, fig.height=8}
 
 val_rdoc <- ggarrange(ern_rdoc + rremove("xylab"),
                       inh + rremove("xylab") + rremove("y.text") + rremove("y.ticks"),
@@ -684,11 +621,6 @@ val_rdoc <- annotate_figure(val_rdoc, left = grid::textGrob("Flanker behavioral 
 val_rdoc
 ```
 \end{landscape}
-
-```{r}
-inh_acc_cor <- corr.test(LDDM_do3_rdoc_no_outliers$Inhib_time_rev_z, LDDM_do3_rdoc_no_outliers$accuracy_incongruent_z, method="pearson")
-exec_acc_cor <- corr.test(LDDM_do3_rdoc_no_outliers$exec_composite_z, LDDM_do3_rdoc_no_outliers$accuracy_incongruent_z, method="pearson")
-```
 
 ```{r For Poster, eval=FALSE}
 # Split-half plot
@@ -821,9 +753,9 @@ ggsave(here("./../presentations/val_rdoc.png"), val_rdoc, device="png", width=17
 ```
 
 ```{r}
-rdoc_heritability_table <- read.csv("../tables/rdoc_heritability_table.csv")[,-1]
-rdoc_heritability_table <- rdoc_heritability_table[-c(4:6),]
-rdoc_heritability_table[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation", "NIH Toolbox", "Raw accuracy", "RT interference")
+rdoc_heritability_table <- read.csv(here("./tables/rdoc_heritability_table.csv"))[,-1]
+rdoc_heritability_table <- rdoc_heritability_table[-c(3:4),]
+rdoc_heritability_table[,1] <- c("Drift rate","Boundary separation", "NIH Toolbox", "Raw accuracy", "RT interference")
 rdoc_heritability_table[,2:3] <- round(rdoc_heritability_table[,2:3], 2)
 rdoc_heritability_table[,4] <- rdoc_heritability_table[,3]
 rdoc_heritability_table[,3] <- "  "

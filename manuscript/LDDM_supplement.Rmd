@@ -2,7 +2,7 @@
 title             : "Psychometrics of drift-diffusion model parameters derived from the Eriksen flanker task: Reliability and validity in two independent samples"
 shorttitle        : "Psychometrics of DDM"
 author: 
-  - name          : "Brent I. Rappaport, Allison M. Letkiewicz, James E. Glazer, Savannah N. Buchanan, Anna Weinberg, Stewart A. Shankman"
+  - name          : "Brent I. Rappaport,  Stewart A. Shankman, James E. Glazer, Savannah N. Buchanan, Anna Weinberg, Allison M. Letkiewicz"
 
 header-includes:
   - \usepackage{setspace}
@@ -20,6 +20,8 @@ header-includes:
   - \captionsetup[figure]{labelformat=Sformat} 
   - \floatplacement{figure}{H}
   - \raggedbottom
+  - \usepackage[scaled=1]{helvet}
+  - \renewcommand{\familydefault}{\sfdefault}
   
 floatsintext      : yes
 linenumbers       : no
@@ -38,7 +40,7 @@ geometry          : "left=3cm,right=3cm,top=2cm,bottom=2cm"
 #    - \usepackage{booktabs}
 ---
 
-```{r echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+```{r echo=FALSE, results='asis', message=FALSE, warning=FALSE}
     options(width=80, Ncpus = 6, mc.cores=6) #Set width
     rm(list=ls())     #Remove everything from environment
     cat("\014")       #Clear Console
@@ -172,6 +174,7 @@ save_correlation_matrix = function(df, filename, ...) {
 }
 ```
 
+\
 # Methods
 ## Participants
 ### Study 1
@@ -192,10 +195,11 @@ knitr::include_graphics('../figures/ga_ern.png')
 During the D-KEFS color-word interference task, participants name the ink color of 50 consecutive words that are printed in an ink color that is incongruent with the word (e.g., the word “blue” is printed in red ink). Participants are instructed to say the ink color aloud as quickly as they can “without making mistakes,” which requires overriding (i.e., inhibiting) the prepotent word reading response. The dependent measures were time to completion, but multiplied by -1 for reverse-scoring, with more negative scores representing poorer inhibition and set-shifting. During the category switching condition in design fluency, participants switch between connecting empty and filled dots with four straight lines as quickly as they can within 60s. In verbal fluency, participants switch between naming types of fruit and types of furniture as quickly as they can within 60s. In the switching condition of trail making, participants must switch between connecting numbers and letters in order (instructed to draw lines between the numbers [1 through 16] and letters [A through P] as quickly as they can). During the switching condition of the Color-Word interference test, participants alternate between naming the ink color of the word and reading the word when cued. Participants must override the more automatic word-reading response during the color-naming trials, and, when prompted, inhibit an old rule and shift to a new rule (e.g., changing from word reading to color naming); thus, this condition involves inhibition as well as switching abilities.
 
 ## Drift-diffusion modeling and fitting
-**HDDM version 0.9.6 was utilized with Python version 3.8 and Jupyter Notebook. The DDM models were specified using accuracy coding (i.e., subject responses were coded as accurate and inaccurate, with the upper (1) and lower (0) boundaries reflecting accurate and inaccurate responses, respectively. Starting values were initialized by finding the maximum a posteriori (MAP) via optimization. For all models, 2000 samples were drawn with 200 burn-in samples. To account for potential outliers and/or contaminated responses, the models were specified to assume that 5% of trials may not result from the drift-diffusion process by fitting a mixture model (see Supplement 2 section 3 for the model specification code). Trace plots indicated that all models converged (see Supplement 2 section 4). HDDM estimates the joint posterior distribution of all model parameters using a hierarchical approach. Specifically, group (i.e., mean-level across all participants) and individual-specific parameters are estimated. The parameter estimates that were carried forward into the main analyses were the individual-level parameter estimates.**
+**HDDM version 0.9.6 was utilized with Python version 3.8 and Jupyter Notebook. The DDM models were specified using accuracy coding (i.e., subject responses were coded as accurate and inaccurate, with the upper (1) and lower (0) boundaries reflecting accurate and inaccurate responses, respectively. Starting values were initialized by finding the maximum a posteriori (MAP) via optimization. For all models, 2000 samples were drawn with 200 burn-in samples. To account for potential outliers and/or contaminated responses, the models were specified to assume that 5% of trials may not result from the drift-diffusion process by fitting a mixture model (see Supplement 2 section 3 for the model specification code). Trace plots indicated that all models converged (see Supplement 2 section 4). Hierarchical DDM estimates the joint posterior distribution of all model parameters using a hierarchical approach. Specifically, group (i.e., mean-level across all participants) and individual-specific parameters are estimated. The parameter estimates that were carried forward into the main analyses were the individual-level parameter estimates.**
 
-Model 1 included a boundary separation, drift rate, and non-decision time parameter. Model 2 included a boundary separation, drift rate, non-decision time, and bias parameter. The drift rate parameter for Models 1 and 2 collapsed across trial type, such that congruent and incongruent trials were included in this estimate. Model 3 included a boundary separation and non-decision time parameter, and two drift rate parameters: one for congruent and one for incongruent trials. Model 4 (the primary model used in the studies) included a boundary separation, non-decision time, and bias parameter, and two drift rate parameters: one for congruent and one for incongruent trials.
+Model 1 included a boundary separation, drift rate, and non-decision time parameter. Model 2 included a boundary separation, drift rate, non-decision time, and bias parameter. The drift rate parameter for Models 1 and 2 collapsed across trial type, such that congruent and incongruent trials were included in this estimate. Model 3 included a boundary separation and non-decision time parameter, and two drift rate parameters: one for congruent and one for incongruent trials. Model 4 included a boundary separation, non-decision time, and bias parameter, and two drift rate parameters: one for congruent and one for incongruent trials.
 
+\
 # Results
 ## Drift-diffusion model fit
 Multiple alternative models were fit to assure that findings were not dependent on parameters modeled. Deviance information criterion (DIC) can be used to compare relative model fit, where a lower DIC indicates better model fit. Posterior checks indicated there were no issues with model convergence. Model selection was based on most used models in prior literature rather than model fit so as to assure that 1) overfitting did not affect psychometric results, and 2) that findings from the current study could provide the most useful information to others fitting their data with DDM models. Several alternative models were also fit to identify whether model parameterization affected the overall pattern of results. Results were comparable across models.
@@ -213,16 +217,17 @@ hddm_model_fits[,1] <- round(hddm_model_fits[,1],0)
 apa_table(hddm_model_fits,
           caption="Model fit of primary DDM model and alternative model specifications.",
           note="Model 1 = Drift rate, boundary separation, non-decision time,
-          Model 2 = Drift rate, boundary separation, non-decision time, starting bias,
+          Model 2 = Primary model chosen: Drift rate, boundary separation, non-decision time, starting bias,
           Model 3 = Drift rate (congruent), Drift rate (incongruent), boundary separation, non-decision time,
-          Model 4 = Primary model chosen: Drift rate (congruent), Drift rate (incongruent), boundary separation, non-decision time, starting bias",
+          Model 4 = Drift rate (congruent), Drift rate (incongruent), boundary separation, non-decision time, starting bias",
           placement="H",
           font_size="small"
           )
 ```
 
-## Test-retest reliability
-```{r Test-retest}
+<!-- ## Test-retest reliability -->
+
+```{r Test-retest, eval=FALSE}
 sttr_hddm_variables <- c("v_S1_B11","v_S2_B11","v_S3_B11",
                          "v_congruent_S1_B11.x","v_congruent_S2_B11.x","v_congruent_S3_B11.x",
                          "v_incongruent_S1_B11.x","v_incongruent_S2_B11.x","v_incongruent_S3_B11.x",
@@ -280,7 +285,7 @@ sttr_icc_table$ICC <- round(sttr_icc_table$ICC, 2)
 write.csv(sttr_icc_table, here("work/tables/sttr_icc_table.csv"))
 ```
 
-```{r, fig.cap = "Test-retest reliability of drift rate separated by condition across three sessions.", out.width='100%'}
+```{r, eval=FALSE, fig.cap = "Test-retest reliability of drift rate separated by condition across three sessions.", out.width='100%'}
 sttr_icc_table$parameters <- fct_rev(factor(sttr_icc_table$parameters, levels = sttr_icc_table$parameters))
 
 ggplot(sttr_icc_table[c(2:3),], aes(y=parameters, x=ICC, color=parameters)) +
@@ -297,6 +302,7 @@ ggplot(sttr_icc_table[c(2:3),], aes(y=parameters, x=ICC, color=parameters)) +
 ```
 
 ## Incremental convergent validity
+### Study 2
 ```{r}
 LDDM_do1_alt_rdoc <- read.csv(here("./RDoC/DDM_Results/Block_Based/RDoC_Day1_Block11_Alternative_Models.csv"), header=TRUE)
 
@@ -329,9 +335,9 @@ mr_ERN_table_d1_raw_new <- mr_ERN_table_d1_raw %>%
 
 mr_ERN_table_d1_raw_new <- mr_ERN_table_d1_raw_new %>%
   mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy (incongruent)", ifelse(measure=="rt", "RT interference", NA))))) %>%
-  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy (incongruent)", "RT interference", "Drift rate","Drift rate (congruent)", "Drift rate (incongruent)", "Boundary separation")))
+  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy (incongruent)", "RT interference", "Drift rate", "Boundary separation")))
 
-ern_d1 <- ggplot(mr_ERN_table_d1_raw_new[c(1:16),], aes(x=est, label=parameters, y=measure_new, color=measure_new)) +
+ern_d1 <- ggplot(mr_ERN_table_d1_raw_new[c(1:8),], aes(x=est, label=parameters, y=measure_new, color=measure_new)) +
   geom_point(position=position_dodge(width = 1), stat = "identity") +
   geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
   geom_vline(xintercept = 0) +
@@ -356,9 +362,9 @@ mr_ERN_table_d2_raw_new <- mr_ERN_table_d2_raw %>%
 
 mr_ERN_table_d2_raw_new <- mr_ERN_table_d2_raw_new %>%
   mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy (incongruent)", ifelse(measure=="rt", "RT interference", NA))))) %>%
-  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy (incongruent)", "RT interference", "Drift rate","Drift rate (congruent)", "Drift rate (incongruent)", "Boundary separation")))
+  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy (incongruent)", "RT interference", "Drift rate", "Boundary separation")))
 
-ern_d2 <- ggplot(mr_ERN_table_d2_raw_new[c(1:16),], aes(x=est, label=parameters, y=measure_new, color=measure_new)) +
+ern_d2 <- ggplot(mr_ERN_table_d2_raw_new[c(1:8),], aes(x=est, label=parameters, y=measure_new, color=measure_new)) +
   geom_point(position=position_dodge(width = 1), stat = "identity") +
   geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
   geom_vline(xintercept = 0) +
@@ -383,9 +389,9 @@ mr_ERN_table_d3_raw_new <- mr_ERN_table_d3_raw %>%
 
 mr_ERN_table_d3_raw_new <- mr_ERN_table_d3_raw_new %>%
   mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy (incongruent)", ifelse(measure=="rt", "RT interference", NA))))) %>%
-  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy (incongruent)", "RT interference", "Drift rate","Drift rate (congruent)", "Drift rate (incongruent)", "Boundary separation")))
+  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy (incongruent)", "RT interference", "Drift rate", "Boundary separation")))
 
-ern_d3 <- ggplot(mr_ERN_table_d3_raw_new[c(1:16),], aes(x=est, label=parameters, y=measure_new, color=measure_new)) +
+ern_d3 <- ggplot(mr_ERN_table_d3_raw_new[c(1:8),], aes(x=est, label=parameters, y=measure_new, color=measure_new)) +
   geom_point(position=position_dodge(width = 1), stat = "identity") +
   geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
   geom_vline(xintercept = 0) +
@@ -423,9 +429,9 @@ mr_ERN_table_rdoc_raw_new <- mr_ERN_table_rdoc_raw %>%
 
 mr_ERN_table_rdoc_raw_plot <- mr_ERN_table_rdoc_raw_new %>%
   mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy (incongruent)", ifelse(measure=="rt", "RT interference", NA))))) %>%
-  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy (incongruent)", "RT interference", "Drift rate","Drift rate (congruent)", "Drift rate (incongruent)", "Boundary separation")))
+  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy (incongruent)", "RT interference", "Drift rate", "Boundary separation")))
 
-ern_rdoc <- ggplot(mr_ERN_table_rdoc_raw_plot[c(5:12),], aes(x=est, label=parameters, y=measure_new, color=measure_new)) +
+ern_rdoc <- ggplot(mr_ERN_table_rdoc_raw_plot[c(1:8),], aes(x=est, label=parameters, y=measure_new, color=measure_new)) +
   geom_point(position=position_dodge(width = 1), stat = "identity") +
   geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
   geom_vline(xintercept = 0) +
@@ -454,7 +460,7 @@ mr_Inhib_table_rdoc_cov_raw_new <- mr_Inhib_table_rdoc_cov_raw %>%
 
 mr_Inhib_table_rdoc_cov_raw_new <- mr_Inhib_table_rdoc_cov_raw_new %>%
   mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy (incongruent)", ifelse(measure=="rt", "RT interference", NA))))) %>%
-  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy (incongruent)", "RT interference", "Drift rate", "Drift rate (congruent)", "Drift rate (incongruent)", "Boundary separation")))
+  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy (incongruent)", "RT interference", "Drift rate",  "Boundary separation")))
 
 inh <- ggplot(mr_Inhib_table_rdoc_cov_raw_new[c(5:12),], aes(x=est, label=parameters, y=measure_new, color=measure_new)) +
   geom_point(position=position_dodge(width = 1), stat = "identity") +
@@ -482,7 +488,7 @@ mr_Exec_table_rdoc_cov_raw_new <- mr_Exec_table_rdoc_cov_raw %>%
 
 mr_Exec_table_rdoc_cov_raw_new <- mr_Exec_table_rdoc_cov_raw_new %>%
   mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy (incongruent)", ifelse(measure=="rt", "RT interference", NA))))) %>%
-  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy (incongruent)", "RT interference", "Drift rate", "Drift rate (congruent)", "Drift rate (incongruent)", "Boundary separation")))
+  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy (incongruent)", "RT interference", "Drift rate",  "Boundary separation")))
 
 ss <- ggplot(mr_Exec_table_rdoc_cov_raw_new[c(5:12),], aes(x=est, label=parameters, y=measure_new, color=measure_new)) +
   geom_point(position=position_dodge(width = 1), stat = "identity") +
@@ -704,8 +710,6 @@ apa_table(mr_ERN_table_rdoc_alt3,
 ```
 
 ### RT interference omitted from multiple regressions
-#### Study 1
-##### ERN
 ```{r}
 i=1
 mr_ERN_table_rdoc_no_rt <- as.data.frame(matrix(nrow=6, ncol=4))
@@ -742,7 +746,7 @@ for (var in c("B11_avtz_DO_v_v_z","B11_avtz_DO_v_v_con_z","B11_avtz_DO_v_v_incon
 colnames(mr_ERN_table_rdoc_no_rt) <- c("Parameters","Drift rate", "NIH Toolbox", "Raw accuracy")
 ```
 
-#### Inhibition
+
 ```{r}
 LDDM_do3_rdoc_no_outliers$NL_time_rev <- -1*LDDM_do3_rdoc_no_outliers$NL_time
 LDDM_do3_rdoc_no_outliers$Inhib_time_rev <- -1*LDDM_do3_rdoc_no_outliers$Inhib_time
@@ -786,7 +790,7 @@ colnames(mr_INHIB_table_rdoc_cov_no_rt) <- c("Parameters","Drift rate", "NIH Too
           # caption="Multiple regression of behavioral measures predicting ERN and neuropsychological tests of inhibition and set-shifting")
 ```
 
-#### Set-shifting
+
 ```{r}
 LDDM_do3_rdoc_no_outliers$NL_time_rev <- -1*LDDM_do3_rdoc_no_outliers$NL_time
 LDDM_do3_rdoc_no_outliers$InSw_time_rev <- -1*LDDM_do3_rdoc_no_outliers$InSw_time
@@ -944,21 +948,18 @@ val_rdoc_no_rt
 \end{landscape}
 
 \newpage
-### Study 2
-#### ERN
-
 ```{r, fig.cap = "Multiple regression of behavioral measures predicting ERN across three sessions of Study 2 with RT interference omitted.", out.width='1\\linewidth', fig.width=10, fig.height=8}
 mr_table_names <- c("parameters", "ddm_est", "ddm_lci", "ddm_uci",
                                                  "nih_est", "nih_lci", "nih_uci",
                                                  "acc_est", "acc_lci", "acc_uci")
 
 i=1
-mr_ERN_table_d1_no_rt <- as.data.frame(matrix(nrow=6, ncol=5))
-mr_ERN_table_d1_no_rt[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias")
-mr_ERN_table_d1_no_rt_raw <- as.data.frame(matrix(nrow=6, ncol=5))
-mr_ERN_table_d1_no_rt_raw[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias")
+mr_ERN_table_d1_no_rt <- as.data.frame(matrix(nrow=4, ncol=5))
+mr_ERN_table_d1_no_rt[,1] <- c("Drift rate","Boundary separation","Non-decision time","Starting bias")
+mr_ERN_table_d1_no_rt_raw <- as.data.frame(matrix(nrow=4, ncol=5))
+mr_ERN_table_d1_no_rt_raw[,1] <- c("Drift rate","Boundary separation","Non-decision time","Starting bias")
 
-for (var in c("v_S1_B11_d1_z","v_congruent_S1_B11_d1_z","v_incongruent_S1_B11_d1_z","a_S1_B11_d1_z","t_S1_B11_d1_z","z_S1_B11_d1_z")) {
+for (var in paste0(c("B11_avtz_v","B11_avtz_a","B11_avtz_t","B11_avtz_z"),"_d1_z")) {
   eval(parse(text=paste0("
              model <- lm(FCZ_ERN_080_d1_z ~ ",var," + flanker_score_d1_z + accuracy_incongruent_d1_z + Age, LDDM_do2_d1_not_outliers)
              
@@ -988,12 +989,12 @@ colnames(mr_ERN_table_d1_no_rt) <- c("Parameters","DDM", "NIH Toolbox", "Accurac
 
 ### Day 2
 i=1
-mr_ERN_table_d2_no_rt <- as.data.frame(matrix(nrow=6, ncol=5))
-mr_ERN_table_d2_no_rt[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias")
-mr_ERN_table_d2_no_rt_raw <- as.data.frame(matrix(nrow=6, ncol=5))
-mr_ERN_table_d2_no_rt_raw[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias")
+mr_ERN_table_d2_no_rt <- as.data.frame(matrix(nrow=4, ncol=5))
+mr_ERN_table_d2_no_rt[,1] <- c("Drift rate","Boundary separation","Non-decision time","Starting bias")
+mr_ERN_table_d2_no_rt_raw <- as.data.frame(matrix(nrow=4, ncol=5))
+mr_ERN_table_d2_no_rt_raw[,1] <- c("Drift rate","Boundary separation","Non-decision time","Starting bias")
 
-for (var in c("v_S2_B11_d2_z","v_congruent_S2_B11_d2_z","v_incongruent_S2_B11_d2_z","a_S2_B11_d2_z","t_S2_B11_d2_z","z_S2_B11_d2_z")) {
+for (var in paste0(c("B11_avtz_v","B11_avtz_a","B11_avtz_t","B11_avtz_z"),"_d2_z")) {
   eval(parse(text=paste0("
              model <- lm(FCZ_ERN_080_d2_z ~ ",var," + flanker_score_d2_z + accuracy_incongruent_d2_z + Age, LDDM_do2_d2_not_outliers)
              
@@ -1022,12 +1023,12 @@ colnames(mr_ERN_table_d2_no_rt) <- c("Parameters","DDM", "NIH Toolbox", "Accurac
 
 ### Day 3
 i=1
-mr_ERN_table_d3_no_rt <- as.data.frame(matrix(nrow=6, ncol=5))
-mr_ERN_table_d3_no_rt[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias")
-mr_ERN_table_d3_no_rt_raw <- as.data.frame(matrix(nrow=6, ncol=5))
-mr_ERN_table_d3_no_rt_raw[,1] <- c("Drift rate","Drift rate (congruent)","Drift rate (incongruent)","Boundary separation","Non-decision time","Starting bias")
+mr_ERN_table_d3_no_rt <- as.data.frame(matrix(nrow=4, ncol=5))
+mr_ERN_table_d3_no_rt[,1] <- c("Drift rate","Boundary separation","Non-decision time","Starting bias")
+mr_ERN_table_d3_no_rt_raw <- as.data.frame(matrix(nrow=4, ncol=5))
+mr_ERN_table_d3_no_rt_raw[,1] <- c("Drift rate","Boundary separation","Non-decision time","Starting bias")
 
-for (var in c("v_S3_B11_d3_z","v_congruent_S3_B11_d3_z","v_incongruent_S3_B11_d3_z","a_S3_B11_d3_z","t_S3_B11_d3_z","z_S3_B11_d3_z")) {
+for (var in paste0(c("B11_avtz_v","B11_avtz_a","B11_avtz_t","B11_avtz_z"),"_d3_z")) {
   eval(parse(text=paste0("
              model <- lm(FCZ_ERN_080_d3_z ~ ",var," + flanker_score_d3_z + accuracy_incongruent_d3_z + Age, LDDM_do2_d3_not_outliers)
              
@@ -1061,9 +1062,9 @@ mr_ERN_table_d1_no_rt_raw_new <- mr_ERN_table_d1_no_rt_raw %>%
 
 mr_ERN_table_d1_no_rt_raw_new <- mr_ERN_table_d1_no_rt_raw_new %>%
   mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy (incongruent)", ifelse(measure=="rt", "RT interference", NA))))) %>%
-  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy (incongruent)", "RT interference", "Drift rate","Drift rate (congruent)", "Drift rate (incongruent)", "Boundary separation")))
+  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy (incongruent)", "Drift rate", "Boundary separation")))
 
-ern_d1_no_rt <- ggplot(mr_ERN_table_d1_no_rt_raw_new[c(1:12),], aes(x=est, label=parameters, y=measure_new, color=measure_new)) +
+ern_d1_no_rt <- ggplot(mr_ERN_table_d1_no_rt_raw_new[c(1:6),], aes(x=est, label=parameters, y=measure_new, color=measure_new)) +
   geom_point(position=position_dodge(width = 1), stat = "identity") +
   geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
   geom_vline(xintercept = 0) +
@@ -1087,9 +1088,9 @@ mr_ERN_table_d2_no_rt_raw_new <- mr_ERN_table_d2_no_rt_raw %>%
 
 mr_ERN_table_d2_no_rt_raw_new <- mr_ERN_table_d2_no_rt_raw_new %>%
   mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy (incongruent)", ifelse(measure=="rt", "RT interference", NA))))) %>%
-  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy (incongruent)", "RT interference", "Drift rate","Drift rate (congruent)", "Drift rate (incongruent)", "Boundary separation")))
+  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy (incongruent)", "Drift rate", "Boundary separation")))
 
-ern_d2_no_rt <- ggplot(mr_ERN_table_d2_no_rt_raw_new[c(1:12),], aes(x=est, label=parameters, y=measure_new, color=measure_new)) +
+ern_d2_no_rt <- ggplot(mr_ERN_table_d2_no_rt_raw_new[c(1:6),], aes(x=est, label=parameters, y=measure_new, color=measure_new)) +
   geom_point(position=position_dodge(width = 1), stat = "identity") +
   geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
   geom_vline(xintercept = 0) +
@@ -1113,9 +1114,9 @@ mr_ERN_table_d3_no_rt_raw_new <- mr_ERN_table_d3_no_rt_raw %>%
 
 mr_ERN_table_d3_no_rt_raw_new <- mr_ERN_table_d3_no_rt_raw_new %>%
   mutate(measure_new = ifelse(measure=="ddm", parameters, ifelse(measure=="nih", "NIH Toolbox", ifelse(measure=="acc", "Accuracy (incongruent)", ifelse(measure=="rt", "RT interference", NA))))) %>%
-  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy (incongruent)", "RT interference", "Drift rate","Drift rate (congruent)", "Drift rate (incongruent)", "Boundary separation")))
+  mutate(measure_new = factor(measure_new, levels=c("NIH Toolbox", "Accuracy (incongruent)", "Drift rate", "Boundary separation")))
 
-ern_d3_no_rt <- ggplot(mr_ERN_table_d3_no_rt_raw_new[c(1:12),], aes(x=est, label=parameters, y=measure_new, color=measure_new)) +
+ern_d3_no_rt <- ggplot(mr_ERN_table_d3_no_rt_raw_new[c(1:6),], aes(x=est, label=parameters, y=measure_new, color=measure_new)) +
   geom_point(position=position_dodge(width = 1), stat = "identity") +
   geom_errorbar(aes(xmin=lci, xmax=uci), width=.1,  position=position_dodge(width = 1), stat="identity") +
   geom_vline(xintercept = 0) +
@@ -1143,6 +1144,7 @@ ern_no_rt <- annotate_figure(ern_no_rt, left = grid::textGrob("Flanker behaviora
 ern_no_rt
 ```
 
+\
 # References
 
 ::: {#refs custom-style="Bibliography"}
