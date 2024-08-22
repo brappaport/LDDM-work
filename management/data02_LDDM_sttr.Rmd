@@ -1,5 +1,5 @@
 ---
-title: "Data prep script 2: Compute NIH TOolbox Flanker Score"
+title: "Data prep script 2: Compute NIH Toolbox Flanker Score"
 author: "Brent Rappaport"
 date: "`r format(Sys.time(),  '%Y-%m-%d')`"
 output:
@@ -74,7 +74,8 @@ LDDM_cleaning04_d1_calc1 <- LDDM_cleaning04_fullbeh_d1 %>%
 # Calculate the accuracy per subject (according to NIH toolbox this should be the number of correct responses * 5/total trials (330))
 LDDM_cleaning04_d1_calc2 <- LDDM_cleaning04_d1_calc1 %>%
   group_by(subj_idx) %>%
-  reframe(accuracy_score = sum(response==1)*(5/length(trial)))
+  reframe(accuracy_raw = sum(response==1)/length(trial),
+          accuracy_score = sum(response==1)*(5/length(trial)))
 
 LDDM_cleaning04_d1_ind <-  LDDM_cleaning04_d1_calc1 %>%
   group_by(subj_idx) %>% # per subject
@@ -196,7 +197,8 @@ LDDM_cleaning04_d2_calc1 <- LDDM_cleaning04_fullbeh_d2 %>%
 # Calculate the accuracy per subject (according to NIH toolbox this should be the number of correct responses * 5/total trials (330))
 LDDM_cleaning04_d2_calc2 <- LDDM_cleaning04_d2_calc1 %>%
   group_by(subj_idx) %>%
-  reframe(accuracy_score = sum(response==1)*(5/length(trial)))
+  reframe(accuracy_raw = sum(response==1)/length(trial),
+    accuracy_score = sum(response==1)*(5/length(trial)))
 
 LDDM_cleaning04_d2_ind <-  LDDM_cleaning04_d2_calc1 %>%
   group_by(subj_idx) %>% # per subject
@@ -318,7 +320,8 @@ LDDM_cleaning04_d3_calc1 <- LDDM_cleaning04_fullbeh_d3 %>%
 # Calculate the accuracy per subject (according to NIH toolbox this should be the number of correct responses * 5/total trials (330))
 LDDM_cleaning04_d3_calc2 <- LDDM_cleaning04_d3_calc1 %>%
   group_by(subj_idx) %>%
-  reframe(accuracy_score = sum(response==1)*(5/length(trial)))
+  reframe(accuracy_raw = sum(response==1)/length(trial),
+          accuracy_score = sum(response==1)*(5/length(trial)))
 
 LDDM_cleaning04_d3_ind <-  LDDM_cleaning04_d3_calc1 %>%
   group_by(subj_idx) %>% # per subject

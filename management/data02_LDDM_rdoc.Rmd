@@ -49,7 +49,6 @@ This script computes the NIH Toolbox Flanker score
 ```
 
 ## 1.5 Load Data
-Remember to immediately rename and remove. Avoid overwriting old data.
 ```{r}
 here::i_am("work/management/data02_LDDM_rdoc.Rmd")
 LDDM_cleaning04_fullbeh_rdoc <- read.csv(here("./RDoC/DDM_Trialwise_Prepped/Block-Based/RDoC_ERN_HDDM_data_acc_coded_rev_B11.csv"))

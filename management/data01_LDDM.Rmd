@@ -1,5 +1,5 @@
 ---
-title: "Data prep script 2: Importing ERP data"
+title: "Data prep script 1: Importing ERP data"
 author: "Brent Rappaport"
 date: "`r format(Sys.time(),  '%Y-%m-%d')`"
 output:
@@ -44,14 +44,20 @@ Remember to immediately rename and remove. Avoid overwriting old data.
 ```{r}
 here::i_am("work/management/data01_LDDM.Rmd")
 
-LDDM_cleaning02_DDM1 <- read.csv(here("DDM_Results/Block_Based_Day1/Day1_Block11_Alternative_Models.csv"))
-LDDM_cleaning02_DDM1$ID <- LDDM_cleaning02_DDM1$id
+# LDDM_cleaning02_DDM1 <- read.csv(here("DDM_Results/Block_Based_Day1/Day1_Block11_Alternative_Models.csv"))
+LDDM_cleaning02_DDM1 <- read.csv(here("work/data/StTr_S1_ERN_acc_B11_avtz_DO_vta_sdvz.csv")) %>%
+  filter(SubID < 90)
+LDDM_cleaning02_DDM1$ID <- LDDM_cleaning02_DDM1$SubID
 
-LDDM_cleaning02_DDM2 <- read.csv(here("DDM_Results/Block_Based_Day2/Day2_Block11_Alternative_Models_original.csv"))
-LDDM_cleaning02_DDM2$ID <- LDDM_cleaning02_DDM2$id
+# LDDM_cleaning02_DDM2 <- read.csv(here("DDM_Results/Block_Based_Day2/Day2_Block11_Alternative_Models_original.csv"))
+LDDM_cleaning02_DDM2 <- read.csv(here("work/data/StTr_S2_ERN_acc_B11_avtz_DO_vta_sdvz.csv")) %>%
+  filter(SubID < 90)
+LDDM_cleaning02_DDM2$ID <- LDDM_cleaning02_DDM2$SubID
 
-LDDM_cleaning02_DDM3 <- read.csv(here("DDM_Results/Block_Based_Day3/Day3_Block11_Alternative_Models_original.csv"))
-LDDM_cleaning02_DDM3$ID <- LDDM_cleaning02_DDM3$id
+# LDDM_cleaning02_DDM3 <- read.csv(here("DDM_Results/Block_Based_Day2/Day2_Block11_Alternative_Models_original.csv"))
+LDDM_cleaning02_DDM3 <- read.csv(here("work/data/StTr_S3_ERN_acc_B11_avtz_DO_vta_sdvz.csv")) %>%
+  filter(SubID < 90)
+LDDM_cleaning02_DDM3$ID <- LDDM_cleaning02_DDM3$SubID
 
 # LDDM_cleaning02_frac_prak_latency <- read.csv(here("eeg_processing/erppath/frac_peak_latency_p3_200800.csv"))[,1:15]
 # LDDM_cleaning02_frac_prak_latency <- LDDM_cleaning02_frac_prak_latency %>% 
