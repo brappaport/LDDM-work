@@ -1,9 +1,11 @@
-"","parameters","ICC"
-"1","Drift rate",0.580717960601614
-"2","Boundary separation",0.788092742041599
-"3","Non-decision time",0.454305149818932
-"4","Starting bias",0.385754878247406
-"5","NIH Toolbox",0.472949998435274
-"6","Raw accuracy",0.715831803517186
-"7","Raw accuracy (incongruent)",0.720563916371387
-"8","RT interference",0.751748332338601
+"","parameters","ICC","p"
+"1","Drift rate (congruent)",0.683,0
+"2","Drift rate (incongruent)",0.471,0
+"3","Boundary separation (congruent)",0.535,0
+"4","Boundary separation (incongruent)",0.78,0
+"5","Non-decision time (congruent)",0.404,0
+"6","Non-decision time (incongruent)",0.03,0.326
+"7","Starting bias",0.441,0
+"8","NIH Toolbox",0.473,0
+"9","Raw accuracy (incongruent)",0.721,0
+"10","RT interference",0.752,0
